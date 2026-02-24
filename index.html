@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Healthy + Brain - Inicio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#13ec5b',
+                        'primary-dark': '#0dbd47',
+                        'background-dark': '#102216',
+                        'surface-dark': '#1a3324',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white min-h-screen">
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-24 animate-fade-in shadow-2xl bg-background-dark border-x border-white/5">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between p-6 pb-2">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl">psychology</span>
+                <h1 class="text-xl font-bold tracking-tight">H + B</h1>
+            </div>
+            <div
+                class="h-10 w-10 overflow-hidden rounded-full border border-primary/20 bg-surface-dark flex items-center justify-center">
+                <span class="material-symbols-outlined text-gray-400">person</span>
+            </div>
+        </header>
+
+        <main class="flex-1 px-6 py-4 overflow-y-auto no-scrollbar">
+            <h2 class="text-3xl font-extrabold mb-2 text-white">Descubre tu <br><span
+                    class="text-primary">Potencial</span></h2>
+            <p class="text-sm text-gray-400 mb-8">Elige el plan ideal y desbloquea todas las sesiones exclusivas.</p>
+
+            <div id="catalog-container" class="space-y-6">
+                <!-- Product Card -->
+                <div
+                    class="block bg-surface-dark rounded-3xl overflow-hidden border border-white/10 shadow-lg relative">
+                    <div
+                        class="absolute top-4 left-4 z-10 bg-primary/20 text-primary border border-primary/30 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full backdrop-blur-md">
+                        Recomendado
+                    </div>
+                    <div class="relative h-56 bg-black overflow-hidden group border-b border-white/10">
+                        <img src="assets/images/cover.png" alt="Suscripción Premium"
+                            class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500 group-hover:scale-105 transform">
+                        <div class="absolute inset-0 bg-gradient-to-t from-surface-dark to-transparent"></div>
+                    </div>
+                    <div class="p-6 relative">
+                        <h3 class="font-bold text-xl text-white mb-2 leading-tight">Suscripción Premium Healthy + Brain
+                        </h3>
+                        <p class="text-sm text-gray-400 mb-6 line-clamp-2">Optimiza tus ritmos biológicos y mejora tu
+                            salud cerebral. Accede a las 15 sesiones interactivas premium, seguimiento de biomarcadores
+                            y herramientas de regulación de dopamina.</p>
+
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 line-through mb-0.5">49,99 €</p>
+                                <p class="text-2xl font-black text-primary">29,99 €<span
+                                        class="text-sm text-gray-400 font-medium">/mes</span></p>
+                            </div>
+                            <a href="resumen.html"
+                                class="flex items-center justify-center gap-2 bg-white text-background-dark font-bold px-5 py-3 rounded-2xl hover:scale-105 active:scale-95 transition-all">
+                                Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Fixed Bottom Nav -->
+        <nav
+            class="fixed bottom-0 left-0 w-full border-t border-white/10 bg-background-dark/95 backdrop-blur-md pb-safe pt-3 z-50">
+            <div class="flex items-center justify-around max-w-md mx-auto px-4 pb-4">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-primary">
+                    <span class="material-symbols-outlined filled"
+                        style="font-variation-settings: 'FILL' 1;">home</span>
+                    <span class="text-[10px] font-medium">Inicio</span>
+                </a>
+                <a href="#" class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">explore</span>
+                    <span class="text-[10px] font-medium">Explorar</span>
+                </a>
+                <a href="#" class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">person</span>
+                    <span class="text-[10px] font-medium">Perfil</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>
