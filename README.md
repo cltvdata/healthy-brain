@@ -1,13 +1,19 @@
-> Why do I have a folder named ".expo" in my project?
+# @babel/compat-data
 
-The ".expo" folder is created when an Expo project is started using "expo start" command.
+> The compat-data to determine required Babel plugins
 
-> What do the files contain?
+See our website [@babel/compat-data](https://babeljs.io/docs/babel-compat-data) for more information.
 
-- "devices.json": contains information about devices that have recently opened this project. This is used to populate the "Development sessions" list in your development builds.
-- "settings.json": contains the server configuration that is used to serve the application manifest.
+## Install
 
-> Should I commit the ".expo" folder?
+Using npm:
 
-No, you should not share the ".expo" folder. It does not contain any information that is relevant for other developers working on the project, it is specific to your machine.
-Upon project creation, the ".expo" folder is already added to your ".gitignore" file.
+```sh
+npm install --save @babel/compat-data
+```
+
+or using yarn:
+
+```sh
+yarn add @babel/compat-data
+```
