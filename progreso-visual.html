@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visual Progress - HEALTHY + BRAIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/design-system.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                        surface: '#121212',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-mesh {
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 138, 0, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 209, 255, 0.05) 0%, transparent 40%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .stat-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+        }
+
+        .goal-mirror {
+            perspective: 1000px;
+        }
+
+        .mirror-content {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .overlay-animated {
+            animation: pulse-overlay 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-overlay {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .hotspot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 209, 255, 0.4);
+            border: 2px solid #00d1ff;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 30;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulse-hotspot 2s infinite;
+        }
+
+        .hotspot::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 1px solid #00d1ff;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .hotspot:hover {
+            transform: scale(1.4);
+            background: #00d1ff;
+            box-shadow: 0 0 15px #00d1ff;
+        }
+
+        .hotspot:hover::after {
+            inset: -8px;
+            opacity: 1;
+        }
+
+        .hotspot.active {
+            background: #ff8a00;
+            border-color: #ff8a00;
+            box-shadow: 0 0 20px #ff8a00;
+        }
+
+        @keyframes pulse-hotspot {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 209, 255, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(0, 209, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 209, 255, 0); }
+        }
+
+        .measurement-input:focus {
+            border-color: #ff8a00;
+            background: rgba(255, 138, 0, 0.05);
+            box-shadow: 0 0 15px rgba(255, 138, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-white min-h-screen bg-mesh">
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl">
+
+        <!-- Header -->
+        <header class="flex items-center gap-4 p-6 sticky top-0 bg-dark/80 backdrop-blur-xl z-50">
+            <a href="index.html"
+                class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all shrink-0">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div>
+                <h1 class="text-xl font-black uppercase italic tracking-tighter leading-tight">Evolución <span
+                        class="text-primary italic">Visual</span></h1>
+                <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mt-0.5">Bio-Meta 3D & Tracking
+                </p>
+            </div>
+        </header>
+
+        <main class="flex-1 px-6 pt-2 overflow-y-auto no-scrollbar">
+
+            <!-- 3D Goal Mirror Section -->
+            <section class="mb-8 relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Bio-Espejo Meta</h3>
+                    <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                        <button onclick="setGender('male')" id="btn-male" class="px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark">MALE</button>
+                        <button onclick="setGender('female')" id="id-female" class="px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40">FEMALE</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 relative overflow-hidden group">
+                    <!-- Background Glow -->
+                    <div class="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+                    
+                    <!-- 3D Main Render -->
+                    <div class="relative w-full aspect-[4/5] rounded-[20px] overflow-hidden bg-black/40 border border-white/5">
+                        <img id="goal-body" src="assets/images/goal_male.png" class="w-full h-full object-cover animate-fade-in" alt="Goal Physique">
+                        
+                        <!-- Overlay Mask / Data Grid -->
+                        <img id="body-overlay" src="assets/images/stats_overlay.png" class="absolute inset-0 w-full h-full object-cover mix-blend-screen opacity-50 overlay-animated" alt="Data Overlay">
+                        
+                        <!-- HUD Labels -->
+                        <div class="absolute top-4 left-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Cuerpo Objetivo</p>
+                            <p class="text-lg font-black text-primary leading-none uppercase italic">Atleta <span class="text-white">Elite</span></p>
+                        </div>
+                        
+                        <div class="absolute bottom-4 right-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 text-right">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Grasa Corporal</p>
+                            <p class="text-2xl font-black text-neon leading-none italic">8.2%</p>
+                        </div>
+
+                        <!-- Hotspots Container -->
+                        <div id="hotspots-container" class="absolute inset-0 pointer-events-auto">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Biometric Measurements Form -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Métricas de Escala</h3>
+                    <div class="flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        <span class="text-[9px] font-black text-primary uppercase">Calculando Bio-IA</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 border-white/10">
+                    <div id="measure-form" class="grid grid-cols-2 gap-x-4 gap-y-6">
+                        <!-- Dynamically populated based on gender -->
+                    </div>
+                    <button onclick="saveMeasurements()" class="w-full mt-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                        Actualizar Biometría
+                        <span class="material-symbols-outlined text-[18px]">sync_saved_locally</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Impact Metrics -->
+            <section class="mb-8 grid grid-cols-2 gap-3">
+                <div class="glass-card p-5 border-neon/20 bg-neon/5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-neon text-[18px]">show_chart</span>
+                        <span class="text-[9px] font-black text-neon uppercase tracking-widest">Diferencial</span>
+                    </div>
+                    <p class="text-2xl font-black text-white italic">-12% <span class="text-[10px] text-white/40 not-italic uppercase tracking-normal">Grasa</span></p>
+                    <div class="stat-bar mt-3">
+                        <div class="stat-fill bg-neon w-[70%]"></div>
+                    </div>
+                </div>
+                <div class="glass-card p-5 border-primary/20 bg-primary/5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-primary text-[18px]">fitness_center</span>
+                        <span class="text-[9px] font-black text-primary uppercase tracking-widest">Músculo</span>
+                    </div>
+                    <p class="text-2xl font-black text-white italic">+4.5 <span class="text-[10px] text-white/40 not-italic uppercase tracking-normal">kg</span></p>
+                    <div class="stat-bar mt-3">
+                        <div class="stat-fill bg-primary w-[45%]"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Progress Section -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Cargas de Evolución</h3>
+                    <span class="text-[10px] font-black text-primary uppercase">Última: Ayer</span>
+                </div>
+                
+                <div id="upload-zone" onclick="triggerUpload()" class="glass-card p-10 flex flex-col items-center justify-center border-dashed border-white/20 hover:border-primary/40 cursor-pointer transition-all group">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                        <span class="material-symbols-outlined text-white/40 text-[32px] group-hover:text-primary">add_a_photo</span>
+                    </div>
+                    <p class="text-[11px] font-black uppercase tracking-widest text-white mb-1">Subir Foto de Perfil</p>
+                    <p class="text-[9px] text-white/30 uppercase font-bold">Frontal, Lateral o Dorsal</p>
+                    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(event)">
+                </div>
+
+                <!-- History Grid -->
+                <div class="grid grid-cols-4 gap-2 mt-4" id="photo-history">
+                    <div class="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                        <img src="assets/images/cover.png" class="w-full h-full object-cover opacity-50 gray-scale" alt="Old">
+                    </div>
+                    <div class="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/10">visibility_off</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Verdict Card -->
+            <section class="mb-10">
+                <div class="glass-card p-6 bg-gradient-to-br from-primary/10 to-neon/5 relative overflow-hidden">
+                    <div class="flex gap-4 items-start relative z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                            <span class="material-symbols-outlined text-primary">psychology</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[13px] font-black uppercase italic mb-2">Predicción Bio-IA</h4>
+                            <p class="text-[11px] text-white/70 leading-relaxed font-medium">
+                                Basado en tu tasa de oxidación lipídica actual y volumen de entrenamiento, proyectamos que alcanzarás tu <span class="text-primary font-bold">Meta 3D</span> en <span class="text-neon font-bold">14 semanas</span> manteniendo el déficit actual.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals / Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-primary text-dark font-black rounded-full shadow-2xl transition-all scale-0 opacity-0 z-[100] uppercase italic text-xs">
+        Foto subida con éxito
+    </div>
+
+    <script>
+        let currentGender = 'male';
+
+        const HOTSPOTS_DATA = {
+            male: [
+                { id: 'hombros', label: 'Hombros', top: '22%', left: '50%', unit: 'cm' },
+                { id: 'pecho', label: 'Pecho', top: '32%', left: '50%', unit: 'cm' },
+                { id: 'biceps', label: 'Bíceps', top: '35%', left: '25%', unit: 'cm' },
+                { id: 'cintura', label: 'Cintura', top: '48%', left: '50%', unit: 'cm' },
+                { id: 'muslos', label: 'Muslos', top: '65%', left: '40%', unit: 'cm' },
+                { id: 'pantorrillas', label: 'Pantorrillas', top: '82%', left: '42%', unit: 'cm' }
+            ],
+            female: [
+                { id: 'pecho', label: 'Pecho/Busto', top: '32%', left: '50%', unit: 'cm' },
+                { id: 'brazos', label: 'Brazos', top: '35%', left: '28%', unit: 'cm' },
+                { id: 'cintura', label: 'Cintura', top: '45%', left: '50%', unit: 'cm' },
+                { id: 'caderas', label: 'Caderas', top: '55%', left: '50%', unit: 'cm' },
+                { id: 'muslos', label: 'Muslos', top: '68%', left: '40%', unit: 'cm' }
+            ]
+        };
+
+        function renderHotspots() {
+            const container = document.getElementById('hotspots-container');
+            const form = document.getElementById('measure-form');
+            container.innerHTML = '';
+            form.innerHTML = '';
+
+            HOTSPOTS_DATA[currentGender].forEach(spot => {
+                // Create Hotspot
+                const el = document.createElement('div');
+                el.className = 'hotspot';
+                el.style.top = spot.top;
+                el.style.left = spot.left;
+                el.id = `spot-${spot.id}`;
+                el.onclick = () => focusInput(spot.id);
+                container.appendChild(el);
+
+                // Create Input
+                const inputDiv = document.createElement('div');
+                inputDiv.className = 'group';
+                inputDiv.innerHTML = `
+                    <label class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2 block group-focus-within:text-primary transition-colors">${spot.label}</label>
+                    <div class="relative">
+                        <input type="number" id="input-${spot.id}" placeholder="--" 
+                               onfocus="activateSpot('${spot.id}')" onblur="deactivateSpot('${spot.id}')"
+                               class="measurement-input w-full bg-white/2 border border-white/5 rounded-xl py-4 px-4 text-[14px] font-black focus:outline-none transition-all pr-12">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20">CM</span>
+                    </div>
+                `;
+                form.appendChild(inputDiv);
+            });
+        }
+
+        function focusInput(id) {
+            document.getElementById(`input-${id}`).focus();
+        }
+
+        function activateSpot(id) {
+            document.querySelectorAll('.hotspot').forEach(s => s.classList.remove('active'));
+            document.getElementById(`spot-${id}`).classList.add('active');
+        }
+
+        function deactivateSpot(id) {
+            document.getElementById(`spot-${id}`).classList.remove('active');
+        }
+
+        function setGender(gender) {
+            currentGender = gender;
+            const btnMale = document.getElementById('btn-male');
+            const btnFemale = document.getElementById('id-female');
+            const imgBody = document.getElementById('goal-body');
+
+            if (gender === 'male') {
+                btnMale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark";
+                btnFemale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40";
+                imgBody.src = "assets/images/goal_male.png";
+            } else {
+                btnFemale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-neon text-dark";
+                btnMale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40";
+                imgBody.src = "assets/images/goal_female.png";
+            }
+            renderHotspots();
+        }
+
+        function saveMeasurements() {
+            showToast('Biometría actualizada');
+            // Logic to persist in localStorage could go here
+        }
+
+        function triggerUpload() {
+            document.getElementById('file-input').click();
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                showToast('Foto subida con éxito');
+                // Simulation of adding to history
+                const history = document.getElementById('photo-history');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = "aspect-square rounded-xl overflow-hidden bg-white/5 border border-primary/30 animate-fade-in";
+                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    history.insertBefore(div, history.firstChild);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.transform = "translateX(-50%) scale(1)";
+            toast.style.opacity = "1";
+            setTimeout(() => {
+                toast.style.transform = "translateX(-50%) scale(0)";
+                toast.style.opacity = "0";
+            }, 3000);
+        }
+
+        // Init
+        renderHotspots();
+    </script>
+</body>
+
+</html>
