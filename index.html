@@ -77,15 +77,17 @@
                     <span
                         class="px-2 py-0.5 bg-neon/20 text-neon rounded-md text-[10px] font-bold uppercase tracking-widest border border-neon/30">LVL
                         1</span>
-                    <span class="text-[10px] text-text-gray font-bold uppercase">100/500 XP</span>
+                    <span class="text-[10px] text-text-gray font-bold uppercase">150/500 XP</span>
                 </div>
-                <div class="flex items-center gap-1">
-                    <span class="material-symbols-outlined text-primary text-sm">stars</span>
-                    <span class="text-xs font-bold">100 COINS</span>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                        <span class="material-symbols-outlined text-primary text-[14px] filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        <span id="token-balance" class="text-[11px] font-black text-primary uppercase">450 <span class="text-[9px] opacity-70">NTK</span></span>
+                    </div>
                 </div>
             </div>
-            <div class="xp-bar-container">
-                <div class="xp-bar-fill w-[20%]"></div>
+            <div class="xp-bar-container h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <div class="xp-bar-fill h-full bg-gradient-to-r from-neon to-primary w-[30%] shadow-[0_0_10px_rgba(0,209,255,0.3)]"></div>
             </div>
         </section>
 
@@ -266,6 +268,26 @@
                     <div>
                         <span class="block text-[10px] font-black text-white uppercase tracking-tight">Protocolos de Bio-Hacking</span>
                         <span class="text-[8px] text-text-gray font-bold uppercase underline">NotebookLM Master Sync</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Bio-Synergy: Rewards & Community -->
+            <section class="mt-8 flex gap-3">
+                <a href="recompensas.html" class="flex-1 glass-card p-5 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group overflow-hidden relative">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/10 rounded-full blur-xl group-hover:scale-150 transition-all"></div>
+                    <div class="relative z-10">
+                        <span class="material-symbols-outlined text-primary text-[28px] mb-3">redeem</span>
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-white">Marketplace</h4>
+                        <p class="text-[8px] text-white/40 uppercase font-bold">Canjear Tokens</p>
+                    </div>
+                </a>
+                <a href="comunidad.html" class="flex-1 glass-card p-5 border-neon/20 bg-neon/5 hover:bg-neon/10 transition-all group overflow-hidden relative">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-neon/10 rounded-full blur-xl group-hover:scale-150 transition-all"></div>
+                    <div class="relative z-10">
+                        <span class="material-symbols-outlined text-neon text-[28px] mb-3">groups</span>
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-white">Comunidad</h4>
+                        <p class="text-[8px] text-white/40 uppercase font-bold">Ranking Social</p>
                     </div>
                 </a>
             </section>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bio-Marketplace - HEALTHY + BRAIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/design-system.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #0a0a0a; color: white; -webkit-tap-highlight-color: transparent; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; transition: all 0.3s ease; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .token-glow { filter: drop-shadow(0 0 8px rgba(255, 138, 0, 0.5)); }
+        @keyframes pulse-gold { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+        .animate-pulse-gold { animation: pulse-gold 3s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col pb-32">
+        
+        <!-- Header -->
+        <header class="p-6 flex items-center justify-between sticky top-0 bg-dark/60 backdrop-blur-xl z-50">
+            <a href="index.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <h1 class="text-xl font-black uppercase italic tracking-tighter">Bio <span class="text-primary text-2xl">Market</span></h1>
+            <div class="w-10"></div>
+        </header>
+
+        <main class="flex-1 px-6 pt-4 overflow-y-auto no-scrollbar">
+            
+            <!-- Token Balance Hero -->
+            <section class="mb-10 text-center relative py-12">
+                <div class="absolute inset-0 bg-primary/5 blur-3xl rounded-full scale-150 pointer-events-none"></div>
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-[0_0_50px_rgba(255,138,0,0.3)] mb-6 animate-float">
+                        <span class="material-symbols-outlined text-[48px] text-white filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                    </div>
+                    <p class="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Tus Activos de Dopamina</p>
+                    <h2 id="main-balance" class="text-5xl font-black italic tracking-tighter text-white">450 <span class="text-2xl text-primary opacity-60">NTK</span></h2>
+                    <div class="mt-4 px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-primary">Nivel de Optimización: Pro</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rewards Catalog -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Catálogo de Canje</h3>
+                    <span class="text-[10px] text-primary font-bold">Ver Todos</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Reward 1 -->
+                    <div class="glass-card p-4 flex gap-4 items-center group">
+                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 overflow-hidden relative">
+                            <img src="https://images.unsplash.com/photo-1593094855729-19cca04f3748?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover opacity-50 gray-scale" alt="Supps">
+                            <span class="absolute inset-0 flex items-center justify-center material-symbols-outlined text-primary text-3xl">fitness_center</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-[12px] font-black uppercase mb-1">Cinturón Halterofilia Pro</h4>
+                            <p class="text-[10px] text-white/40 font-medium">Bio-Tech Affiliate Program</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs font-black text-primary">1,200 NTK</span>
+                                <span class="text-[9px] text-white/20 line-through">2,500</span>
+                            </div>
+                        </div>
+                        <button onclick="redeem(1200, 'Cinturón Halterofilia')" class="px-3 py-2 bg-primary/10 text-primary text-[10px] font-black rounded-xl border border-primary/20 hover:bg-primary hover:text-black transition-all">CANJEAR</button>
+                    </div>
+
+                    <!-- Reward 2 -->
+                    <div class="glass-card p-4 flex gap-4 items-center border-neon/20 bg-neon/5">
+                        <div class="w-16 h-16 rounded-2xl bg-neon/10 flex items-center justify-center shrink-0 border border-neon/20">
+                            <span class="material-symbols-outlined text-neon text-3xl">local_pharmacy</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-[12px] font-black uppercase mb-1">Pack Proteína Aislada</h4>
+                            <p class="text-[10px] text-white/40 font-medium">Metabolic Solutions Co.</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs font-black text-neon">400 NTK</span>
+                                <span class="text-[9px] text-white/20">Descuento -50%</span>
+                            </div>
+                        </div>
+                        <button onclick="redeem(400, 'Pack Proteína')" class="px-3 py-2 bg-neon/20 text-neon text-[10px] font-black rounded-xl border border-neon/30 hover:bg-neon hover:text-black transition-all">CANJEAR</button>
+                    </div>
+
+                    <!-- Reward 3 -->
+                    <div class="glass-card p-4 flex gap-4 items-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                            <span class="material-symbols-outlined text-white/40 text-3xl">headset_mic</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-[12px] font-black uppercase mb-1">Auriculares Bio-Feedback</h4>
+                            <p class="text-[10px] text-white/40 font-medium">WaveState Analytics</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-xs font-black text-primary">2,500 NTK</span>
+                                <span class="text-[9px] text-white/20">Stock Limitado</span>
+                            </div>
+                        </div>
+                        <button onclick="redeem(2500, 'Auriculares Bio')" class="px-3 py-2 bg-white/5 text-white/40 text-[10px] font-black rounded-xl border border-white/10 grayscale">INSUFICIENTE</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Affiliate Banner -->
+            <section class="mb-10">
+                <div class="glass-card p-6 bg-gradient-to-r from-primary/20 to-orange-600/10 border-primary/30 relative overflow-hidden group">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/20 rounded-full blur-2xl group-hover:scale-125 transition-all"></div>
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-black italic uppercase italic mb-3">Conviértete en <span class="text-primary italic">Embajador</span></h4>
+                        <p class="text-[11px] text-white/70 leading-relaxed mb-4">Gana el doble de tokens compartiendo tus progresos biológicos y refiriendo a nuevos guerreros.</p>
+                        <button class="px-6 py-2.5 bg-primary text-black font-black text-[11px] rounded-full shadow-lg shadow-primary/20 uppercase tracking-widest italic">Activar Nivel Bio-Soc</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Toast -->
+        <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-primary text-black font-black rounded-full shadow-2xl transition-all scale-0 opacity-0 z-[100] uppercase italic text-xs flex items-center gap-3">
+            <span class="material-symbols-outlined font-black">check_circle</span>
+            Canje realizado con éxito
+        </div>
+    </div>
+
+    <script>
+        let balance = 450;
+        
+        function redeem(cost, item) {
+            if (balance >= cost) {
+                balance -= cost;
+                document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
+                
+                const toast = document.getElementById('toast');
+                toast.classList.remove('scale-0', 'opacity-0');
+                toast.classList.add('scale-100', 'opacity-100');
+                
+                setTimeout(() => {
+                    toast.classList.remove('scale-100', 'opacity-100');
+                    toast.classList.add('scale-0', 'opacity-0');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

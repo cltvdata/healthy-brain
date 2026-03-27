@@ -26,7 +26,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Gamification Stats (Image 3 Style) */}
+      {/* Gamification Stats (Neuro-Tokens NTK) */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
          <View style={{ flex: 1, marginRight: 15 }}>
             <View style={AppStyles.rowBetween}>
@@ -37,10 +37,33 @@ export default function HomeScreen() {
               <View style={{ width: '65%', height: '100%', backgroundColor: AppColors.primaryNeonBlue }} />
             </View>
          </View>
-         <View style={[AppStyles.rowCentered, { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 15 }]}>
-            <Ionicons name="cash" size={16} color={AppColors.primaryBioGreen} style={{ marginRight: 6 }} />
-            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 14 }}>100</Text>
-         </View>
+         <TouchableOpacity 
+          style={[AppStyles.rowCentered, { backgroundColor: 'rgba(255, 138, 0, 0.1)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(255, 138, 0, 0.2)' }]}
+          onPress={() => router.push('/recompensas' as any)}
+        >
+            <Ionicons name="flash" size={16} color={AppColors.primaryOrange} style={{ marginRight: 6 }} />
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 14 }}>450 <Text style={{ color: AppColors.primaryOrange, fontSize: 10 }}>NTK</Text></Text>
+         </TouchableOpacity>
+      </View>
+
+      {/* Bio-Synergy Navigation (Market & Community) */}
+      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 25 }}>
+         <TouchableOpacity 
+           style={[AppStyles.glassCard, { flex: 1, padding: 15, borderColor: 'rgba(255, 138, 0, 0.3)', backgroundColor: 'rgba(255, 138, 0, 0.05)' }]}
+           onPress={() => router.push('/recompensas' as any)}
+         >
+            <Ionicons name="gift" size={24} color={AppColors.primaryOrange} style={{ marginBottom: 8 }} />
+            <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Marketplace</Text>
+            <Text style={[AppStyles.textGray, { fontSize: 9 }]}>Canjear Tokens</Text>
+         </TouchableOpacity>
+         <TouchableOpacity 
+           style={[AppStyles.glassCard, { flex: 1, padding: 15, borderColor: 'rgba(0, 209, 255, 0.3)', backgroundColor: 'rgba(0, 209, 255, 0.05)' }]}
+           onPress={() => router.push('/comunidad' as any)}
+         >
+            <Ionicons name="people" size={24} color={AppColors.primaryNeonBlue} style={{ marginBottom: 8 }} />
+            <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Comunidad</Text>
+            <Text style={[AppStyles.textGray, { fontSize: 9 }]}>Ranking Bio</Text>
+         </TouchableOpacity>
       </View>
 
       {/* Pill Trackers (Image 1 Style) */}
