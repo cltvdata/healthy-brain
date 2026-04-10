@@ -82,7 +82,7 @@
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
                         <span class="material-symbols-outlined text-primary text-[14px] filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
-                        <span id="token-balance" class="text-[11px] font-black text-primary uppercase">450 <span class="text-[9px] opacity-70">NTK</span></span>
+                        <span class="text-[11px] font-black text-primary uppercase"><span id="token-balance">450</span> <span class="text-[9px] opacity-70">NTK</span></span>
                     </div>
                 </div>
             </div>
@@ -97,16 +97,17 @@
             <img src="assets/images/hero.png" alt="Fitness Hero"
                 class="absolute inset-0 w-full h-full object-cover hero-mask scale-105 hover:scale-110 transition-transform duration-700">
             <div class="relative z-20 h-full flex flex-col justify-end pb-8">
-                <h2 class="text-3xl font-black leading-[1.1] mb-2">TÚ ERES TU PROPIO <br><span
-                        class="text-gradient-orange uppercase">Límite</span></h2>
+                <span class="text-[10px] font-black uppercase tracking-widest text-primary mb-1 inline-block bg-primary/20 px-2 py-0.5 rounded-md border border-primary/30 w-max">Ventana de Plasticidad</span>
+                <h2 class="text-3xl font-black leading-[1.1] mb-2 text-white">MAXIMIZA TU <br><span
+                        class="text-gradient-neon uppercase italic text-neon">Neuro-Química</span></h2>
                 <div class="flex gap-3">
-                    <div class="glass-card px-3 py-1.5 flex items-center gap-2 border-white/20">
-                        <span class="material-symbols-outlined text-primary text-sm">local_fire_department</span>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">300 kcal</span>
+                    <div class="glass-card px-3 py-1.5 flex items-center gap-2 border-primary/20 bg-primary/10">
+                        <span class="material-symbols-outlined text-primary text-sm filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-white">Peak BDNF</span>
                     </div>
                     <div class="glass-card px-3 py-1.5 flex items-center gap-2 border-white/20">
                         <span class="material-symbols-outlined text-neon text-sm">directions_run</span>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">1,250 pasos</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Acelerar</span>
                     </div>
                 </div>
             </div>
@@ -115,7 +116,7 @@
         <main class="flex-1 px-6 py-8 overflow-y-auto no-scrollbar relative">
 
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Dashboard de Control</h3>
+                <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Control Neurometabólico</h3>
                 <span class="material-symbols-outlined text-white/30 text-lg">grid_view</span>
             </div>
 
@@ -295,7 +296,7 @@
             <!-- Quick Log Premium -->
             <section class="mt-10">
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">One-Tap Logging</h3>
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Bio-Logging Rápido</h3>
                     <div class="flex gap-1">
                         <div class="w-1 h-1 rounded-full bg-primary/40"></div>
                         <div class="w-1 h-1 rounded-full bg-primary/40"></div>
@@ -305,25 +306,25 @@
 
                 <div class="flex justify-between gap-3">
                     <button onclick="quickLog(this, 'agua')"
-                        class="flex-1 glass-card py-5 flex flex-col items-center gap-2 group glass-card-interactive">
+                        class="flex-1 glass-card py-5 flex flex-col items-center gap-2 group glass-card-interactive border-neon/10">
                         <span
                             class="material-symbols-outlined text-neon group-hover:scale-110 transition-transform">water_drop</span>
                         <span
-                            class="text-[10px] font-bold text-text-gray group-hover:text-neon uppercase tracking-tighter">Hidratación</span>
+                            class="text-[10px] font-bold text-text-gray group-hover:text-neon uppercase tracking-tighter">Nivel H2O</span>
                     </button>
                     <button onclick="quickLog(this, 'comida')"
                         class="flex-1 glass-card py-5 flex flex-col items-center gap-2 group glass-card-interactive border-orange-500/10">
                         <span
-                            class="material-symbols-outlined text-orange-400 group-hover:scale-110 transition-transform">restaurant</span>
+                            class="material-symbols-outlined text-orange-400 group-hover:scale-110 transition-transform">bolt</span>
                         <span
-                            class="text-[10px] font-bold text-text-gray group-hover:text-orange-400 uppercase tracking-tighter">Energía</span>
+                            class="text-[10px] font-bold text-text-gray group-hover:text-orange-400 uppercase tracking-tighter">Glucógeno</span>
                     </button>
                     <button onclick="quickLog(this, 'estado')"
                         class="flex-1 glass-card py-5 flex flex-col items-center gap-2 group glass-card-interactive border-purple-500/10">
                         <span
-                            class="material-symbols-outlined text-purple-400 group-hover:scale-110 transition-transform">psychology</span>
+                            class="material-symbols-outlined text-purple-400 group-hover:scale-110 transition-transform">neurology</span>
                         <span
-                            class="text-[10px] font-bold text-text-gray group-hover:text-purple-400 uppercase tracking-tighter">Mindset</span>
+                            class="text-[10px] font-bold text-text-gray group-hover:text-purple-400 uppercase tracking-tighter">Dopamina</span>
                     </button>
                 </div>
             </section>
@@ -372,6 +373,10 @@
         greetingElement.innerText = `${greetText}, Guerrero`;
 
         function syncData() {
+            // NTK Token Balance Sync
+            const balance = localStorage.getItem('hb_token_balance') || '450';
+            document.getElementById('token-balance').innerText = balance;
+
             const currentWorkout = JSON.parse(localStorage.getItem('hb_current_workout') || '[]');
             document.getElementById('sync-entrenar').innerHTML = currentWorkout.length > 0
                 ? `<span class="text-primary font-bold">${currentWorkout.length} activos</span>`

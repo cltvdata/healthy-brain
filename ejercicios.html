@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HEALTHY + BRAIN - Biblioteca</title>
+    <title>HEALTHY + BRAIN - Bio-Librería de Longevidad</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
@@ -85,7 +85,7 @@
             <div>
                 <h1 class="text-2xl font-black uppercase tracking-tighter italic">Bio-<span
                         class="text-primary">Librería</span></h1>
-                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-1">Enciclopedia Técnica</p>
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-1">Protocolos de Longevidad</p>
             </div>
             <a href="perfil-setup.html"
                 class="h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg shrink-0">
@@ -109,6 +109,8 @@
             <div id="category-container" class="flex gap-2 overflow-x-auto no-scrollbar">
                 <button onclick="setCategory('Todos', this)"
                     class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all pill-active shrink-0 uppercase tracking-widest">Todos</button>
+                <button onclick="setCategory('Cardio', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">VO₂ Max</button>
                 <button onclick="setCategory('Pecho', this)"
                     class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Pecho</button>
                 <button onclick="setCategory('Espalda', this)"
@@ -133,6 +135,19 @@
                 <button onclick="setMaterial('Sin Peso', this)"
                     class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all shrink-0 uppercase tracking-tighter italic">Peso
                     Corporal</button>
+            </div>
+        </div>
+
+        <!-- Longevity Bio-Banner -->
+        <div class="px-6 pt-6 pb-0">
+            <div class="relative rounded-3xl p-5 overflow-hidden border border-neon/20 bg-neon/5 mb-2">
+                <div class="absolute inset-0 bg-gradient-to-br from-neon/10 via-transparent to-transparent pointer-events-none"></div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+                    <p class="text-[9px] font-black text-neon uppercase tracking-[0.3em]">Principio Científico #1</p>
+                </div>
+                <p class="text-white font-black text-sm italic leading-snug">"El músculo es el <span class="text-neon">órgano de la longevidad.</span> No tener masa muscular es 8× más riesgoso que fumar."</p>
+                <p class="text-white/40 text-[9px] font-bold uppercase tracking-wider mt-2">Haz click en cualquier protocolo para activarlo</p>
             </div>
         </div>
 
@@ -263,16 +278,27 @@
 
     <script>
         const exercises = [
+            // === CARDIO / VO2 MAX ===
+            { name: "Protocolo Noruego", category: "Cardio", material: "Sin Peso", sci: "VO₂ Max", desc: "4 series de 4 minutos de alta intensidad (≥85% FC máx) con 4 minutos de recuperación activa moderada. Solo 30 minutos, 2×/semana. El protocolo más efectivo científicamente para mejorar la capacidad cardiorrespiratoria.", muscles: "Corazón, Pulmones, Mitocondrias", level: "Avanzado", benefits: "Mejora el VO₂ Max hasta un 10% en 8 semanas. El biomarcador #1 de supervivencia." },
+            { name: "Carrera de Intervalos", category: "Cardio", material: "Sin Peso", sci: "VO₂ Max", desc: "Alternar 1 minuto al 90% de esfuerzo con 2 minutos de trote recuperador. 6–8 repeticiones. Correr rápido, recuperar lento — así se construye el motor aeróbico.", muscles: "Corazón, Glúteos, Cuádriceps, Pantorrillas", level: "Intermedio", benefits: "Activa la biogénesis mitocondrial — más mitocondrias = más energía crónica." },
+            { name: "Caminata en Zona 2", category: "Cardio", material: "Sin Peso", sci: "Longevidad", desc: "Caminar 45–60 minutos a ritmo conversacional (puedes hablar pero hay esfuerzo). Zona 2 = base aeróbica fundamental para salud metabólica y longevidad.", muscles: "Mitocondrias, Sistema Cardiovascular", level: "Principiante", benefits: "Quema grasa como combustible, protege la salud mitocondrial y reduce la inflamación sistémica."},
+            // === PECHO ===
             { name: "Press Mancuernas Inclinado", category: "Pecho", material: "Mancuernas", desc: "En un banco con inclinación ligera (15-30°), bajar las mancuernas metiendo los hombros en forma de flecha para un estiramiento profundo del pectoral superior.", muscles: "Pectoral Mayor, Hombros, Tríceps", level: "Avanzado", benefits: "Maximiza el crecimiento de la parte superior del pecho." },
             { name: "Push-up Cadena Posterior", category: "Pecho", material: "Sin Peso", desc: "Desde posición de plancha, bajar al suelo, extender brazos al frente (Superman), volver y empujar de forma explosiva.", muscles: "Pecho, Tríceps, Core", level: "Intermedio", benefits: "Fuerza de empuje funcional y activación total del cuerpo." },
-            { name: "Dominadas (Pull-ups)", category: "Espalda", material: "Sin Peso", desc: "Colgarse de la barra, tirar llevando los codos hacia las costillas y el pecho hacia la barra. Controlar el descenso.", muscles: "Dorsales, Espalda Media, Bíceps", level: "Intermedio/Avanzado", benefits: "V-Taper estético y fuerza de tracción superior." },
+            // === ESPALDA ===
+            { name: "Dominadas (Pull-ups)", category: "Espalda", material: "Sin Peso", sci: "Fuerza Grip", desc: "Colgarse de la barra, tirar llevando los codos hacia las costillas y el pecho hacia la barra. Controlar el descenso lento (3 seg). La fuerza de agarre es predictor de mortalidad y salud cognitiva.", muscles: "Dorsales, Espalda Media, Bíceps, Antebrazo", level: "Intermedio/Avanzado", benefits: "V-Taper estético + Grip Strength como biomarcador de longevidad y SNC." },
             { name: "Remo Invertido", category: "Espalda", material: "Sin Peso", desc: "Bajo una barra baja, mantener cuerpo recto y tirar del pecho hacia ella. Ideal para corregir postura.", muscles: "Romboides, Trapecio, Bíceps", level: "Principiante", benefits: "Base sólida para dominadas y salud escapular." },
+            { name: "Hip Hinge (Bisagra de Cadera)", category: "Espalda", material: "Mancuernas", sci: "Longevidad", desc: "Con pies a la anchura de cadera, empujar las caderas hacia atrás (no doblar la espalda) y bajar las pesas a lo largo de los muslos hasta sentir tensión en isquios. Volver con fuerza de glúteo.", muscles: "Isquiotibiales, Glúteos, Erectores Espinales", level: "Principiante", benefits: "Base de todo levantamiento libre. Protege la espalda baja y activa la cadena posterior — esencial para la salud metabólica." },
+            // === PIERNAS ===
             { name: "Sentadilla Goblet", category: "Piernas", material: "Mancuernas", desc: "Sujetar una pesa contra el pecho, bajar con espalda recta buscando profundidad máxima. Codos por dentro de rodillas.", muscles: "Cuádriceps, Glúteos, Core", level: "Principiante", benefits: "Enseña la mecánica perfecta de sentadilla con seguridad." },
+            { name: "Bulgarian Split Squat", category: "Piernas", material: "Mancuernas", sci: "Hipertrofia", desc: "Pie trasero elevado en banco, bajar hasta que la rodilla trasera casi toca el suelo. Ir hasta el fallo o cerca. Es uno de los ejercicios de mayor estímulo muscular unilateral para cuádriceps y glúteos.", muscles: "Cuádriceps, Glúteos, Core", level: "Avanzado", benefits: "Máximo estímulo de hipertrofia con carga submáxima. Ideal para romper la homeostasis muscular." },
+            // === MENTE ===
             { name: "Recuperación Sueño Titánico", category: "Mente", material: "Sin Peso", desc: "Limpieza Linfática y consolidación cognitiva", muscles: "Ondas Delta", level: "Avanzado", benefits: "Maximiza recuperación neural", url: "recuperacion-sueno.html" },
             { name: "Expansión Torácica", category: "Mente", material: "Sin Peso", desc: "Técnica respiratoria", muscles: "Diafragma, Intercostales", level: "Intermedio", benefits: "Mejora saturación y movilidad", url: "expansion-toracica.html" },
             { name: "Enfoque Profundo", category: "Mente", material: "Sin Peso", desc: "Bio-Asistido para estado de Flow", muscles: "Corteza Prefrontal", level: "Avanzado", benefits: "Enfoque láser y cero distracciones", url: "sesion-enfoque.html" },
             { name: "Envejecimiento Cerebral", category: "Mente", material: "Sin Peso", desc: "Neuro-Optimización y mitigación del declive cognitivo mediante bio-hacking y nutrición celular.", muscles: "Neuronas, Integridad de Barrera", level: "Avanzado", benefits: "Mitiga el entrecruzamiento de AGEs y mejora la eficiencia mitocondrial.", url: "envejecimiento-cerebral.html" },
             { name: "Mente y Dopamina (Ayuno)", category: "Mente", material: "Sin Peso", desc: "Reducción de Cortisol y reseteo", muscles: "Sistema Límbico", level: "Intermedio", benefits: "Resetea vías neuronales y reduce estrés", url: "regulacion-dopamina.html" },
+            // === CORE ===
             { name: "Dead Bug", category: "Core", material: "Sin Peso", desc: "Boca arriba, bajar brazo y pierna contraria lentamente sin despegar la lumbar del suelo.", muscles: "Transverso, Recto Abdominal", level: "Principiante", benefits: "Estabilidad lumbopélvica esencial." }
         ];
 
@@ -322,7 +348,10 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
                         <span class="text-[9px] font-black text-primary uppercase tracking-widest">${ex.category}</span>
-                        <span class="text-[9px] text-text-gray font-black uppercase">${ex.level}</span>
+                        <div class="flex items-center gap-1">
+                            ${ex.sci ? `<span class="text-[8px] font-black text-neon bg-neon/10 border border-neon/20 px-2 py-0.5 rounded-full uppercase tracking-wider">${ex.sci}</span>` : ''}
+                            <span class="text-[9px] text-text-gray font-black uppercase">${ex.level}</span>
+                        </div>
                     </div>
                     <h3 class="text-xl font-black text-white mb-2 uppercase tracking-tighter italic group-hover:text-primary transition-colors">${ex.name}</h3>
                     <div class="flex items-center gap-2">

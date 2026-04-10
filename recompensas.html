@@ -61,6 +61,69 @@
                 </div>
             </section>
 
+            <!-- Buy NTK Store -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Adquirir Bio-Activos</h3>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <!-- Pack 1 -->
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-white/10 hover:border-primary/50 transition-all cursor-pointer" onclick="buyTokens(100)">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary text-2xl">battery_charging_20</span>
+                            </div>
+                            <div>
+                                <h4 class="text-[12px] font-black uppercase italic">Starter Dose</h4>
+                                <p class="text-[10px] text-primary font-bold">100 NTK</p>
+                            </div>
+                        </div>
+                        <div class="px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 font-bold text-xs">
+                            $1.99
+                        </div>
+                    </div>
+
+                    <!-- Pack 2 -->
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-neon/30 bg-neon/5 hover:border-neon transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(500)">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-neon/20 rounded-full blur-xl"></div>
+                        <div class="absolute top-0 right-0 bg-neon text-black text-[8px] font-black px-2 py-0.5 rounded-bl-[12px] uppercase">Popular</div>
+                        
+                        <div class="flex items-center gap-3 relative z-10">
+                            <div class="w-12 h-12 rounded-xl bg-neon/20 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-neon text-2xl">battery_charging_80</span>
+                            </div>
+                            <div>
+                                <h4 class="text-[12px] font-black uppercase italic">Optimization Pack</h4>
+                                <p class="text-[10px] text-neon font-bold">500 NTK</p>
+                            </div>
+                        </div>
+                        <div class="px-3 py-1.5 bg-neon/10 text-neon rounded-lg border border-neon/30 font-bold text-xs relative z-10">
+                            $7.99
+                        </div>
+                    </div>
+
+                    <!-- Pack 3 -->
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-primary/40 bg-primary/10 hover:border-primary transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(1500)">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/30 rounded-full blur-xl"></div>
+                        <div class="absolute top-0 right-0 bg-primary text-black text-[8px] font-black px-2 py-0.5 rounded-bl-[12px] uppercase">Best Value</div>
+                        
+                        <div class="flex items-center gap-3 relative z-10">
+                            <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary text-2xl">battery_charging_full</span>
+                            </div>
+                            <div>
+                                <h4 class="text-[12px] font-black uppercase italic text-primary">Bio-Hacker Vault</h4>
+                                <p class="text-[10px] text-white font-bold">1,500 NTK</p>
+                            </div>
+                        </div>
+                        <div class="px-3 py-1.5 bg-primary/20 text-white rounded-lg border border-primary/40 font-bold text-xs relative z-10">
+                            $19.99
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Rewards Catalog -->
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-6">
@@ -142,14 +205,19 @@
     </div>
 
     <script>
-        let balance = 450;
+        let balance = parseInt(localStorage.getItem('hb_token_balance') || '450');
         
+        // Initialize display
+        document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
+
         function redeem(cost, item) {
             if (balance >= cost) {
                 balance -= cost;
+                localStorage.setItem('hb_token_balance', balance.toString());
                 document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
                 
                 const toast = document.getElementById('toast');
+                toast.innerHTML = `<span class="material-symbols-outlined font-black">check_circle</span> Canje realizado con éxito`;
                 toast.classList.remove('scale-0', 'opacity-0');
                 toast.classList.add('scale-100', 'opacity-100');
                 
@@ -158,6 +226,22 @@
                     toast.classList.add('scale-0', 'opacity-0');
                 }, 3000);
             }
+        }
+
+        function buyTokens(amount) {
+            balance += amount;
+            localStorage.setItem('hb_token_balance', balance.toString());
+            document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
+            
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<span class="material-symbols-outlined font-black">check_circle</span> Compra exitosa: +${amount} NTK`;
+            toast.classList.remove('scale-0', 'opacity-0');
+            toast.classList.add('scale-100', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.remove('scale-100', 'opacity-100');
+                toast.classList.add('scale-0', 'opacity-0');
+            }, 3000);
         }
     </script>
 </body>

@@ -75,8 +75,11 @@
                             <h4 class="text-[12px] font-black uppercase italic">Alex_Optimization</h4>
                             <p class="text-[10px] text-neon/60 font-medium">9.2 SOBREANÍA</p>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end gap-1">
                             <span class="text-xs font-black text-white italic">4,500 XP</span>
+                            <button onclick="openGiftModal('Alex_Optimization')" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
+                                <span class="material-symbols-outlined text-[14px]">featured_seasonal_and_gifts</span>
+                            </button>
                         </div>
                     </div>
 
@@ -90,8 +93,11 @@
                             <h4 class="text-[12px] font-black uppercase italic">Maria_BioHacker</h4>
                             <p class="text-[10px] text-white/40 font-medium">8.8 SOBERANÍA</p>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end gap-1">
                             <span class="text-xs font-black text-white italic">3,120 XP</span>
+                            <button onclick="openGiftModal('Maria_BioHacker')" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
+                                <span class="material-symbols-outlined text-[14px]">featured_seasonal_and_gifts</span>
+                            </button>
                         </div>
                     </div>
 
@@ -103,10 +109,10 @@
                         </div>
                         <div class="flex-1">
                             <h4 class="text-[12px] font-black uppercase italic">Tú (Guerrero)</h4>
-                            <p class="text-[10px] text-primary/60 font-medium">7.4 SOBERANÍA</p>
+                            <p class="text-[10px] text-primary/60 font-medium"><span id="user-soberania">7.4</span> SOBERANÍA</p>
                         </div>
                         <div class="text-right">
-                            <span class="text-xs font-black text-white italic">150 XP</span>
+                            <span class="text-xs font-black text-white italic"><span id="user-xp">150</span> XP</span>
                         </div>
                     </div>
                 </div>
@@ -137,52 +143,189 @@
             </section>
 
         </main>
+        
+        <!-- Gift Modal -->
+        <div id="gift-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+            <div class="glass-card w-full max-w-sm p-6 transform scale-95 transition-transform duration-300" id="gift-modal-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-black uppercase italic">Premiar Sinergia</h3>
+                    <button onclick="closeGiftModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+                
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 rounded-full bg-primary/20 mx-auto flex items-center justify-center mb-3">
+                        <span class="material-symbols-outlined text-primary text-3xl">featured_seasonal_and_gifts</span>
+                    </div>
+                    <p class="text-sm text-white/70">Reconoce la <span class="text-primary font-bold">Soberanía</span> de <br><strong id="gift-target-name" class="text-white text-lg italic">User</strong></p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-6 relative z-10">
+                    <button onclick="selectGiftAmount(10)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">10 NTK</button>
+                    <button onclick="selectGiftAmount(50)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">50 NTK</button>
+                    <button onclick="selectGiftAmount(100)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">100 NTK</button>
+                </div>
+
+                <button id="confirm-gift-btn" onclick="confirmGift()" class="w-full py-3 bg-primary text-black font-black uppercase tracking-widest rounded-xl hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all relative z-10" disabled>
+                    Regalar
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-primary text-black font-black rounded-full shadow-2xl transition-all scale-0 opacity-0 z-[110] uppercase italic text-xs flex items-center gap-3 whitespace-nowrap">
+            <span class="material-symbols-outlined font-black">check_circle</span>
+            <span id="toast-message">Transacción Exitosa</span>
+        </div>
     </div>
 
     <script>
-        const ctx = document.getElementById('bioRadar');
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: ['Dopamina', 'HRV', 'Metabolismo', 'Músculo', 'Focus'],
-                datasets: [{
-                    label: 'Tú',
-                    data: [85, 74, 90, 65, 80],
-                    fill: true,
-                    backgroundColor: 'rgba(0, 209, 255, 0.2)',
-                    borderColor: '#00d1ff',
-                    pointBackgroundColor: '#00d1ff',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#00d1ff'
-                }, {
-                    label: 'Promedio Global',
-                    data: [60, 65, 70, 55, 60],
-                    fill: true,
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                    pointBackgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(255, 255, end'
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        pointLabels: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 9, family: 'Outfit', weight: 'bold' } },
-                        ticks: { display: false },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                }
+        function syncData() {
+            // ... (sync data logic remains mostly the same, implemented below)
+            let bioStats = JSON.parse(localStorage.getItem('hb_bio_stats'));
+            if (!bioStats) {
+                bioStats = [85, 74, 90, 65, 80];
+                localStorage.setItem('hb_bio_stats', JSON.stringify(bioStats));
             }
-        });
+
+            let userXp = localStorage.getItem('hb_user_xp');
+            if (!userXp) {
+                userXp = "150";
+                localStorage.setItem('hb_user_xp', userXp);
+            }
+
+            document.getElementById('user-xp').innerText = userXp;
+            
+            const sum = bioStats.reduce((a, b) => a + b, 0);
+            const soberania = (sum / bioStats.length / 10).toFixed(1);
+            document.getElementById('user-soberania').innerText = soberania;
+
+            const ctx = document.getElementById('bioRadar');
+            if (window.radarChart) {
+                window.radarChart.data.datasets[0].data = bioStats;
+                window.radarChart.update();
+            } else {
+                window.radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Dopamina', 'HRV', 'Metabolismo', 'Músculo', 'Focus'],
+                        datasets: [{
+                            label: 'Tú',
+                            data: bioStats,
+                            fill: true,
+                            backgroundColor: 'rgba(0, 209, 255, 0.2)',
+                            borderColor: '#00d1ff',
+                            pointBackgroundColor: '#00d1ff',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#00d1ff'
+                        }, {
+                            label: 'Promedio Global',
+                            data: [60, 65, 70, 55, 60],
+                            fill: true,
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            pointBackgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(255, 255, 255, 0.5)'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 9, family: 'Outfit', weight: 'bold' } },
+                                ticks: { display: false },
+                                suggestedMin: 0, suggestedMax: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- Gifting Logic ---
+        let currentGiftTarget = '';
+        let currentGiftAmount = 0;
+
+        function openGiftModal(name) {
+            currentGiftTarget = name;
+            document.getElementById('gift-target-name').innerText = name;
+            currentGiftAmount = 0;
+            document.getElementById('confirm-gift-btn').disabled = true;
+            document.getElementById('confirm-gift-btn').innerText = `Regalar NTK`;
+            
+            document.querySelectorAll('.gift-btn').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary', 'bg-primary/10');
+                btn.classList.add('border-white/10', 'bg-white/5');
+            });
+
+            const modal = document.getElementById('gift-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('gift-modal-content').classList.remove('scale-95');
+                document.getElementById('gift-modal-content').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeGiftModal() {
+            const modal = document.getElementById('gift-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('gift-modal-content').classList.remove('scale-100');
+            document.getElementById('gift-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function selectGiftAmount(amount) {
+            currentGiftAmount = amount;
+            document.getElementById('confirm-gift-btn').disabled = false;
+            document.getElementById('confirm-gift-btn').innerText = `Regalar ${amount} NTK a ${currentGiftTarget.split('_')[0]}`;
+            
+            document.querySelectorAll('.gift-btn').forEach(btn => {
+                if (btn.innerText.includes(amount.toString())) {
+                    btn.classList.add('border-primary', 'text-primary', 'bg-primary/10');
+                    btn.classList.remove('border-white/10', 'bg-white/5');
+                } else {
+                    btn.classList.remove('border-primary', 'text-primary', 'bg-primary/10');
+                    btn.classList.add('border-white/10', 'bg-white/5');
+                }
+            });
+        }
+
+        function confirmGift() {
+            let balance = parseInt(localStorage.getItem('hb_token_balance') || '450');
+            if (balance >= currentGiftAmount) {
+                balance -= currentGiftAmount;
+                localStorage.setItem('hb_token_balance', balance.toString());
+                
+                closeGiftModal();
+                const toast = document.getElementById('toast');
+                document.getElementById('toast-message').innerText = `${currentGiftAmount} NTK ENVIADOS A ${currentGiftTarget}`;
+                toast.classList.remove('scale-0', 'opacity-0');
+                toast.classList.add('scale-100', 'opacity-100');
+                
+                setTimeout(() => {
+                    toast.classList.remove('scale-100', 'opacity-100');
+                    toast.classList.add('scale-0', 'opacity-0');
+                }, 3000);
+            } else {
+                alert("NTK Insuficiente. ¡Adquiere más en el Bio-Market!");
+                closeGiftModal();
+                setTimeout(() => { window.location.href = 'recompensas.html'; }, 500);
+            }
+        }
+
+        syncData();
+        window.addEventListener('focus', syncData);
     </script>
 </body>
 </html>
