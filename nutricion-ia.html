@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HEALTHY + BRAIN - Nutrición IA</title>
+    <!-- Cloud & 3D Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
@@ -44,6 +49,10 @@
                         pulseGlow: {
                             '0%, 100%': { boxShadow: '0 0 20px rgba(19, 236, 91, 0.2)' },
                             '50%': { boxShadow: '0 0 40px rgba(19, 236, 91, 0.6)' },
+                        },
+                        drawCurve: {
+                            '0%': { strokeDasharray: '0, 300' },
+                            '100%': { strokeDasharray: '300, 300' }
                         }
                     }
                 }
@@ -70,6 +79,10 @@
             background-size: cover;
             background-position: center;
             border-radius: 24px;
+        }
+
+        .stroke-dasharray-anim {
+            animation: drawCurve 2.5s ease-out forwards;
         }
     </style>
 </head>
@@ -194,7 +207,7 @@
                 <div>
                     <h2 class="text-sm font-bold text-white leading-tight">Análisis Completado</h2>
                     <p class="text-[11px] font-medium text-gray-400 mt-1">Plato detectado: <span
-                            class="text-primary">Bowl de Salmón y Quinoa</span></p>
+                            class="text-primary" id="detected-food-name">Bowl de Salmón y Quinoa</span></p>
                 </div>
             </div>
 
@@ -210,7 +223,7 @@
                     <div
                         class="absolute inset-[14px] bg-surface-dark rounded-full flex flex-col items-center justify-center shadow-inner">
                         <span class="text-5xl font-black text-white tracking-tighter"
-                            style="text-shadow: 0 4px 20px rgba(0,0,0,0.5);">680</span>
+                            id="total-calories-display" style="text-shadow: 0 4px 20px rgba(0,0,0,0.5);">680</span>
                         <span class="text-[9px] text-gray-400 uppercase tracking-[0.15em] mt-1 font-bold">KCAL
                             TOTALES</span>
                     </div>
@@ -220,15 +233,15 @@
                 <div class="flex justify-between w-full mt-8 px-2 text-xs font-bold">
                     <div class="flex flex-col items-center gap-1.5"><span
                             class="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span><span
-                            class="text-blue-400 text-sm">42g</span><span
+                            class="text-blue-400 text-sm" id="protein-val">42g</span><span
                             class="text-[9px] text-gray-500 uppercase tracking-widest">Proteína</span></div>
                     <div class="flex flex-col items-center gap-1.5"><span
                             class="w-3.5 h-3.5 rounded-full bg-primary shadow-[0_0_8px_rgba(19,236,91,0.6)]"></span><span
-                            class="text-primary text-sm">55g</span><span
+                            class="text-primary text-sm" id="carbs-val">55g</span><span
                             class="text-[9px] text-gray-500 uppercase tracking-widest">Carbos</span></div>
                     <div class="flex flex-col items-center gap-1.5"><span
                             class="w-3.5 h-3.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"></span><span
-                            class="text-yellow-500 text-sm">30g</span><span
+                            class="text-yellow-500 text-sm" id="fats-val">30g</span><span
                             class="text-[9px] text-gray-500 uppercase tracking-widest">Grasas</span></div>
                 </div>
             </div>
@@ -245,16 +258,16 @@
                     Veredicto IA - <span class="text-gray-400 font-semibold text-xs ml-1">Meta: Recomposición</span>
                 </h3>
 
-                <div class="space-y-4 relative z-10">
+                <div class="space-y-4 relative z-10" id="ai-verdicts-container">
                     <div class="flex gap-3 items-start bg-background-dark/50 p-3 rounded-xl border border-white/5">
                         <div
                             class="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0 mt-0.5 border border-primary/30">
                             <span class="material-symbols-outlined text-[16px] font-bold">add</span>
                         </div>
                         <div>
-                            <p class="text-[13px] font-bold text-white mb-1 leading-tight">Excelente bloque de proteínas
+                            <p class="text-[13px] font-bold text-white mb-1 leading-tight" id="verdict-pos-title">Excelente bloque de proteínas
                                 y grasas saludables (Omega-3).</p>
-                            <p class="text-[11px] text-gray-400 font-medium">Favorece la saciedad prolongada y
+                            <p class="text-[11px] text-gray-400 font-medium" id="verdict-pos-desc">Favorece la saciedad prolongada y
                                 neuroprotección.</p>
                         </div>
                     </div>
@@ -265,27 +278,67 @@
                             <span class="material-symbols-outlined text-[16px] font-bold">priority_high</span>
                         </div>
                         <div>
-                            <p class="text-[13px] font-bold text-white mb-1 leading-tight">Carbohidratos ligeramente
+                            <p class="text-[13px] font-bold text-white mb-1 leading-tight" id="verdict-neg-title">Carbohidratos ligeramente
                                 altos para la cena.</p>
-                            <p class="text-[11px] text-gray-400 font-medium"><span
+                            <p class="text-[11px] text-gray-400 font-medium" id="verdict-neg-desc"><span
                                     class="text-orange-400/80">Sugerencia:</span> Si no has entrenado, reduce la porción
                                 de quinoa a la mitad en el futuro.</p>
                         </div>
                     </div>
 
                     <div class="bg-black/40 rounded-xl p-4 border border-white/5 mt-4">
-                        <div class="flex justify-between items-end mb-2">
-                            <p class="text-[10px] font-extrabold text-gray-500 uppercase tracking-widest">Impacto
-                                Glucémico Estimado</p>
-                            <p class="text-[10px] font-black text-primary">Bajo-Moderado</p>
+                        <div class="flex items-center gap-1.5 mb-3">
+                            <span class="material-symbols-outlined text-[16px] text-primary">monitoring</span>
+                            <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Oráculo Metabólico</p>
                         </div>
-                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden shadow-inner relative">
-                            <!-- Gradient indicating the spectrum from good to bad (green to red), and indicator at ~40% -->
-                            <div
-                                class="relative w-full h-full bg-gradient-to-r from-primary via-yellow-500 to-red-500 opacity-50">
+                        
+                        <!-- Curva de Glucosa -->
+                        <div class="relative w-full h-16 mb-4 mt-2">
+                            <!-- Background Grid -->
+                            <div class="absolute inset-0 border-b border-l border-white/10"></div>
+                            <!-- Ejes text -->
+                            <span class="absolute -bottom-4 left-0 text-[8px] text-gray-500">Ahora</span>
+                            <span class="absolute -bottom-4 right-0 text-[8px] text-gray-500">+2 Hrs</span>
+                            <span class="absolute top-0 -left-6 text-[8px] text-gray-500">120+</span>
+                            
+                            <!-- Animated SVG Curve -->
+                            <svg class="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 50">
+                                <!-- Zona de Riesgo -->
+                                <rect x="0" y="0" width="100" height="20" fill="url(#danger-pattern)" opacity="0.1" />
+                                <defs>
+                                    <pattern id="danger-pattern" width="4" height="4" patternUnits="userSpaceOnUse">
+                                        <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="#ef4444" stroke-width="0.5" />
+                                    </pattern>
+                                    <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#13ec5b" />
+                                        <stop offset="50%" stop-color="#eab308" />
+                                        <stop offset="100%" stop-color="#13ec5b" />
+                                    </linearGradient>
+                                </defs>
+                                
+                                <!-- La Curva (Animada) -->
+                                <path d="M0,45 Q20,45 35,25 T70,30 T100,40" fill="none" stroke="url(#line-gradient)" stroke-width="3" stroke-linecap="round" class="stroke-dasharray-anim" />
+                                
+                                <!-- Punto de Pico -->
+                                <circle cx="52.5" cy="27.5" r="2.5" fill="#eab308" class="animate-pulse" />
+                            </svg>
+                        </div>
+                        
+                        <div class="flex justify-between items-end mb-3 mt-5">
+                            <p class="text-[12px] font-bold text-white">Predicción: Pico Moderado</p>
+                            <p class="text-[14px] font-black text-yellow-500" id="glucose-prediction-val">105 <span class="text-[9px] text-gray-500">mg/dL</span></p>
+                        </div>
+
+                        <!-- Actionable Hacks -->
+                        <div class="space-y-2">
+                            <div class="flex gap-2 items-center bg-white/5 rounded-lg p-2 border border-white/5">
+                                <span class="material-symbols-outlined text-[14px] text-primary">directions_walk</span>
+                                <p class="text-[11px] text-gray-300"><strong class="text-white">Bio-Hack:</strong> 10 min de caminata post-comida aplanará la curva un 15%.</p>
                             </div>
-                            <div class="absolute w-2 h-4 bg-white rounded-full top-1/2 -translate-y-1/2 shadow-[0_0_10px_rgba(255,255,255,0.8)]"
-                                style="left: 35%;"></div>
+                            <div class="flex gap-2 items-center bg-white/5 rounded-lg p-2 border border-white/5">
+                                <span class="material-symbols-outlined text-[14px] text-primary">science</span>
+                                <p class="text-[11px] text-gray-300"><strong class="text-white">Bio-Hack:</strong> Un vaso con agua y vinagre de manzana ahora reduciría el pico.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,13 +372,55 @@
 
     <!-- UI Logic -->
     <script>
-        const vCamera = document.getElementById('view-camera');
-        const vAnalyzing = document.getElementById('view-analyzing');
-        const vResults = document.getElementById('view-results');
-        const progress = document.getElementById('progress-bar');
-        const analyzingText = document.getElementById('analyzing-text');
+        // --- Bio-Cloud & IA Mock Data Pool ---
+        const foodDatabase = [
+            {
+                name: "Bowl de Salmón y Quinoa",
+                kcal: 680,
+                protein: 42,
+                carbs: 55,
+                fats: 30,
+                glucose: 105,
+                posTitle: "Excelente bloque de proteínas y grasas Omega-3",
+                posDesc: "Favorece la saciedad prolongada y neuroprotección.",
+                negTitle: "Carbohidratos altos para la cena",
+                negDesc: "Sugerencia: Si no has entrenado, reduce la porción de quinoa.",
+                gradient: "conic-gradient(#3b82f6 0% 35%, #13ec5b 35% 65%, #eab308 65% 100%)"
+            },
+            {
+                name: "Pollo a la Plancha con Batata",
+                kcal: 540,
+                protein: 48,
+                carbs: 45,
+                fats: 12,
+                glucose: 98,
+                posTitle: "Proteína magra de alta biodisponibilidad",
+                posDesc: "Ideal para la síntesis proteica post-entrenamiento.",
+                negTitle: "Bajo en fibra soluble",
+                negDesc: "Añade una porción de brócoli o espinacas para mejorar el tránsito.",
+                gradient: "conic-gradient(#3b82f6 0% 45%, #13ec5b 45% 85%, #eab308 85% 100%)"
+            },
+            {
+                name: "Avocado Toast con Huevo",
+                kcal: 420,
+                protein: 18,
+                carbs: 32,
+                fats: 24,
+                glucose: 112,
+                posTitle: "Grasas monoinsaturadas y vitaminas clave",
+                posDesc: "Tu cerebro utilizará estas grasas para estabilidad energética.",
+                negTitle: "Densidad calórica moderada/alta",
+                negDesc: "Controla el aceite de oliva extra si estás en fase de déficit.",
+                gradient: "conic-gradient(#3b82f6 0% 20%, #13ec5b 20% 50%, #eab308 50% 100%)"
+            }
+        ];
+
+        let currentScanResult = null;
 
         function startAnalysis() {
+            // Pick random result
+            currentScanResult = foodDatabase[Math.floor(Math.random() * foodDatabase.length)];
+
             // Hide camera, show analyzing
             vCamera.classList.add('hidden');
             vAnalyzing.classList.remove('hidden');
@@ -352,7 +447,7 @@
                     clearInterval(interval);
                     showResults();
                 }
-            }, 700);
+            }, 600);
         }
 
         function showResults() {
@@ -361,6 +456,20 @@
 
             vResults.classList.remove('hidden');
             vResults.classList.add('block');
+
+            // Populate localized data
+            document.getElementById('detected-food-name').innerText = currentScanResult.name;
+            document.getElementById('total-calories-display').innerText = currentScanResult.kcal;
+            document.getElementById('protein-val').innerText = currentScanResult.protein + "g";
+            document.getElementById('carbs-val').innerText = currentScanResult.carbs + "g";
+            document.getElementById('fats-val').innerText = currentScanResult.fats + "g";
+            document.getElementById('ai-macro-donut').style.background = currentScanResult.gradient;
+            document.getElementById('glucose-prediction-val').innerHTML = `${currentScanResult.glucose} <span class="text-[9px] text-gray-500">mg/dL</span>`;
+            
+            document.getElementById('verdict-pos-title').innerText = currentScanResult.posTitle;
+            document.getElementById('verdict-pos-desc').innerText = currentScanResult.posDesc;
+            document.getElementById('verdict-neg-title').innerText = currentScanResult.negTitle;
+            document.getElementById('verdict-neg-desc').innerText = currentScanResult.negDesc;
 
             // Trigger animations
             const elements = vResults.querySelectorAll('.animate-slide-up');
@@ -391,15 +500,76 @@
             window.scrollTo(0, 0);
         }
 
-        function addToLog(event) {
-            // Button feedback
+        async function addToLog(event) {
             const btn = event.currentTarget;
-            btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> GUARDADO`;
-            btn.classList.replace('bg-primary', 'bg-white');
+            const originalContent = btn.innerHTML;
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> SINCRONIZANDO...`;
 
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 800);
+                // Authentication Check
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                // 1. Save to Unified Log (for Timeline)
+                const userRef = db.collection('users').doc(userId);
+                await userRef.collection('logs').add({
+                    type: 'diet',
+                    category: 'diet',
+                    foodName: currentScanResult.name,
+                    macros: currentScanResult.macros,
+                    scores: currentScanResult.scores,
+                    imageUrl: currentScanResult.image,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 2. Also keep in detailed diet logs (legacy support)
+                await userRef.collection('diet_logs').add({
+                    ...currentScanResult,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 3. Update Core Biometrics & NTK Rewards
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+                    const data = doc.data() || {};
+                    
+                    const newNtk = (parseInt(data.ntkBalance || '450')) + 15;
+                    // Slightly nudge bioScore towards optimization
+                    const newBioScore = Math.min(9.9, (parseFloat(data.bioScore || '9.2') + 0.05));
+
+                    transaction.update(userRef, {
+                        ntkBalance: newNtk,
+                        bioScore: newBioScore,
+                        lastFoodScan: currentScanResult.name,
+                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                // Success Feedback
+                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> +15 NTK GUARDADOS`;
+                btn.classList.replace('bg-primary', 'bg-white');
+                btn.classList.add('text-dark');
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
+
+            } catch (error) {
+                console.error("Cloud Sync Error:", error);
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined">error</span> FALLO DE RED`;
+                btn.classList.add('bg-red-500');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-red-500');
+                }, 2000);
+            }
         }
     </script>
     <!-- Fixed Bottom Nav -->

@@ -11,6 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    
+    <!-- Cloud & 3D Infrastructure (Fase 20 & 21) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -175,27 +182,27 @@
                     <!-- Background Glow -->
                     <div class="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
                     
-                    <!-- 3D Main Render -->
-                    <div class="relative w-full aspect-[4/5] rounded-[20px] overflow-hidden bg-black/40 border border-white/5">
-                        <img id="goal-body" src="assets/images/goal_male.png" class="w-full h-full object-cover animate-fade-in" alt="Goal Physique">
+                    <!-- 3D Main Render (Fase 21) -->
+                    <div id="3d-container" class="relative w-full aspect-[4/5] rounded-[20px] overflow-hidden bg-black/40 border border-white/5 cursor-grab active:cursor-grabbing">
+                        <canvas id="longevity-canvas" class="w-full h-full"></canvas>
                         
-                        <!-- Overlay Mask / Data Grid -->
-                        <img id="body-overlay" src="assets/images/stats_overlay.png" class="absolute inset-0 w-full h-full object-cover mix-blend-screen opacity-50 overlay-animated" alt="Data Overlay">
-                        
-                        <!-- HUD Labels -->
-                        <div class="absolute top-4 left-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10">
-                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Cuerpo Objetivo</p>
-                            <p class="text-lg font-black text-primary leading-none uppercase italic">Atleta <span class="text-white">Elite</span></p>
+                        <!-- HUD Labels (Dynamic) -->
+                        <div class="absolute top-4 left-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 pointer-events-none">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div id="cloud-indicator" class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></div>
+                                <p class="text-[8px] font-black text-white/40 uppercase tracking-widest">Bio-Cloud Live</p>
+                            </div>
+                            <p id="hud-status" class="text-lg font-black text-primary leading-none uppercase italic">Optimizando...</p>
                         </div>
                         
-                        <div class="absolute bottom-4 right-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 text-right">
-                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Grasa Corporal</p>
-                            <p class="text-2xl font-black text-neon leading-none italic">8.2%</p>
+                        <div class="absolute bottom-4 right-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 text-right pointer-events-none">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Neuro-Tokens</p>
+                            <p id="hud-ntk" class="text-2xl font-black text-neon leading-none italic">---</p>
                         </div>
 
-                        <!-- Hotspots Container -->
-                        <div id="hotspots-container" class="absolute inset-0 pointer-events-auto">
-                            <!-- Dynamically populated -->
+                        <!-- Interaction Hint -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div class="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full border border-white/5 text-[8px] font-black uppercase tracking-widest">Rotar / Zoom</div>
                         </div>
                     </div>
                 </div>
@@ -299,127 +306,141 @@
     </div>
 
     <script>
-        let currentGender = 'male';
+        // ─── 3D Longevity Engine (Fase 21) ──────────────────────────────────
+        let scene, camera, renderer, particles, clock;
+        let targetPulse = 1.0;
+        let currentColor = new THREE.Color(0x00d1ff);
 
-        const HOTSPOTS_DATA = {
-            male: [
-                { id: 'hombros', label: 'Hombros', top: '22%', left: '50%', unit: 'cm' },
-                { id: 'pecho', label: 'Pecho', top: '32%', left: '50%', unit: 'cm' },
-                { id: 'biceps', label: 'Bíceps', top: '35%', left: '25%', unit: 'cm' },
-                { id: 'cintura', label: 'Cintura', top: '48%', left: '50%', unit: 'cm' },
-                { id: 'muslos', label: 'Muslos', top: '65%', left: '40%', unit: 'cm' },
-                { id: 'pantorrillas', label: 'Pantorrillas', top: '82%', left: '42%', unit: 'cm' }
-            ],
-            female: [
-                { id: 'pecho', label: 'Pecho/Busto', top: '32%', left: '50%', unit: 'cm' },
-                { id: 'brazos', label: 'Brazos', top: '35%', left: '28%', unit: 'cm' },
-                { id: 'cintura', label: 'Cintura', top: '45%', left: '50%', unit: 'cm' },
-                { id: 'caderas', label: 'Caderas', top: '55%', left: '50%', unit: 'cm' },
-                { id: 'muslos', label: 'Muslos', top: '68%', left: '40%', unit: 'cm' }
-            ]
-        };
+        function init3D() {
+            const container = document.getElementById('3d-container');
+            const canvas = document.getElementById('longevity-canvas');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
 
-        function renderHotspots() {
-            const container = document.getElementById('hotspots-container');
-            const form = document.getElementById('measure-form');
-            container.innerHTML = '';
-            form.innerHTML = '';
+            // Particle Man (Cyborg/Bio Aesthetic)
+            const geometry = new THREE.BufferGeometry();
+            const count = 3000;
+            const positions = new Float32Array(count * 3);
+            
+            for(let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                // Abstract humanoid shape (ellipsoids)
+                const phi = Math.random() * Math.PI * 2;
+                const costheta = Math.random() * 2 - 1;
+                const u = Math.random();
+                const theta = Math.acos(costheta);
+                const r = Math.cbrt(u);
 
-            HOTSPOTS_DATA[currentGender].forEach(spot => {
-                // Create Hotspot
-                const el = document.createElement('div');
-                el.className = 'hotspot';
-                el.style.top = spot.top;
-                el.style.left = spot.left;
-                el.id = `spot-${spot.id}`;
-                el.onclick = () => focusInput(spot.id);
-                container.appendChild(el);
+                // Morph shape into a torso/head profile
+                positions[i3] = r * Math.sin(theta) * Math.cos(phi) * 1.5; // Width
+                positions[i3 + 1] = r * costheta * 4.0; // Height
+                positions[i3 + 2] = r * Math.sin(theta) * Math.sin(phi) * 1.0; // Depth
+            }
 
-                // Create Input
-                const inputDiv = document.createElement('div');
-                inputDiv.className = 'group';
-                inputDiv.innerHTML = `
-                    <label class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2 block group-focus-within:text-primary transition-colors">${spot.label}</label>
-                    <div class="relative">
-                        <input type="number" id="input-${spot.id}" placeholder="--" 
-                               onfocus="activateSpot('${spot.id}')" onblur="deactivateSpot('${spot.id}')"
-                               class="measurement-input w-full bg-white/2 border border-white/5 rounded-xl py-4 px-4 text-[14px] font-black focus:outline-none transition-all pr-12">
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/20">CM</span>
-                    </div>
-                `;
-                form.appendChild(inputDiv);
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.04,
+                color: 0x00d1ff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
             });
-        }
 
-        function focusInput(id) {
-            document.getElementById(`input-${id}`).focus();
-        }
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
 
-        function activateSpot(id) {
-            document.querySelectorAll('.hotspot').forEach(s => s.classList.remove('active'));
-            document.getElementById(`spot-${id}`).classList.add('active');
-        }
+            camera.position.z = 8;
+            clock = new THREE.Clock();
 
-        function deactivateSpot(id) {
-            document.getElementById(`spot-${id}`).classList.remove('active');
-        }
-
-        function setGender(gender) {
-            currentGender = gender;
-            const btnMale = document.getElementById('btn-male');
-            const btnFemale = document.getElementById('id-female');
-            const imgBody = document.getElementById('goal-body');
-
-            if (gender === 'male') {
-                btnMale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark";
-                btnFemale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40";
-                imgBody.src = "assets/images/goal_male.png";
-            } else {
-                btnFemale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-neon text-dark";
-                btnMale.className = "px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40";
-                imgBody.src = "assets/images/goal_female.png";
-            }
-            renderHotspots();
-        }
-
-        function saveMeasurements() {
-            showToast('Biometría actualizada');
-            // Logic to persist in localStorage could go here
-        }
-
-        function triggerUpload() {
-            document.getElementById('file-input').click();
-        }
-
-        function handleFile(event) {
-            const file = event.target.files[0];
-            if (file) {
-                showToast('Foto subida con éxito');
-                // Simulation of adding to history
-                const history = document.getElementById('photo-history');
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const div = document.createElement('div');
-                    div.className = "aspect-square rounded-xl overflow-hidden bg-white/5 border border-primary/30 animate-fade-in";
-                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                    history.insertBefore(div, history.firstChild);
+            // Simple Interactivity (Rotation)
+            let isDragging = false;
+            let reqX = 0, reqY = 0;
+            container.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if(isDragging) {
+                    particles.rotation.y += e.movementX * 0.01;
+                    particles.rotation.x += e.movementY * 0.01;
                 }
-                reader.readAsDataURL(file);
-            }
+            });
+
+            animate();
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.transform = "translateX(-50%) scale(1)";
-            toast.style.opacity = "1";
-            setTimeout(() => {
-                toast.style.transform = "translateX(-50%) scale(0)";
-                toast.style.opacity = "0";
-            }, 3000);
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+            
+            // Pulse logic (Hacked into size and opacity)
+            const pulse = 1.0 + Math.sin(time * targetPulse * 2.5) * 0.1;
+            particles.scale.set(pulse, pulse, pulse);
+            particles.material.opacity = 0.5 + Math.sin(time * 3) * 0.2;
+            
+            // Slow auto-rotation
+            particles.rotation.y += 0.005;
+            
+            // Smooth Color Transition
+            particles.material.color.lerp(currentColor, 0.05);
+
+            renderer.render(scene, camera);
+        }
+
+        // ─── Bio-Cloud Sync (Fase 20) ────────────────────────────────────────
+        async function syncBioProgress() {
+            try {
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                
+                window.hb_db.collection('users').doc(userId).onSnapshot(async (doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        
+                        // Update HUD
+                        document.getElementById('hud-ntk').textContent = data.ntk || '450';
+                        const score = parseInt(data.bioScore || '92');
+                        const hrv = parseInt(data.hrv || '74');
+
+                        // Update Engine Params
+                        targetPulse = (hrv / 60); 
+                        
+                        // Map Color
+                        if (score >= 90) {
+                            currentColor.setHex(0x00d1ff);
+                            document.getElementById('hud-status').textContent = 'Estado de Flujo';
+                        } else if (score >= 75) {
+                            currentColor.setHex(0x13ec5b);
+                            document.getElementById('hud-status').textContent = 'Recuperación';
+                        } else {
+                            currentColor.setHex(0xff8a00);
+                            document.getElementById('hud-status').textContent = 'Alerta: Fatiga';
+                        }
+                    } else {
+                        // AUTO-SEED 3D Data
+                        console.log("Seeding Cloud from 3D Engine...");
+                        await window.hb_db.collection('users').doc(userId).set({
+                            ntk: '450',
+                            bioScore: '92',
+                            hrv: '74',
+                            glucosa: '98',
+                            lastUpdate: new Date().toISOString()
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Progress Sync Error:", e);
+            }
         }
 
         // Init
+        init3D();
+        syncBioProgress();
         renderHotspots();
     </script>
 </body>

@@ -11,6 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    
+    <!-- Firebase Cloud Infrastructure (Fase 20) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/insights-engine.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -74,20 +81,20 @@
         <section class="px-6 py-4 z-20">
             <div class="flex justify-between items-end mb-3">
                 <div class="flex items-center gap-2">
-                    <span
+                    <span id="user-level"
                         class="px-2 py-0.5 bg-neon/20 text-neon rounded-md text-[10px] font-bold uppercase tracking-widest border border-neon/30">LVL
                         1</span>
-                    <span class="text-[10px] text-text-gray font-bold uppercase">150/500 XP</span>
+                    <span id="user-xp-text" class="text-[10px] text-text-gray font-bold uppercase">450 / 1000 XP</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
                         <span class="material-symbols-outlined text-primary text-[14px] filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
-                        <span class="text-[11px] font-black text-primary uppercase"><span id="token-balance">450</span> <span class="text-[9px] opacity-70">NTK</span></span>
+                        <span class="text-[11px] font-black text-primary uppercase"><span id="ntk-balance">450</span> <span class="text-[9px] opacity-70">NTK</span></span>
                     </div>
                 </div>
             </div>
             <div class="xp-bar-container h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                <div class="xp-bar-fill h-full bg-gradient-to-r from-neon to-primary w-[30%] shadow-[0_0_10px_rgba(0,209,255,0.3)]"></div>
+                <div id="user-xp-bar" class="xp-bar-fill h-full bg-gradient-to-r from-neon to-primary w-[30%] shadow-[0_0_10px_rgba(0,209,255,0.3)] transition-all duration-1000"></div>
             </div>
         </section>
 
@@ -111,6 +118,28 @@
                     </div>
                 </div>
             </div>
+            </div>
+        </section>
+
+        <!-- AI Neural Scanner Panel (Fase 35) -->
+        <section class="px-6 mt-6 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="ai-scanner-panel p-5 rounded-[24px] border border-white/5 relative overflow-hidden bg-surface-glass backdrop-blur-xl">
+                <div class="flex justify-between items-center mb-4 relative z-20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-neon status-dot-pulse"></div>
+                        <h3 class="text-[11px] font-black text-white uppercase tracking-[0.2em] text-mono">Neural Scanner v3.5</h3>
+                    </div>
+                    <span class="text-[9px] font-bold text-neon/60 text-mono uppercase tracking-widest">Active Sync</span>
+                </div>
+                
+                <div id="ai-insights-container" class="relative z-20 min-h-[60px]">
+                    <!-- Contenido dinámico desde insights-engine.js -->
+                    <div class="flex items-center gap-3 text-white/20 italic text-[10px] py-2">
+                        <span class="material-symbols-outlined text-[14px] animate-spin">refresh</span>
+                        Analizando coherencia cardíaca y carga CNS...
+                    </div>
+                </div>
+            </div>
         </section>
 
         <main class="flex-1 px-6 py-8 overflow-y-auto no-scrollbar relative">
@@ -130,8 +159,8 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-lg leading-tight mb-1">Entrenar</h3>
-                        <p id="sync-entrenar" class="text-[10px] text-text-gray font-medium">Pulso: <span
-                                class="text-primary font-bold">120 BPM</span></p>
+                        <p id="sync-entrenar" class="text-[10px] text-text-gray font-medium">Pulso: <span id="hrv-value"
+                                class="text-primary font-bold">-- BPM</span></p>
                     </div>
                 </a>
 
@@ -144,8 +173,8 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-lg leading-tight mb-1 font-bold">Historial</h3>
-                        <p id="sync-historial" class="text-[10px] text-text-gray font-medium">3 Sesiones <span
-                                class="text-neon font-bold">OK</span></p>
+                        <p id="sync-historial" class="text-[10px] text-text-gray font-medium">Glucosa: <span id="glucosa-value"
+                                class="text-neon font-bold">-- mg/dL</span></p>
                     </div>
                 </a>
 
@@ -364,6 +393,10 @@
     </div>
 
     <script>
+        // Global references for Bio-Cloud
+        let currentUserDoc = null;
+        let lastLogTime = 0;
+
         // Update greeting based on time
         const hour = new Date().getHours();
         const greetingElement = document.getElementById('greeting');
@@ -372,20 +405,73 @@
         if (hour >= 18) greetText = 'Buenas noches';
         greetingElement.innerText = `${greetText}, Guerrero`;
 
-        function syncData() {
-            // NTK Token Balance Sync
-            const balance = localStorage.getItem('hb_token_balance') || '450';
-            document.getElementById('token-balance').innerText = balance;
+        async function syncData() {
+            try {
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                currentUserDoc = window.hb_db.collection('users').doc(userId);
 
-            const currentWorkout = JSON.parse(localStorage.getItem('hb_current_workout') || '[]');
-            document.getElementById('sync-entrenar').innerHTML = currentWorkout.length > 0
-                ? `<span class="text-primary font-bold">${currentWorkout.length} activos</span>`
-                : 'Listo para iniciar';
+                const ntk = localStorage.getItem('hb_ntk') || '450';
+                const hrv = localStorage.getItem('hb_hrv') || '72';
+                const glucose = localStorage.getItem('hb_glucose') || '98';
 
-            const history = JSON.parse(localStorage.getItem('hb_workout_history') || '[]');
-            document.getElementById('sync-historial').innerHTML = history.length > 0
-                ? `<span class="text-neon font-bold">${history.length} logrados</span>`
-                : 'Sin registros';
+                // Initial UI update from Local
+                document.getElementById('ntk-balance').innerText = ntk;
+                document.getElementById('hrv-value').innerText = `${hrv} BPM`;
+                document.getElementById('glucosa-value').innerText = `${glucose} mg/dL`;
+
+                // Real-time Cloud listener
+                });
+                
+                // Fetch Last Workout for BDNF Logic
+                window.hb_db.collection('users').doc(userId).collection('logs')
+                    .where('category', '==', 'entrenar')
+                    .orderBy('timestamp', 'desc')
+                    .limit(1)
+                    .get()
+                    .then(querySnapshot => {
+                        let lastWorkoutAt = null;
+                        if (!querySnapshot.empty) {
+                            lastWorkoutAt = querySnapshot.docs[0].data().timestamp.toDate();
+                        }
+                        
+                        // Initial AI Scan
+                        updateAIInsightsPanel({ hrv: parseInt(hrv), glucosa: parseInt(glucose), lastWorkoutAt });
+
+                        // Update real-time listener inside onSnapshot
+                        currentUserDoc.onSnapshot((doc) => {
+                            if (doc.exists) {
+                                const data = doc.data();
+                                const currentNtk = data.ntkBalance !== undefined ? data.ntkBalance : parseInt(ntk);
+                                
+                                // Update NTK Balance
+                                document.getElementById('ntk-balance').innerText = currentNtk;
+                                document.getElementById('hrv-value').innerText = `${data.hrv || hrv} BPM`;
+                                document.getElementById('glucosa-value').innerText = `${data.glucosa || glucose} mg/dL`;
+                                localStorage.setItem('hb_ntk', currentNtk);
+
+                                // Gamification Logic
+                                const level = Math.floor(currentNtk / 1000) + 1;
+                                const xpValue = currentNtk % 1000;
+                                const xpPercent = (xpValue / 1000) * 100;
+
+                                document.getElementById('user-level').innerText = `LVL ${level}`;
+                                document.getElementById('user-xp-text').innerText = `${xpValue} / 1000 NTK`;
+                                document.getElementById('user-xp-bar').style.width = `${xpPercent}%`;
+
+                                // Update AI Panel with Live Data
+                                updateAIInsightsPanel({ 
+                                    hrv: data.hrv || parseInt(hrv), 
+                                    glucosa: data.glucosa || parseInt(glucose), 
+                                    lastWorkoutAt 
+                                });
+                            }
+                        });
+                    });
+
+            } catch (p) { console.warn("Cloud Sync Error:", p); }
         }
 
         function applyUserBg() {
@@ -399,22 +485,59 @@
             document.body.appendChild(bgOverlay);
         }
 
-        function quickLog(btnElement, type) {
+        async function quickLog(btnElement, type) {
+            // Anti-spam cooldown (30s)
+            const now = Date.now();
+            if (now - lastLogTime < 30000) {
+                btnElement.classList.add('border-red-500/50');
+                setTimeout(() => btnElement.classList.remove('border-red-500/50'), 500);
+                return;
+            }
+            lastLogTime = now;
+
             const icon = btnElement.querySelector('.material-symbols-outlined');
             const text = btnElement.querySelector('span:last-child');
-
             const originalIcon = icon.innerText;
             const originalText = text.innerText;
 
-            icon.innerText = 'check_circle';
-            text.innerText = 'OK';
-            btnElement.classList.add('glow-border');
+            // UI feedback
+            icon.innerText = 'cloud_upload';
+            text.innerText = 'SYNCING...';
+            btnElement.classList.add('border-primary/50');
+
+            try {
+                if (currentUserDoc) {
+                    const logData = {
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'quick_log',
+                        category: type,
+                        value: 5,
+                        unit: 'NTK+',
+                        title: `Registro Rápido: ${type.toUpperCase()}`
+                    };
+
+                    // Guardar Log
+                    await currentUserDoc.collection('logs').add(logData);
+
+                    // Recompensa NTK
+                    await currentUserDoc.update({
+                        ntkBalance: firebase.firestore.FieldValue.increment(5)
+                    });
+
+                    icon.innerText = 'check_circle';
+                    text.innerText = '+5 NTK';
+                }
+            } catch (e) {
+                console.error("Quick Log Error:", e);
+                icon.innerText = 'error';
+                text.innerText = 'ERROR';
+            }
 
             setTimeout(() => {
                 icon.innerText = originalIcon;
                 text.innerText = originalText;
-                btnElement.classList.remove('glow-border');
-            }, 2000);
+                btnElement.classList.remove('border-primary/50');
+            }, 3000);
         }
 
         applyUserBg();

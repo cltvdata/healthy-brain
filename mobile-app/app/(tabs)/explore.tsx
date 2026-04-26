@@ -1,112 +1,244 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image, StyleSheet } from 'react-native';
+import { AppStyles, AppColors } from '@/constants/AppStyles';
+import { Ionicons } from '@expo/vector-icons';
+import { db, auth } from '@/constants/FirebaseConfig';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+const { width } = Dimensions.get('window');
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Ranking de Soberanía (Ordenado por bioScore)
+    const q = query(collection(db, 'users'), orderBy('bioScore', 'desc'), limit(20));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const leaderboard = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(leaderboard);
+      setLoading(false);
+    });
+
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+        setCurrentUser(user);
+    });
+
+    return () => {
+        unsubscribe();
+        unsubscribeAuth();
+    };
+  }, []);
+
+  const handleGift = (targetId: string, targetName: string) => {
+    // @ts-ignore - market exists
+    router.push({
+        pathname: '/market',
+        params: { giftTargetId: targetId, giftTargetName: targetName }
+    });
+  };
+
+  const getRankStyle = (index: number) => {
+    if (index === 0) return { color: '#FFD700', icon: 'trophy' }; // Gold
+    if (index === 1) return { color: '#C0C0C0', icon: 'medal' };  // Silver
+    if (index === 2) return { color: '#CD7F32', icon: 'medal' };  // Bronze
+    return { color: 'rgba(255,255,255,0.3)', icon: 'ellipse' };
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={AppStyles.body}>
+      {/* 🧬 Bio-Champion Header */}
+      <LinearGradient
+        colors={['rgba(0, 209, 255, 0.1)', 'transparent']}
+        style={styles.championHeader}
+      >
+        <Ionicons name="flash" size={24} color={AppColors.primaryBioGreen} />
+        <View style={{ marginLeft: 15, flex: 1 }}>
+           <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Red Neuronal Activa 🌐</Text>
+           <Text style={[AppStyles.textGray, { fontSize: 10 }]}>{users.length} Nodos sincronizados en la Bio-Cloud.</Text>
+        </View>
+        <TouchableOpacity 
+            // @ts-ignore
+            onPress={() => router.push('/market')}
+            style={styles.marketBtn}
+        >
+           <Ionicons name="cart" size={16} color="black" />
+           <Text style={styles.marketBtnText}>MARKET</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
+        <View style={{ marginBottom: 25 }}>
+          <Text style={[AppStyles.textGray, { fontSize: 10, fontWeight: 'bold', letterSpacing: 2, textTransform: 'uppercase' }]}>Ranking Global</Text>
+          <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: 'bold' }]}>Soberanía Bio 🏆</Text>
+        </View>
+
+        {loading ? (
+          <View style={{ padding: 40, alignItems: 'center' }}>
+             <Text style={AppStyles.textGray}>Sincronizando Nodos...</Text>
+          </View>
+        ) : (
+          users.map((user, index) => {
+            const rank = getRankStyle(index);
+            const isMe = user.id === currentUser?.uid;
+            const level = Math.floor((user.ntkBalance || 0) / 1000) + 1;
+
+            return (
+              <View key={user.id} style={[styles.rankCard, isMe && styles.meCard]}>
+                <View style={styles.rankNumberContainer}>
+                   <Ionicons name={rank.icon as any} size={14} color={rank.color} />
+                   <Text style={[styles.rankNumber, { color: rank.color }]}>{index + 1}</Text>
+                </View>
+
+                <View style={styles.avatarContainer}>
+                   <Image 
+                     source={{ uri: `https://i.pravatar.cc/100?u=${user.id}` }} 
+                     style={styles.avatar} 
+                   />
+                   <View style={styles.levelBadge}>
+                      <Text style={styles.levelText}>{level}</Text>
+                   </View>
+                </View>
+
+                <View style={{ flex: 1, marginLeft: 15 }}>
+                   <Text style={[AppStyles.textWhite, { fontSize: 14, fontWeight: 'bold' }]}>
+                     {user.displayName || `Guerrero_${user.id.substring(0,4)}`}
+                     {isMe && <Text style={{ color: AppColors.primaryOrange, fontSize: 10 }}> (TÚ)</Text>}
+                   </Text>
+                   <Text style={[AppStyles.textGray, { fontSize: 10 }]}>Soberanía: {(user.bioScore || 0).toFixed(1)}</Text>
+                </View>
+
+                <View style={styles.ntkContainer}>
+                   <Text style={styles.ntkValue}>{user.ntkBalance || 0} NTK</Text>
+                   {!isMe && (
+                     <TouchableOpacity 
+                        onPress={() => handleGift(user.id, user.displayName || 'Guerrero')}
+                        style={styles.giftBtn}
+                     >
+                       <Ionicons name="gift" size={14} color={AppColors.primaryOrange} />
+                     </TouchableOpacity>
+                   )}
+                </View>
+              </View>
+            );
+          })
+        )}
+
+        <TouchableOpacity 
+            // @ts-ignore
+            onPress={() => router.push('/market')}
+            style={[AppStyles.glassCard, { marginTop: 20, padding: 20, alignItems: 'center', borderColor: AppColors.primaryOrange + '40' }]}
+        >
+            <Ionicons name="cart-outline" size={32} color={AppColors.primaryOrange} />
+            <Text style={[AppStyles.textWhite, { fontWeight: 'bold', marginTop: 10 }]}>Visitar Bio-Market</Text>
+            <Text style={[AppStyles.textGray, { fontSize: 11, textAlign: 'center', marginTop: 5 }]}>Canjea tus NTK por suplementos, bio-hacks y gadgets de optimización.</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
+  championHeader: {
+    margin: 20,
+    marginTop: 60,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 20,
+    padding: 15,
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 209, 255, 0.2)'
   },
+  marketBtn: {
+    backgroundColor: AppColors.primaryBioGreen,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5
+  },
+  marketBtnText: {
+    color: 'black',
+    fontSize: 10,
+    fontWeight: 'bold'
+  },
+  rankCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#161616',
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
+  meCard: {
+    borderColor: AppColors.primaryOrange + '40',
+    backgroundColor: AppColors.primaryOrange + '08'
+  },
+  rankNumberContainer: {
+    width: 30,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  rankNumber: {
+    fontSize: 12,
+    fontWeight: '900',
+    marginTop: 2
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
+  levelBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: 'black',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: AppColors.primaryBioGreen,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  levelText: {
+    color: AppColors.primaryBioGreen,
+    fontSize: 8,
+    fontWeight: 'bold'
+  },
+  ntkContainer: {
+    alignItems: 'flex-end',
+    gap: 5
+  },
+  ntkValue: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontStyle: 'italic'
+  },
+  giftBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: AppColors.primaryOrange + '20',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
 });

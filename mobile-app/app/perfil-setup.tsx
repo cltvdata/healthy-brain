@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { BioEconomy, genReferralCode } from '@/constants/BioEconomy';
+import { db, auth } from '@/constants/FirebaseConfig';
+import { useLanguage } from '@/context/LanguageContext';
+import { doc, updateDoc, getDoc, query, collection, where, getDocs, setDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
 export default function PerfilSetupScreen() {
+  const [userName, setUserName] = useState('');
   const [genero, setGenero] = useState('');
   const [edad, setEdad] = useState('');
   const [peso, setPeso] = useState('');
@@ -17,8 +22,38 @@ export default function PerfilSetupScreen() {
   const [twinGenerated, setTwinGenerated] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   
+  const { locale, setLocale, t } = useLanguage();
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
-  const [language, setLanguage] = useState<'es' | 'en'>('es');
+  
+  const [referralInput, setReferralInput] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
+  const [shareStats, setShareStats] = useState(false);
+  const [communityPrivacy, setCommunityPrivacy] = useState(true);
+  const [legalAccepted, setLegalAccepted] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    // Attempt to load existing data if available
+    const loadData = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docSnap = await getDoc(doc(db, 'users', user.uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.userName) setUserName(data.userName);
+          if (data.genero) setGenero(data.genero);
+          if (data.edad) setEdad(data.edad);
+          if (data.peso) setPeso(data.peso);
+          if (data.altura) setAltura(data.altura);
+          if (data.objetivo) setObjetivo(data.objetivo);
+          if (data.photoPrivacy) setIsPublic(data.photoPrivacy === 'public');
+          if (data.statsPrivacy) setShareStats(data.statsPrivacy === 'public');
+          if (data.communityPrivacy !== undefined) setCommunityPrivacy(data.communityPrivacy);
+        }
+      }
+    };
+    loadData();
+  }, []);
 
   const genderOptions = ['Masculino', 'Femenino', 'Biológico'];
   const goalOptions = [
@@ -49,22 +84,22 @@ export default function PerfilSetupScreen() {
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: AppColors.primaryBioGreen }} />
             <Text style={[AppStyles.textGray, { fontSize: 10, fontWeight: 'bold' }]}>DATA SECURE</Text>
           </View>
-          <Text style={[AppStyles.textWhite, { fontSize: 22, fontWeight: 'bold' }]}>Identidad Biológica</Text>
+          <Text style={[AppStyles.textWhite, { fontSize: 22, fontWeight: 'bold' }]}>{t('profile.title')}</Text>
         </View>
       </View>
 
       {/* Global Configuration */}
       <View style={[AppStyles.glassCard, { padding: 15, marginBottom: 25, flexDirection: 'row', justifyContent: 'space-around' }]}>
           <TouchableOpacity 
-            style={{ alignItems: 'center', opacity: language === 'es' ? 1 : 0.4 }}
-            onPress={() => setLanguage('es')}
+            style={{ alignItems: 'center', opacity: locale === 'es' ? 1 : 0.4 }}
+            onPress={() => setLocale('es')}
           >
             <Text style={[AppStyles.textWhite, { fontSize: 10, fontWeight: 'bold' }]}>ESP</Text>
           </TouchableOpacity>
           <View style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
           <TouchableOpacity 
-            style={{ alignItems: 'center', opacity: language === 'en' ? 1 : 0.4 }}
-            onPress={() => setLanguage('en')}
+            style={{ alignItems: 'center', opacity: locale === 'en' ? 1 : 0.4 }}
+            onPress={() => setLocale('en')}
           >
             <Text style={[AppStyles.textWhite, { fontSize: 10, fontWeight: 'bold' }]}>ENG</Text>
           </TouchableOpacity>
@@ -86,8 +121,19 @@ export default function PerfilSetupScreen() {
 
       {/* Biometric Scan Section */}
       <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25 }]}>
-          <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginBottom: 20 }]}>Biometrías de Base</Text>
+          <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginBottom: 20 }]}>Biometrias de Base</Text>
           
+          <View style={{ marginBottom: 20 }}>
+              <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 10 }]}>{t('profile.name')}</Text>
+              <TextInput 
+                style={AppStyles.highContrastInput}
+                placeholder="EJ: JEREMY"
+                placeholderTextColor="#444"
+                value={userName}
+                onChangeText={setUserName}
+              />
+          </View>
+
           <View style={{ marginBottom: 20 }}>
              <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 10 }]}>Fenotipo</Text>
              <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -133,42 +179,48 @@ export default function PerfilSetupScreen() {
                     keyboardType="decimal-pad"
                     value={peso}
                     onChangeText={setPeso}
-                    onEndEditing={() => {
-                      if (peso && !peso.includes('.') && peso.length >= 3) {
-                        setPeso((parseFloat(peso) / 10).toFixed(1));
-                      } else if (peso) {
-                        setPeso(parseFloat(peso).toFixed(1));
-                      }
-                    }}
                   />
                </View>
             </View>
 
-        <View style={{ flex: 1 }}>
-            <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 5 }]}>{unitSystem === 'metric' ? "Altura (Cm)" : "Altura (In)"}</Text>
-            <TextInput 
-              style={AppStyles.highContrastInput}
-              placeholder="180"
-              placeholderTextColor="#444"
-              keyboardType="decimal-pad"
-              value={altura}
-              onChangeText={setAltura}
-              onEndEditing={() => {
-                if (altura && !altura.includes('.') && altura.length >= 3 && unitSystem === 'imperial') {
-                  setAltura((parseFloat(altura) / 10).toFixed(1));
-                } else if (altura) {
-                  setAltura(parseFloat(altura).toFixed(unitSystem === 'metric' ? 0 : 1));
-                }
-              }}
-            />
-        </View>
+            <View>
+                <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 5 }]}>{unitSystem === 'metric' ? "Altura (Cm)" : "Altura (In)"}</Text>
+                <TextInput 
+                  style={AppStyles.highContrastInput}
+                  placeholder="180"
+                  placeholderTextColor="#444"
+                  keyboardType="decimal-pad"
+                  value={altura}
+                  onChangeText={setAltura}
+                />
+            </View>
+          </View>
       </View>
-  </View>
+
+      {/* Reporte Antropométrico */}
+      {bmi > 0 && (
+        <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25, borderColor: AppColors.primaryBioGreen, borderWidth: 1 }]}>
+           <View style={[AppStyles.rowBetween, { marginBottom: 15 }]}>
+              <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Reporte Antropométrico</Text>
+              <Text style={{ color: AppColors.primaryBioGreen }}>{bmi.toFixed(1)} BMI</Text>
+           </View>
+           <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
+              <View style={{ 
+                height: '100%', 
+                backgroundColor: bmi < 18.5 ? '#ffcc00' : (bmi < 25 ? AppColors.primaryBioGreen : AppColors.primaryOrange),
+                width: `${Math.min(Math.max(((bmi - 15) / (40 - 15)) * 100, 0), 100)}%`
+              }} />
+           </View>
+           <Text style={[AppStyles.textGray, { fontSize: 10, marginTop: 8, textAlign: 'center' }]}>
+              {bmi < 18.5 ? "DÉFICIT CALÓRICO DETECTADO" : (bmi < 25 ? "FENOTIPO ÓPTIMO" : "ESTRÉS METABÓLICO DETECTADO")}
+           </Text>
+        </View>
+      )}
 
       {/* AI Kinetic Twin Section */}
       <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25, borderColor: parsingTwin ? AppColors.primaryBioGreen : AppColors.primaryNeonBlue, borderWidth: 1 }]}>
           <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginBottom: 10 }]}>Gemelo Cinético IA</Text>
-          <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 15, lineHeight: 18 }]}>Sube tu foto para generar tu avatar 3D. Te verás a ti mismo realizando los ejercicios con perfecta biomecánica en tiempo real.</Text>
+          <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 15, lineHeight: 18 }]}>Sube tu foto para generar tu avatar 3D. Te verás a ti mismo realizando los ejercicios con perfecta biomecánica.</Text>
           
           {!twinGenerated ? (
             <TouchableOpacity 
@@ -187,9 +239,9 @@ export default function PerfilSetupScreen() {
                 }, 300);
               }}
               style={{ 
-                height: 120, 
+                height: 100, 
                 borderRadius: 15, 
-                backgroundColor: parsingTwin ? 'rgba(0, 255, 128, 0.05)' : 'rgba(0, 209, 255, 0.05)', 
+                backgroundColor: 'rgba(0, 209, 255, 0.05)', 
                 borderStyle: 'dashed', 
                 borderWidth: 2, 
                 borderColor: parsingTwin ? AppColors.primaryBioGreen : AppColors.primaryNeonBlue, 
@@ -199,51 +251,22 @@ export default function PerfilSetupScreen() {
             >
               {parsingTwin ? (
                 <View style={{ width: '80%', alignItems: 'center' }}>
-                  <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', marginBottom: 10 }}>ESCANEANDO BIOMECÁNICA... {Math.round(uploadProgress * 100)}%</Text>
-                  <View style={{ width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
-                    <View style={{ width: `${uploadProgress * 100}%`, height: '100%', backgroundColor: AppColors.primaryBioGreen }} />
-                  </View>
+                  <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 12, marginBottom: 10 }}>ESCANEANDO... {Math.round(uploadProgress * 100)}%</Text>
                 </View>
               ) : (
                 <>
-                  <Ionicons name="camera" size={32} color={AppColors.primaryNeonBlue} style={{ marginBottom: 10 }} />
-                  <Text style={{ color: AppColors.primaryNeonBlue, fontWeight: 'bold' }}>Subir Foto / Escanear Cuerpo</Text>
+                  <Ionicons name="camera" size={28} color={AppColors.primaryNeonBlue} style={{ marginBottom: 5 }} />
+                  <Text style={{ color: AppColors.primaryNeonBlue, fontWeight: 'bold', fontSize: 12 }}>Escanear Cuerpo</Text>
                 </>
               )}
             </TouchableOpacity>
           ) : (
             <View style={[AppStyles.rowCentered, { gap: 15, padding: 10, backgroundColor: 'rgba(0, 255, 128, 0.1)', borderRadius: 15 }]}>
-               <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: AppColors.primaryBioGreen }}>
-                  <Ionicons name="person" size={30} color={AppColors.primaryBioGreen} />
-               </View>
-               <View style={{ flex: 1 }}>
-                  <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold' }}>¡GEMELO ACTIVO!</Text>
-                  <Text style={[AppStyles.textGray, { fontSize: 10 }]}>Tu avatar cinético ha sido generado con éxito y está listo para corregir tu técnica.</Text>
-               </View>
                <Ionicons name="checkmark-circle" size={24} color={AppColors.primaryBioGreen} />
+               <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 12 }}>¡GEMELO ACTIVO!</Text>
             </View>
           )}
       </View>
-
-      {/* Reporte Antropométrico */}
-      {bmi > 0 && (
-        <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25, borderColor: AppColors.primaryBioGreen }]}>
-           <View style={[AppStyles.rowBetween, { marginBottom: 15 }]}>
-              <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Reporte Antropométrico</Text>
-              <Text style={{ color: AppColors.primaryBioGreen }}>{bmi.toFixed(1)} BMI</Text>
-           </View>
-           <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
-              <View style={{ 
-                height: '100%', 
-                backgroundColor: bmi < 18.5 ? '#ffcc00' : (bmi < 25 ? AppColors.primaryBioGreen : AppColors.primaryOrange),
-                width: `${Math.min(Math.max(((bmi - 15) / (40 - 15)) * 100, 0), 100)}%`
-              }} />
-           </View>
-           <Text style={[AppStyles.textGray, { fontSize: 10, marginTop: 8, textAlign: 'center' }]}>
-              {bmi < 18.5 ? "DÉFICIT CALÓRICO DETECTADO" : (bmi < 25 ? "FENOTIPO ÓPTIMO" : "ESTRÉS METABÓLICO DETECTADO")}
-           </Text>
-        </View>
-      )}
 
       {/* Strategic Goal */}
       <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold', marginBottom: 15 }]}>Objetivo Estratégico</Text>
@@ -267,14 +290,132 @@ export default function PerfilSetupScreen() {
         ))}
       </View>
 
+      {/* Bio-Sovereignty & Referral */}
+      <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 30 }]}>
+          <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginBottom: 15 }]}>Soberanía y Afiliación</Text>
+          
+          <View style={{ marginBottom: 20 }}>
+              <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 8 }]}>Ajustes de Privacidad</Text>
+              <TouchableOpacity 
+                onPress={() => setIsPublic(!isPublic)}
+                style={[AppStyles.rowBetween, { padding: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, borderWidth: 1, borderColor: isPublic ? AppColors.primaryBioGreen : 'transparent' }]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name={isPublic ? "eye" : "eye-off"} size={20} color={isPublic ? AppColors.primaryBioGreen : AppColors.textGray} style={{ marginRight: 10 }} />
+                  <Text style={{ color: 'white', fontSize: 13 }}>{isPublic ? "Fotos Públicas" : "Solo Historial Privado"}</Text>
+                </View>
+                <View style={{ width: 40, height: 20, borderRadius: 10, backgroundColor: isPublic ? AppColors.primaryBioGreen : 'rgba(255,255,255,0.1)', alignItems: isPublic ? 'flex-end' : 'flex-start', padding: 2 }}>
+                  <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: 'white' }} />
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => setShareStats(!shareStats)}
+                style={[AppStyles.rowBetween, { padding: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, borderWidth: 1, borderColor: shareStats ? AppColors.primaryNeonBlue : 'transparent', marginTop: 10 }]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name={shareStats ? "stats-chart" : "lock-closed"} size={20} color={shareStats ? AppColors.primaryNeonBlue : AppColors.textGray} style={{ marginRight: 10 }} />
+                  <Text style={{ color: 'white', fontSize: 13 }}>{shareStats ? "Gráficas de Progreso Públicas" : "Estadísticas Privadas"}</Text>
+                </View>
+                <View style={{ width: 40, height: 20, borderRadius: 10, backgroundColor: shareStats ? AppColors.primaryNeonBlue : 'rgba(255,255,255,0.1)', alignItems: shareStats ? 'flex-end' : 'flex-start', padding: 2 }}>
+                  <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: 'white' }} />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setCommunityPrivacy(!communityPrivacy)}
+                style={[AppStyles.rowBetween, { padding: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, borderWidth: 1, borderColor: communityPrivacy ? AppColors.primaryBioGreen : 'transparent', marginTop: 10 }]}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name={communityPrivacy ? "megaphone" : "notifications-off"} size={20} color={communityPrivacy ? AppColors.primaryBioGreen : AppColors.textGray} style={{ marginRight: 10 }} />
+                  <Text style={{ color: 'white', fontSize: 13 }}>{communityPrivacy ? "Compartir Sinergias en Comunidad" : "Logros Ocultos"}</Text>
+                </View>
+                <View style={{ width: 40, height: 20, borderRadius: 10, backgroundColor: communityPrivacy ? AppColors.primaryBioGreen : 'rgba(255,255,255,0.1)', alignItems: communityPrivacy ? 'flex-end' : 'flex-start', padding: 2 }}>
+                  <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: 'white' }} />
+                </View>
+              </TouchableOpacity>
+          </View>
+
+          <View>
+              <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 8 }]}>Código de Afiliado (Opcional)</Text>
+              <TextInput 
+                style={AppStyles.highContrastInput}
+                placeholder="EJ: BRAIN-CODE-1234"
+                placeholderTextColor="#444"
+                value={referralInput}
+                onChangeText={setReferralInput}
+                autoCapitalize="characters"
+              />
+              <Text style={{ color: AppColors.textGray, fontSize: 9, marginTop: 5 }}>Obtén +100 NTK al ingresar el código de quien te invitó.</Text>
+          </View>
+      </View>
+
       <TouchableOpacity 
-        style={AppStyles.glowBtnOrange}
-        onPress={() => router.push('/')}
+        style={[AppStyles.glowBtnOrange, { opacity: syncing ? 0.6 : 1, marginBottom: 40 }]}
+        disabled={syncing}
+        onPress={async () => {
+           setSyncing(true);
+           try {
+              const userId = auth.currentUser?.uid;
+              if (!userId) {
+                router.push('/');
+                return;
+              }
+
+              // [LEG-FIX] Legal Acceptance Check
+              if (!legalAccepted) {
+                alert("Debes aceptar el descargo de responsabilidad para continuar.");
+                return;
+              }
+
+              const userDocRef = doc(db, 'users', userId);
+              const dataToUpdate: any = {
+                userName,
+                genero,
+                edad,
+                peso,
+                altura,
+                objetivo,
+                photoPrivacy: isPublic ? 'public' : 'private',
+                statsPrivacy: shareStats ? 'public' : 'private',
+                communityPrivacy,
+                legalAccepted: true,
+                referralCode: genReferralCode(userName || 'SOLO'),
+                setupComplete: true
+              };
+
+              // Referral Logic
+              if (referralInput) {
+                const q = query(collection(db, 'users'), where('referralCode', '==', referralInput));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                  const referrerDoc = querySnapshot.docs[0];
+                  dataToUpdate.referredBy = referrerDoc.id;
+                  
+                  // Reward Referrer
+                  const referrerRef = doc(db, 'users', referrerDoc.id);
+                  const referrerData = referrerDoc.data();
+                  await updateDoc(referrerRef, {
+                    ntkBalance: (referrerData.ntkBalance || 0) + BioEconomy.REFERRAL_BONUS_FIXED
+                  });
+
+                  // Reward Current User
+                  dataToUpdate.ntkBalance = (BioEconomy.TRIAL_INITIAL_TOKENS + BioEconomy.REFERRAL_BONUS_FIXED);
+                }
+              }
+
+              await setDoc(userDocRef, dataToUpdate, { merge: true });
+              router.push('/');
+           } catch (e) {
+              console.error("Setup Error:", e);
+           } finally {
+              setSyncing(false);
+           }
+        }}
       >
-        <Text style={AppStyles.glowBtnOrangeText}>Sincronizar Identidad</Text>
+        <Text style={AppStyles.glowBtnOrangeText}>{syncing ? 'SINCRONIZANDO...' : 'Sincronizar Identidad'}</Text>
       </TouchableOpacity>
 
-      <View style={{ height: 40 }} />
+      <View style={{ height: 20 }} />
     </ScrollView>
   );
 }

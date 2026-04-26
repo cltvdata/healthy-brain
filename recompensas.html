@@ -54,9 +54,45 @@
                     </div>
                     <p class="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Tus Activos de Dopamina</p>
                     <h2 id="main-balance" class="text-5xl font-black italic tracking-tighter text-white">450 <span class="text-2xl text-primary opacity-60">NTK</span></h2>
-                    <div class="mt-4 px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-primary">Nivel de Optimización: Pro</span>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <div class="px-6 py-2 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">shield</span>
+                            <span id="squad-name" class="text-[10px] font-bold uppercase tracking-widest text-white/60">Cargando Escuadrón...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bio-War: Squad Leaderboard -->
+            <section class="mb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Bio-War: Ranking de Escuadrones</h3>
+                    <div class="flex gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[9px] font-bold text-red-500 uppercase tracking-widest">En Vivo</span>
+                    </div>
+                </div>
+
+                <div id="squad-leaderboard" class="space-y-3">
+                    <!-- Dynamic Content -->
+                    <div class="glass-card p-4 flex items-center justify-center opacity-50">
+                        <p class="text-[10px] uppercase font-bold tracking-widest italic">Sincronizando Cuartel...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bio-War: Muro de la Victoria (Duelos) -->
+            <section class="mb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Muro de la Victoria: Duelos 1v1</h3>
+                    <span class="material-symbols-outlined text-primary">emoji_events</span>
+                </div>
+
+                <div id="challenges-wall" class="space-y-3">
+                    <!-- Dynamic Content -->
+                    <div class="glass-card p-4 flex items-center justify-center opacity-30">
+                        <p class="text-[10px] uppercase font-bold tracking-widest italic">Esperando Veredictos...</p>
                     </div>
                 </div>
             </section>
@@ -69,23 +105,23 @@
 
                 <div class="grid grid-cols-1 gap-4">
                     <!-- Pack 1 -->
-                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-white/10 hover:border-primary/50 transition-all cursor-pointer" onclick="buyTokens(100)">
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-white/10 hover:border-primary/50 transition-all cursor-pointer" onclick="buyTokens(1000)">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                                 <span class="material-symbols-outlined text-primary text-2xl">battery_charging_20</span>
                             </div>
                             <div>
-                                <h4 class="text-[12px] font-black uppercase italic">Starter Dose</h4>
-                                <p class="text-[10px] text-primary font-bold">100 NTK</p>
+                                <h4 class="text-[12px] font-black uppercase italic">Bio-Beginner</h4>
+                                <p class="text-[10px] text-primary font-bold">1,000 NTK</p>
                             </div>
                         </div>
                         <div class="px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 font-bold text-xs">
-                            $1.99
+                            $9.99
                         </div>
                     </div>
 
                     <!-- Pack 2 -->
-                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-neon/30 bg-neon/5 hover:border-neon transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(500)">
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-neon/30 bg-neon/5 hover:border-neon transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(3500)">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-neon/20 rounded-full blur-xl"></div>
                         <div class="absolute top-0 right-0 bg-neon text-black text-[8px] font-black px-2 py-0.5 rounded-bl-[12px] uppercase">Popular</div>
                         
@@ -94,17 +130,17 @@
                                 <span class="material-symbols-outlined text-neon text-2xl">battery_charging_80</span>
                             </div>
                             <div>
-                                <h4 class="text-[12px] font-black uppercase italic">Optimization Pack</h4>
-                                <p class="text-[10px] text-neon font-bold">500 NTK</p>
+                                <h4 class="text-[12px] font-black uppercase italic">Neuro-Optimizer</h4>
+                                <p class="text-[10px] text-neon font-bold">3,500 NTK</p>
                             </div>
                         </div>
                         <div class="px-3 py-1.5 bg-neon/10 text-neon rounded-lg border border-neon/30 font-bold text-xs relative z-10">
-                            $7.99
+                            $24.99
                         </div>
                     </div>
 
                     <!-- Pack 3 -->
-                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-primary/40 bg-primary/10 hover:border-primary transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(1500)">
+                    <div class="glass-card p-4 flex gap-4 items-center justify-between border-primary/40 bg-primary/10 hover:border-primary transition-all cursor-pointer relative overflow-hidden" onclick="buyTokens(12000)">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/30 rounded-full blur-xl"></div>
                         <div class="absolute top-0 right-0 bg-primary text-black text-[8px] font-black px-2 py-0.5 rounded-bl-[12px] uppercase">Best Value</div>
                         
@@ -113,12 +149,12 @@
                                 <span class="material-symbols-outlined text-primary text-2xl">battery_charging_full</span>
                             </div>
                             <div>
-                                <h4 class="text-[12px] font-black uppercase italic text-primary">Bio-Hacker Vault</h4>
-                                <p class="text-[10px] text-white font-bold">1,500 NTK</p>
+                                <h4 class="text-[12px] font-black uppercase italic text-primary">Soberanía Elite</h4>
+                                <p class="text-[10px] text-white font-bold">12,000 NTK</p>
                             </div>
                         </div>
                         <div class="px-3 py-1.5 bg-primary/20 text-white rounded-lg border border-primary/40 font-bold text-xs relative z-10">
-                            $19.99
+                            $74.99
                         </div>
                     </div>
                 </div>
@@ -205,44 +241,160 @@
     </div>
 
     <script>
-        let balance = parseInt(localStorage.getItem('hb_token_balance') || '450');
+        let balance = 0;
         
-        // Initialize display
-        document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
+        // Listen to Cloud Balance and Squads
+        function initRewards() {
+            hb_auth.onAuthStateChanged((user) => {
+                if (user) {
+                    const userRef = hb_db.collection('users').doc(user.uid);
+                    userRef.onSnapshot((doc) => {
+                        if (doc.exists) {
+                            balance = doc.data().ntkBalance || 0;
+                            const sId = doc.data().squadId;
+                            if (sId) {
+                                hb_db.collection('squads').doc(sId).get().then(sSnap => {
+                                    if(sSnap.exists) document.getElementById('squad-name').innerText = sSnap.data().name;
+                                });
+                            } else {
+                                document.getElementById('squad-name').innerText = "SIN ESCUADRÓN";
+                            }
+                            updateUI();
+                        }
+                    });
 
-        function redeem(cost, item) {
+                    // Listen for completed challenges (Wall of Fame)
+                    hb_db.collection('challenges').where('status', '==', 'completed').orderBy('createdAt', 'desc').limit(3).onSnapshot(snap => {
+                        const wall = document.getElementById('challenges-wall');
+                        wall.innerHTML = '';
+                        if (snap.empty) {
+                            wall.innerHTML = '<div class="glass-card p-4 text-center opacity-30 text-[10px] uppercase">No hay duelos recientes</div>';
+                            return;
+                        }
+                        snap.forEach(doc => {
+                            const c = doc.data();
+                            wall.innerHTML += `
+                                <div class="glass-card p-4 bg-gradient-to-r from-primary/5 to-transparent border-primary/10">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-black">W</div>
+                                            <div>
+                                                <p class="text-[10px] font-black uppercase italic">${c.winnerId.substring(0,8)}... <span class="text-white/40 not-italic">Venció a</span> ${c.opponentId === c.winnerId ? c.challengerId.substring(0,8) : c.opponentId.substring(0,8)}...</p>
+                                                <p class="text-[9px] text-neon font-bold uppercase tracking-tighter">Veredicto Biométrico: +${Math.round(c.prize)} NTK</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    });
+
+                    // Listen for squads ranking
+                    hb_db.collection('squads').orderBy('totalPoints', 'desc').limit(5).onSnapshot(snap => {
+                        const board = document.getElementById('squad-leaderboard');
+                        board.innerHTML = '';
+                        snap.forEach((doc, idx) => {
+                            const s = doc.data();
+                            board.innerHTML += `
+                                <div class="glass-card p-4 flex items-center justify-between border-white/5 hover:border-primary/20 transition-all">
+                                    <div class="flex items-center gap-4">
+                                        <div class="text-xl font-black italic text-white/20">${idx + 1}</div>
+                                        <div>
+                                            <h4 class="text-[12px] font-black uppercase italic">${s.name}</h4>
+                                            <p class="text-[9px] text-white/40 font-bold uppercase tracking-widest">${s.members.length} Guerreros</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[12px] font-black italic text-primary">${s.totalPoints || 0} PTS</div>
+                                        <div class="text-[8px] text-neon font-black uppercase">HRV AVG: ${s.avgHrv || '--'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    });
+                } else {
+                    hb_auth.signInAnonymously();
+                }
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
+        }
+
+        async function redeem(cost, item) {
             if (balance >= cost) {
-                balance -= cost;
-                localStorage.setItem('hb_token_balance', balance.toString());
-                document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
-                
-                const toast = document.getElementById('toast');
-                toast.innerHTML = `<span class="material-symbols-outlined font-black">check_circle</span> Canje realizado con éxito`;
-                toast.classList.remove('scale-0', 'opacity-0');
-                toast.classList.add('scale-100', 'opacity-100');
-                
-                setTimeout(() => {
-                    toast.classList.remove('scale-100', 'opacity-100');
-                    toast.classList.add('scale-0', 'opacity-0');
-                }, 3000);
+                const user = hb_auth.currentUser;
+                if (!user) return;
+
+                const userRef = hb_db.collection('users').doc(user.uid);
+                try {
+                    await hb_db.runTransaction(async (transaction) => {
+                        const userDoc = await transaction.get(userRef);
+                        const currentBalance = userDoc.data().ntkBalance || 0;
+                        if (currentBalance < cost) throw "NTK Insuficiente";
+                        transaction.update(userRef, { ntkBalance: currentBalance - cost });
+                    });
+                    
+                    // Log to Bio-Cloud History
+                    await userRef.collection('logs').add({
+                        type: 'redeem',
+                        category: 'market',
+                        title: `Canjeado: ${item}`,
+                        value: -cost,
+                        unit: 'NTK',
+                        timestamp: new Date()
+                    });
+
+                    showToast(`Canje realizado: ${item}`);
+                } catch (e) {
+                    alert(e);
+                }
+            } else {
+                alert("NTK Insuficiente");
             }
         }
 
-        function buyTokens(amount) {
-            balance += amount;
-            localStorage.setItem('hb_token_balance', balance.toString());
-            document.getElementById('main-balance').innerHTML = `${balance} <span class="text-2xl text-primary opacity-60">NTK</span>`;
-            
+        async function buyTokens(amount) {
+            const user = hb_auth.currentUser;
+            if (!user) return;
+
+            const userRef = hb_db.collection('users').doc(user.uid);
+            try {
+                await hb_db.runTransaction(async (transaction) => {
+                    const userDoc = await transaction.get(userRef);
+                    const currentBalance = userDoc.data().ntkBalance || 0;
+                    transaction.update(userRef, { ntkBalance: currentBalance + amount });
+                });
+
+                // Log to Bio-Cloud History
+                await userRef.collection('logs').add({
+                    type: 'deposit',
+                    category: 'market',
+                    title: `Bio-Carga NTK`,
+                    value: amount,
+                    unit: 'NTK',
+                    timestamp: new Date()
+                });
+
+                showToast(`Compra exitosa: +${amount} NTK`);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function showToast(msg) {
             const toast = document.getElementById('toast');
-            toast.innerHTML = `<span class="material-symbols-outlined font-black">check_circle</span> Compra exitosa: +${amount} NTK`;
+            toast.innerHTML = `<span class="material-symbols-outlined font-black">check_circle</span> ${msg}`;
             toast.classList.remove('scale-0', 'opacity-0');
             toast.classList.add('scale-100', 'opacity-100');
-            
             setTimeout(() => {
                 toast.classList.remove('scale-100', 'opacity-100');
                 toast.classList.add('scale-0', 'opacity-0');
             }, 3000);
         }
+
+        window.onload = initRewards;
     </script>
 </body>
 </html>

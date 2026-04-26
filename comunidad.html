@@ -8,7 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    <!-- Scripts Core -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -25,10 +33,13 @@
     </script>
     <style>
         body { font-family: 'Outfit', sans-serif; background-color: #0a0a0a; color: white; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; transition: all 0.3s ease; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; transition: all 0.3s ease; overflow: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .avatar-border { border: 2px solid rgba(0, 209, 255, 0.3); }
         .rank-gold { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+        #network-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .network-container { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 24px; overflow: hidden; }
+        .bio-radar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent, rgba(10,10,10,0.8)); pointer-events: none; }
     </style>
 </head>
 <body class="bg-mesh min-h-screen">
@@ -45,77 +56,57 @@
 
         <main class="flex-1 px-6 pt-4 overflow-y-auto no-scrollbar">
             
-            <!-- Comparison Radar Chart -->
+            <!-- Bio-Network 3D Constellation -->
             <section class="mb-10 text-center">
-                <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em] mb-6">Tu Huella Biológica vs Global</h3>
-                <div class="glass-card p-6 aspect-square flex items-center justify-center border-neon/20 bg-neon/5 relative">
-                    <canvas id="bioRadar"></canvas>
+                <div class="flex items-center justify-between mb-6 px-1">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Red Neuronal de Sinergia</h3>
+                    <button onclick="toggleView()" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10">
+                        <span class="material-symbols-outlined text-[18px]" id="view-icon">query_stats</span>
+                    </button>
                 </div>
-                <p class="mt-4 text-[10px] text-white/40 font-medium uppercase tracking-widest">Estás en el <span class="text-neon font-black italic">TOP 12%</span> de optimización local</p>
+                
+                <div class="network-container glass-card border-neon/20 bg-neon/5 relative group cursor-crosshair" id="main-display">
+                    <!-- Three.js Canvas -->
+                    <div id="network-3d" class="absolute inset-0"></div>
+                    
+                    <!-- Radar Overlay (Initially Hidden) -->
+                    <div id="radar-overlay" class="absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-500 flex items-center justify-center p-6 bg-dark/80 backdrop-blur-md">
+                        <canvas id="bioRadar"></canvas>
+                    </div>
+
+                    <div class="absolute bottom-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                        <div class="w-2 h-2 rounded-full bg-neon animate-pulse shadow-[0_0_8px_#00d1ff]"></div>
+                        <span class="text-[9px] font-black uppercase text-white/70 italic"><span id="active-nodes">0</span> Nodos Bio-Activos</span>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-[10px] text-white/40 font-medium uppercase tracking-widest" id="network-status">
+                    Estás orbitando el <span class="text-neon font-black italic">TOP 12%</span> de la red local
+                </p>
             </section>
 
             <!-- Community Leaderboard -->
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Ranking de Soberanía</h3>
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Ranking de Soberanía (Cloud)</h3>
                     <div class="flex gap-2">
                         <button class="px-3 py-1 bg-neon text-black text-[9px] font-black rounded-full uppercase">Global</button>
-                        <button class="px-3 py-1 bg-white/5 text-white/40 text-[9px] font-black rounded-full uppercase">Amigos</button>
+                        <button class="px-3 py-1 bg-white/5 text-white/40 text-[9px] font-black rounded-full uppercase">Cerca de ti</button>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <!-- Rank 1 -->
-                    <div class="glass-card p-4 flex gap-4 items-center border-neon/30 bg-neon/10">
-                        <div class="w-8 h-8 flex items-center justify-center font-black text-neon text-lg rank-gold">1</div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden avatar-border">
-                            <img src="https://i.pravatar.cc/150?u=1" class="w-full h-full object-cover" alt="User">
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-[12px] font-black uppercase italic">Alex_Optimization</h4>
-                            <p class="text-[10px] text-neon/60 font-medium">9.2 SOBREANÍA</p>
-                        </div>
-                        <div class="text-right flex flex-col items-end gap-1">
-                            <span class="text-xs font-black text-white italic">4,500 XP</span>
-                            <button onclick="openGiftModal('Alex_Optimization')" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
-                                <span class="material-symbols-outlined text-[14px]">featured_seasonal_and_gifts</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Rank 2 -->
-                    <div class="glass-card p-4 flex gap-4 items-center">
-                        <div class="w-8 h-8 flex items-center justify-center font-black text-white/40 text-lg">2</div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10">
-                            <img src="https://i.pravatar.cc/150?u=2" class="w-full h-full object-cover" alt="User">
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-[12px] font-black uppercase italic">Maria_BioHacker</h4>
-                            <p class="text-[10px] text-white/40 font-medium">8.8 SOBERANÍA</p>
-                        </div>
-                        <div class="text-right flex flex-col items-end gap-1">
-                            <span class="text-xs font-black text-white italic">3,120 XP</span>
-                            <button onclick="openGiftModal('Maria_BioHacker')" class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
-                                <span class="material-symbols-outlined text-[14px]">featured_seasonal_and_gifts</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Rank 3 (User) -->
-                    <div class="glass-card p-4 flex gap-4 items-center border-primary/20 bg-primary/5">
-                        <div class="w-8 h-8 flex items-center justify-center font-black text-primary text-lg">12</div>
-                        <div class="w-12 h-12 rounded-xl overflow-hidden border border-primary/30">
-                            <span class="w-full h-full flex items-center justify-center material-symbols-outlined text-primary">person</span>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-[12px] font-black uppercase italic">Tú (Guerrero)</h4>
-                            <p class="text-[10px] text-primary/60 font-medium"><span id="user-soberania">7.4</span> SOBERANÍA</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-black text-white italic"><span id="user-xp">150</span> XP</span>
+                <div class="space-y-3" id="leaderboard-container">
+                    <!-- Loading State -->
+                    <div class="glass-card p-4 flex gap-4 items-center animate-pulse">
+                        <div class="w-8 h-8 rounded-full bg-white/5"></div>
+                        <div class="w-12 h-12 rounded-xl bg-white/5"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-3 w-24 bg-white/5 rounded"></div>
+                            <div class="h-2 w-16 bg-white/5 rounded"></div>
                         </div>
                     </div>
                 </div>
+            </section>
             </section>
 
             <!-- Social Feed / Achievements -->
@@ -181,25 +172,214 @@
     </div>
 
     <script>
-        function syncData() {
-            // ... (sync data logic remains mostly the same, implemented below)
-            let bioStats = JSON.parse(localStorage.getItem('hb_bio_stats'));
-            if (!bioStats) {
-                bioStats = [85, 74, 90, 65, 80];
-                localStorage.setItem('hb_bio_stats', JSON.stringify(bioStats));
-            }
+        // --- Bio-Network 3D Engine ---
+        let networkScene, networkCamera, networkRenderer, atoms = [];
+        let viewMode = '3d'; // '3d' or 'radar'
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-            let userXp = localStorage.getItem('hb_user_xp');
-            if (!userXp) {
-                userXp = "150";
-                localStorage.setItem('hb_user_xp', userXp);
-            }
+        function initNetwork() {
+            const container = document.getElementById('network-3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
 
-            document.getElementById('user-xp').innerText = userXp;
+            networkScene = new THREE.Scene();
+            networkCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            networkRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            networkRenderer.setSize(width, height);
+            networkRenderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(networkRenderer.domElement);
+
+            // Particles Geometry (Stars)
+            const starGeo = new THREE.BufferGeometry();
+            const starPositions = [];
+            for(let i=0; i<300; i++) {
+                starPositions.push((Math.random() - 0.5) * 50);
+                starPositions.push((Math.random() - 0.5) * 50);
+                starPositions.push((Math.random() - 0.5) * 50);
+            }
+            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+            const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.3 });
+            const stars = new THREE.Points(starGeo, starMat);
+            networkScene.add(stars);
+
+            networkCamera.position.z = 8;
+            animateNetwork();
             
-            const sum = bioStats.reduce((a, b) => a + b, 0);
-            const soberania = (sum / bioStats.length / 10).toFixed(1);
-            document.getElementById('user-soberania').innerText = soberania;
+            // Initial sync
+            initFirebaseCommunity();
+        }
+
+        function animateNetwork() {
+            requestAnimationFrame(animateNetwork);
+            networkScene.rotation.y += 0.001;
+            networkRenderer.render(networkScene, networkCamera);
+        }
+
+        function createNode(userId, x, y, z, color = 0x00d1ff) {
+            const geo = new THREE.IcosahedronGeometry(0.3, 0);
+            const mat = new THREE.MeshPhongMaterial({ 
+                color: color, 
+                wireframe: true, 
+                emissive: color,
+                emissiveIntensity: 0.5 
+            });
+            const node = new THREE.Mesh(geo, mat);
+            node.position.set(x, y, z);
+            node.userData = { id: userId };
+            networkScene.add(node);
+            
+            // Add Glow
+            const spriteMat = new THREE.SpriteMaterial({
+                map: createGlowTexture(color),
+                color: color,
+                transparent: true,
+                opacity: 0.4,
+                blending: THREE.AdditiveBlending
+            });
+            const sprite = new THREE.Sprite(spriteMat);
+            sprite.scale.set(1.5, 1.5, 1.5);
+            node.add(sprite);
+            
+            return node;
+        }
+
+        function createGlowTexture(color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const context = canvas.getContext('2d');
+            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(0.2, 'rgba(255,255,255,0.5)');
+            gradient.addColorStop(0.4, 'rgba(0,209,255,0.2)');
+            gradient.addColorStop(1, 'transparent');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 64, 64);
+            const texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        function toggleView() {
+            const radar = document.getElementById('radar-overlay');
+            const viewIcon = document.getElementById('view-icon');
+            
+            if (viewMode === '3d') {
+                viewMode = 'radar';
+                radar.classList.remove('opacity-0', 'pointer-events-none');
+                viewIcon.innerText = 'hub';
+                // Sync radar with current local data
+                syncRadar();
+            } else {
+                viewMode = '3d';
+                radar.classList.add('opacity-0', 'pointer-events-none');
+                viewIcon.innerText = 'query_stats';
+            }
+        }
+
+        // --- Firebase Cloud Community ---
+        async function initFirebaseCommunity() {
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    user = (await auth.signInAnonymously()).user;
+                }
+                
+                // Ensure user document exists (Auto-Seeding)
+                const userRef = db.collection('users').doc(user.uid);
+                const doc = await userRef.get();
+                
+                if (!doc.exists) {
+                    console.log("Seeding new community profile...");
+                    const initialStats = JSON.parse(localStorage.getItem('hb_bio_stats')) || [74, 82, 65, 88, 70];
+                    const bioScore = initialStats.reduce((a,b) => a+b, 0) / initialStats.length / 10;
+                    
+                    await userRef.set({
+                        displayName: "Guerrero_" + user.uid.substring(0, 4),
+                        ntkBalance: parseInt(localStorage.getItem('hb_token_balance')) || 450,
+                        bioScore: bioScore,
+                        bioStats: initialStats,
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                listenToCommunity(user.uid);
+            });
+        }
+
+        function listenToCommunity(currentUid) {
+            // Ranking Global (Order by bioScore)
+            db.collection('users').orderBy('bioScore', 'desc').limit(15).onSnapshot(snapshot => {
+                renderLeaderboard(snapshot.docs, currentUid);
+                updateNetwork3D(snapshot.docs, currentUid);
+            });
+        }
+
+        function renderLeaderboard(docs, currentUid) {
+            const container = document.getElementById('leaderboard-container');
+            container.innerHTML = '';
+
+            docs.forEach((doc, index) => {
+                const data = doc.data();
+                const isMe = doc.id === currentUid;
+                const rank = index + 1;
+                
+                const card = document.createElement('div');
+                card.className = `glass-card p-4 flex gap-4 items-center ${rank === 1 ? 'border-neon/30 bg-neon/10' : ''} ${isMe ? 'border-primary/30 bg-primary/5' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="w-8 h-8 flex items-center justify-center font-black ${rank === 1 ? 'text-neon rank-gold' : 'text-white/40'} text-lg">${rank}</div>
+                    <div class="w-12 h-12 rounded-xl overflow-hidden ${rank === 1 ? 'avatar-border' : 'border border-white/10'}">
+                        <img src="https://i.pravatar.cc/150?u=${doc.id}" class="w-full h-full object-cover" alt="User">
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-[12px] font-black uppercase italic">${data.displayName || 'BioHacker_' + doc.id.substring(0,4)}</h4>
+                        <p class="text-[10px] ${rank === 1 ? 'text-neon/60' : 'text-white/40'} font-medium italic">${(data.bioScore || 0).toFixed(1)} SOBERANÍA</p>
+                    </div>
+                    <div class="text-right flex flex-col items-end gap-1">
+                        <span class="text-xs font-black text-white italic">${data.ntkBalance || 0} NTK</span>
+                        ${!isMe ? `
+                        <button onclick="openGiftModal('${doc.id}', '${data.displayName || 'BioHacker'}')" class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
+                            <span class="material-symbols-outlined text-[16px]">featured_seasonal_and_gifts</span>
+                        </button>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                if (isMe) {
+                    localStorage.setItem('hb_token_balance', data.ntkBalance);
+                    localStorage.setItem('hb_bio_stats', JSON.stringify(data.bioStats || [60,60,60,60,60]));
+                    document.getElementById('network-status').innerHTML = `Eres el Nodo <span class="text-neon font-black italic">#${rank}</span> de la soberanía global`;
+                }
+            });
+        }
+
+        function updateNetwork3D(docs, currentUid) {
+            // Clean previous nodes
+            atoms.forEach(atom => networkScene.remove(atom));
+            atoms = [];
+
+            docs.forEach((doc, index) => {
+                const data = doc.data();
+                const isMe = doc.id === currentUid;
+                
+                // Spiral distribution
+                const angle = index * 0.8;
+                const r = index * 0.5 + 2;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                const z = (index - 7) * 0.5;
+                
+                const node = createNode(doc.id, x, y, z, isMe ? 0xff8a00 : 0x00d1ff);
+                atoms.push(node);
+            });
+            
+            document.getElementById('active-nodes').innerText = docs.length;
+        }
+
+        function syncRadar() {
+            const bioStats = JSON.parse(localStorage.getItem('hb_bio_stats'));
+            if (!bioStats) return;
 
             const ctx = document.getElementById('bioRadar');
             if (window.radarChart) {
@@ -218,25 +398,21 @@
                             borderColor: '#00d1ff',
                             pointBackgroundColor: '#00d1ff',
                             pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#00d1ff'
+                            tension: 0.4
                         }, {
                             label: 'Promedio Global',
-                            data: [60, 65, 70, 55, 60],
+                            data: [70, 68, 72, 65, 75],
                             fill: true,
                             backgroundColor: 'rgba(255, 255, 255, 0.05)',
                             borderColor: 'rgba(255, 255, 255, 0.2)',
                             pointBackgroundColor: 'rgba(255, 255, 255, 0.2)',
                             pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(255, 255, 255, 0.5)'
                         }]
                     },
                     options: {
                         plugins: { legend: { display: false } },
                         scales: {
                             r: {
-                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
                                 grid: { color: 'rgba(255, 255, 255, 0.1)' },
                                 pointLabels: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 9, family: 'Outfit', weight: 'bold' } },
                                 ticks: { display: false },
@@ -248,12 +424,14 @@
             }
         }
 
-        // --- Gifting Logic ---
-        let currentGiftTarget = '';
+        // --- Gifting Logic (Cloud) ---
+        let currentGiftTargetId = '';
+        let currentGiftTargetName = '';
         let currentGiftAmount = 0;
 
-        function openGiftModal(name) {
-            currentGiftTarget = name;
+        function openGiftModal(id, name) {
+            currentGiftTargetId = id;
+            currentGiftTargetName = name;
             document.getElementById('gift-target-name').innerText = name;
             currentGiftAmount = 0;
             document.getElementById('confirm-gift-btn').disabled = true;
@@ -288,7 +466,7 @@
         function selectGiftAmount(amount) {
             currentGiftAmount = amount;
             document.getElementById('confirm-gift-btn').disabled = false;
-            document.getElementById('confirm-gift-btn').innerText = `Regalar ${amount} NTK a ${currentGiftTarget.split('_')[0]}`;
+            document.getElementById('confirm-gift-btn').innerText = `ENVIAR ${amount} NTK`;
             
             document.querySelectorAll('.gift-btn').forEach(btn => {
                 if (btn.innerText.includes(amount.toString())) {
@@ -301,31 +479,64 @@
             });
         }
 
-        function confirmGift() {
-            let balance = parseInt(localStorage.getItem('hb_token_balance') || '450');
-            if (balance >= currentGiftAmount) {
-                balance -= currentGiftAmount;
-                localStorage.setItem('hb_token_balance', balance.toString());
-                
+        async function confirmGift() {
+            const currentUid = auth.currentUser.uid;
+            if (!currentUid) return;
+
+            const senderRef = db.collection('users').doc(currentUid);
+            const receiverRef = db.collection('users').doc(currentGiftTargetId);
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const senderDoc = await transaction.get(senderRef);
+                    const receiverDoc = await transaction.get(receiverRef);
+
+                    if (!senderDoc.exists) throw "Usuario no encontrado";
+                    
+                    const senderBalance = senderDoc.data().ntkBalance || 0;
+                    if (senderBalance < currentGiftAmount) {
+                        throw "NTK Insuficiente";
+                    }
+
+                    transaction.update(senderRef, { ntkBalance: senderBalance - currentGiftAmount });
+                    transaction.update(receiverRef, { ntkBalance: (receiverDoc.data().ntkBalance || 0) + currentGiftAmount });
+                });
+
+                showToast(`${currentGiftAmount} NTK ENVIADOS A ${currentGiftTargetName}`);
                 closeGiftModal();
-                const toast = document.getElementById('toast');
-                document.getElementById('toast-message').innerText = `${currentGiftAmount} NTK ENVIADOS A ${currentGiftTarget}`;
-                toast.classList.remove('scale-0', 'opacity-0');
-                toast.classList.add('scale-100', 'opacity-100');
                 
-                setTimeout(() => {
-                    toast.classList.remove('scale-100', 'opacity-100');
-                    toast.classList.add('scale-0', 'opacity-0');
-                }, 3000);
-            } else {
-                alert("NTK Insuficiente. ¡Adquiere más en el Bio-Market!");
+                // Visual effect on 3D node
+                const targetNode = atoms.find(a => a.userData.id === currentGiftTargetId);
+                if (targetNode) {
+                    targetNode.scale.set(3, 3, 3);
+                    setTimeout(() => targetNode.scale.set(1, 1, 1), 500);
+                }
+
+            } catch (error) {
+                console.error("Gifting error:", error);
+                if (error === "NTK Insuficiente") {
+                   alert("NTK Insuficiente. ¡Adquiere más en el Bio-Market!");
+                   window.location.href = 'recompensas.html';
+                } else {
+                    alert("Error en la sinergia: " + error);
+                }
                 closeGiftModal();
-                setTimeout(() => { window.location.href = 'recompensas.html'; }, 500);
             }
         }
 
-        syncData();
-        window.addEventListener('focus', syncData);
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('scale-0', 'opacity-0');
+            toast.classList.add('scale-100', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('scale-100', 'opacity-100');
+                toast.classList.add('scale-0', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initialize
+        window.onload = initNetwork;
     </script>
 </body>
 </html>

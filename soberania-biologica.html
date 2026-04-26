@@ -6,11 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HEALTHY + BRAIN - Soberanía Biológica</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    
+    <!-- Firebase Cloud Infrastructure (Fase 20) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -19,6 +23,9 @@
                         primary: '#00d1ff',
                         neon: '#00d1ff',
                         dark: '#0a0a0a',
+                        'surface-dark': '#141414',
+                        'bio-orange': '#ff8a00',
+                        'bio-green': '#13ec5b',
                     },
                     fontFamily: { sans: ['Outfit', 'sans-serif'] },
                 }
@@ -29,199 +36,317 @@
         body {
             font-family: 'Outfit', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            background-color: #0a0a0a;
             background-image:
                 radial-gradient(circle at 50% 10%, rgba(0, 209, 255, 0.05) 0%, transparent 50%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
         }
 
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .text-gradient-blue {
+            background: linear-gradient(to bottom right, #fff, #00d1ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
         }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        .animate-pulse-ring { animation: pulse-ring 4s infinite ease-in-out; }
+
+        .radar-grid { stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; }
+        .radar-area { fill: rgba(0, 209, 255, 0.2); stroke: #00d1ff; stroke-width: 2; }
     </style>
 </head>
 
-<body class="bg-dark text-white min-h-screen">
-    <div
-        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 shadow-2xl border-x border-white/5">
+<body class="text-white min-h-screen antialiased">
 
-        <!-- Top Navigation -->
-        <header
-            class="flex items-center justify-between p-6 pb-2 sticky top-0 bg-dark/80 backdrop-blur-xl z-30 border-b border-white/5">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 shadow-2xl border-x border-white/5">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between px-6 pt-6 pb-3 sticky top-0 bg-dark/80 backdrop-blur-xl z-50 border-b border-white/5">
             <div class="flex flex-col">
-                <h1 class="text-xl font-extrabold tracking-tight">SOBERANÍA <span class="text-neon">BIOLÓGICA</span>
-                </h1>
-                <p class="text-[10px] text-text-gray font-bold uppercase tracking-widest">Reporte de Optimización</p>
+                <h1 class="text-xl font-extrabold tracking-tight">SOBERANÍA <span class="text-neon text-2xl italic">BIOLÓGICA</span></h1>
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em]">Biofeedback Engine v2.0</p>
             </div>
-            <a href="index.html"
-                class="h-10 w-10 flex items-center justify-center rounded-xl bg-surface-glass border border-white/10 hover:border-neon transition-colors">
-                <span class="material-symbols-outlined text-text-gray">close</span>
-            </a>
+            <!-- Token Display -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+                <span class="material-symbols-outlined text-bio-orange text-base filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                <span id="ntk-balance" class="text-xs font-black text-white">450</span>
+                <span class="text-[9px] font-bold text-gray-500">NTK</span>
+            </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto no-scrollbar pb-24">
-            <!-- Header: Sovereignty Score Gauge -->
-            <div class="flex flex-col items-center justify-center py-12 px-6">
-                <div class="relative flex items-center justify-center">
-                    <!-- Circular Gauge -->
-                    <svg class="w-56 h-56 transform -rotate-90">
-                        <circle class="text-white/5" cx="112" cy="112" fill="transparent" r="96" stroke="currentColor"
-                            stroke-width="12"></circle>
-                        <circle class="text-neon drop-shadow-[0_0_10px_rgba(0,209,255,0.5)]" cx="112" cy="112"
-                            fill="transparent" r="96" stroke="currentColor" stroke-dasharray="603"
-                            stroke-dashoffset="48" stroke-width="12" stroke-linecap="round"></circle>
+        <main class="flex-1 px-6 pt-4 pb-20 overflow-y-auto no-scrollbar">
+
+            <!-- Score Gauge -->
+            <div class="flex flex-col items-center justify-center py-10 relative">
+                <div class="absolute inset-0 bg-neon/5 blur-3xl rounded-full scale-75 pointer-events-none"></div>
+                
+                <div class="relative w-56 h-56 flex items-center justify-center">
+                    <!-- Gauge SVG -->
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="112" cy="112" r="96" fill="transparent" stroke="rgba(255,255,255,0.05)" stroke-width="12" />
+                        <circle id="score-ring" cx="112" cy="112" r="96" fill="transparent" stroke="#00d1ff" 
+                            stroke-width="12" stroke-dasharray="603" stroke-dashoffset="60" stroke-linecap="round"
+                            style="transition: stroke-dashoffset 2s ease-out; filter: drop-shadow(0 0 12px rgba(0,209,255,0.4));" />
                     </svg>
+                    
                     <div class="absolute flex flex-col items-center">
-                        <span class="text-6xl font-black tracking-tighter text-gradient-blue">92%</span>
-                        <span class="text-[10px] uppercase tracking-[0.3em] text-neon font-bold mt-2">Bio-Score</span>
+                        <span id="bio-score" class="text-7xl font-black tracking-tighter text-gradient-blue italic">92%</span>
+                        <span class="text-[10px] uppercase font-black text-neon tracking-widest mt-1">Bio-Estado</span>
                     </div>
                 </div>
-                <p class="mt-8 text-sm text-center text-text-gray max-w-[280px] leading-relaxed font-medium">
-                    Tus sistemas biológicos operan a <span class="text-white font-bold">máxima eficiencia</span>. Estás
-                    en el top 3% del rendimiento metabólico global.
-                </p>
-            </div>
 
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-2 gap-4 px-6 mb-8">
-                <div class="glass-card p-5 border-neon/10 bg-neon/5">
-                    <span class="material-symbols-outlined text-neon mb-2 text-xl">monitor_heart</span>
-                    <h4 class="text-[10px] font-bold text-text-gray uppercase mb-1">HRV Promedio</h4>
-                    <p class="text-2xl font-black">74 <span class="text-xs text-text-gray font-medium">ms</span></p>
-                </div>
-                <div class="glass-card p-5 border-white/5">
-                    <span class="material-symbols-outlined text-primary mb-2 text-xl">bolt</span>
-                    <h4 class="text-[10px] font-bold text-text-gray uppercase mb-1">Glicación</h4>
-                    <p class="text-2xl font-black">Baja <span class="text-xs text-text-gray font-medium">opt.</span></p>
+                <div class="mt-8 flex gap-2">
+                    <span class="px-3 py-1 bg-bio-green/20 text-bio-green border border-bio-green/30 rounded-full text-[9px] font-black uppercase tracking-widest">En Zona de Flujo</span>
+                    <span class="px-3 py-1 bg-white/5 text-gray-400 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest">Top 3% Global</span>
                 </div>
             </div>
 
-            <!-- Section 1: Glucose Stability -->
-            <div class="px-6 py-8 border-t border-white/5">
-                <div class="flex justify-between items-end mb-6">
-                    <div>
-                        <h3 class="text-xs font-black uppercase tracking-widest text-neon mb-1">Estabilidad Glucémica
-                        </h3>
-                        <p class="text-3xl font-black">98 <span class="text-sm font-medium text-text-gray">mg/dL</span>
-                        </p>
+            <!-- Stats Rows -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="glass-card p-5 border-white/5 flex flex-col gap-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="material-symbols-outlined text-neon text-xl">monitor_heart</span>
+                        <span class="text-[8px] font-bold text-bio-green uppercase">+4%</span>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-neon flex items-center justify-end gap-1">
-                            <span class="material-symbols-outlined text-sm">trending_up</span> +2.4%
-                        </p>
-                        <p class="text-[9px] font-black uppercase text-white/30 tracking-tight">vs Semana Pasada</p>
+                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">HRV Promedio</span>
+                    <p class="text-2xl font-black"><span id="hrv-val">74</span> <span class="text-xs text-gray-600 font-medium italic">ms</span></p>
+                </div>
+                <div class="glass-card p-5 border-white/5 flex flex-col gap-1">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="material-symbols-outlined text-bio-orange text-xl">bolt</span>
+                        <span class="text-[8px] font-bold text-bio-orange uppercase">Estable</span>
                     </div>
-                </div>
-                <div class="w-full h-40 relative glass-card p-4 overflow-hidden">
-                    <svg class="w-full h-full" fill="none" preserveaspectratio="none" viewbox="0 0 400 100">
-                        <path class="text-neon drop-shadow-[0_0_8px_rgba(0,209,255,0.4)]"
-                            d="M0 80 Q 40 70, 80 85 T 160 60 T 240 75 T 320 40 T 400 50" fill="transparent"
-                            stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
-                        <path class="opacity-10"
-                            d="M0 80 Q 40 70, 80 85 T 160 60 T 240 75 T 320 40 T 400 50 V 100 H 0 Z"
-                            fill="url(#glucoseGradient)"></path>
-                        <defs>
-                            <lineargradient id="glucoseGradient" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#00d1ff"></stop>
-                                <stop offset="100%" stop-color="transparent"></stop>
-                            </lineargradient>
-                        </defs>
-                    </svg>
-                </div>
-                <div class="flex justify-between mt-4 px-2">
-                    <span class="text-[9px] text-text-gray font-bold">LU</span>
-                    <span class="text-[9px] text-text-gray font-bold">MA</span>
-                    <span class="text-[9px] text-text-gray font-bold">MI</span>
-                    <span class="text-[9px] text-text-gray font-bold">JU</span>
-                    <span class="text-[9px] text-text-gray font-bold">VI</span>
-                    <span class="text-[9px] text-text-gray font-bold">SA</span>
-                    <span class="text-[9px] text-neon font-bold">DO</span>
+                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Glicación</span>
+                    <p id="glucose-label" class="text-2xl font-black italic">Baja</p>
                 </div>
             </div>
 
-            <!-- Section 2: Circadian Alignment -->
-            <div class="mx-6 p-6 glass-card border-neon/30 bg-neon/10 mb-8">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-neon/20 flex items-center justify-center text-neon">
-                            <span class="material-symbols-outlined">light_mode</span>
-                        </div>
-                        <h3 class="text-xs font-black uppercase tracking-widest text-neon">Alineación Circadiana</h3>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center">
-                    <div class="flex gap-2">
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg bg-neon flex items-center justify-center text-dark shadow-lg shadow-neon/30">
-                            <span class="material-symbols-outlined text-xs font-bold">check</span>
-                        </div>
-                        <div
-                            class="w-7 h-7 rounded-lg border border-neon/20 flex items-center justify-center text-text-gray">
-                            <span class="material-symbols-outlined text-xs">close</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-2xl font-black">6/7 <span
-                                class="text-[10px] font-medium text-text-gray">días</span></p>
-                        <p class="text-[9px] font-bold uppercase text-text-gray">Sync Solar Matutina</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recovery Mastery -->
-            <div class="px-6 py-4">
-                <div
-                    class="glass-card p-6 border-white/10 bg-gradient-to-br from-dark to-surface-dark overflow-hidden relative group">
-                    <div
-                        class="absolute -right-10 -bottom-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700">
-                    </div>
-                    <div class="flex items-center gap-4 relative z-10">
-                        <div
-                            class="h-16 w-16 glass-card flex items-center justify-center text-primary shadow-2xl border-primary/20 bg-primary/10">
-                            <span class="material-symbols-outlined text-3xl font-black">workspace_premium</span>
+            <!-- AI Bio-Prescription Card -->
+            <section class="mb-10">
+                <div class="glass-card p-6 border-neon/30 bg-neon/5 relative overflow-hidden group">
+                    <div class="absolute -right-8 -top-8 w-24 h-24 bg-neon/10 rounded-full blur-2xl transition-all group-hover:scale-150"></div>
+                    
+                    <div class="flex items-center gap-3 mb-4 relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-neon text-dark flex items-center justify-center">
+                            <span class="material-symbols-outlined font-black">smart_toy</span>
                         </div>
                         <div>
-                            <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">MÉTRICA
-                                DESTACADA</p>
-                            <h4 class="text-lg font-black leading-tight">MAESTRÍA DE <br><span
-                                    class="text-gradient-blue uppercase">Recuperación</span></h4>
+                            <h3 class="text-sm font-black uppercase tracking-tight">Prescripción Bio-IA</h3>
+                            <p class="text-[9px] text-neon font-bold uppercase tracking-widest">Actualizado hace 2m</p>
                         </div>
                     </div>
-                    <p class="mt-4 text-[11px] text-text-gray font-medium leading-relaxed">
-                        Has logrado un <span class="text-white font-bold">Sueño Titánico</span>. Puntuación consistente
-                        de 90+ por 7 días consecutivos.
-                    </p>
-                </div>
-            </div>
 
+                    <p id="ai-advice" class="text-[11px] text-gray-300 leading-relaxed font-medium mb-4 relative z-10">
+                        "Tus niveles de glucosa son estables, pero tu HRV matinal sugiere una carga del CNS moderada. <span class="text-white font-bold">Optimiza:</span> Sesión de Movilidad Zona 2 hoy, evita cafeína post 14:00."
+                    </p>
+
+                    <button class="w-full py-3 rounded-xl bg-neon/10 border border-neon/30 text-neon font-black text-[10px] uppercase tracking-widest hover:bg-neon hover:text-dark transition-all">
+                        Aplicar Protocolo de Hoy
+                    </button>
+                </div>
+            </section>
+
+            <!-- Bio-Radar Comparison -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-6 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Benchmarks de Rendimiento</h3>
+                    <span class="text-[9px] text-neon font-bold uppercase">vs Optimal Man</span>
+                </div>
+                
+                <div class="glass-card p-4 flex items-center justify-center aspect-square relative bg-dark/40 overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+                        <span class="material-symbols-outlined text-[200px]">3d_rotation</span>
+                    </div>
+                    
+                    <!-- Radar Chart SVG (Simplified) -->
+                    <svg class="w-full h-full" viewBox="0 0 200 200">
+                        <!-- BG Circles -->
+                        <circle cx="100" cy="100" r="80" class="radar-grid" fill="none" />
+                        <circle cx="100" cy="100" r="60" class="radar-grid" fill="none" />
+                        <circle cx="100" cy="100" r="40" class="radar-grid" fill="none" />
+                        
+                        <!-- Axes -->
+                        <line x1="100" y1="20" x2="100" y2="180" class="radar-grid" />
+                        <line x1="20" y1="100" x2="180" y2="100" class="radar-grid" />
+                        
+                        <!-- Area (User) -->
+                        <polygon points="100,40 160,80 140,150 60,150 40,80" class="radar-area animate-pulse-ring" />
+                        
+                        <!-- Labels -->
+                        <text x="100" y="15" text-anchor="middle" fill="#666" font-size="8" font-weight="bold">HRV</text>
+                        <text x="185" y="100" text-anchor="start" fill="#666" font-size="8" font-weight="bold">MET</text>
+                        <text x="100" y="195" text-anchor="middle" fill="#666" font-size="8" font-weight="bold">DOP</text>
+                        <text x="15" y="100" text-anchor="end" fill="#666" font-size="8" font-weight="bold">SLP</text>
+                    </svg>
+                </div>
+            </section>
+
+            <!-- Protocol Intelligence Hub -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-6 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Protocolos Activos</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="glass-card p-4 border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-bio-orange/10 text-bio-orange flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined font-black">nutrition</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[11px] font-black uppercase">Protocolo Inchauspé</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">Glucosa Estable (Fibra > Pro > Carb)</p>
+                        </div>
+                        <div class="ml-auto flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-4 border-white/5 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-neon/10 text-neon flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined font-black">flask</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[11px] font-black uppercase">Reparación NAD+</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">Pila: NMN + Ca-AKG</p>
+                        </div>
+                        <div class="ml-auto w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-600">
+                            <span class="material-symbols-outlined text-xs">lock</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <p class="text-center text-[9px] text-gray-700 uppercase font-black tracking-widest mt-12 pb-10">Bio-Security Layer Encryption Protocol Active</p>
         </main>
+
+        <!-- Nav -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-dark/60 backdrop-blur-xl border-t border-white/5 z-50 pt-3 pb-8 px-8">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="text-[8px] font-bold uppercase">Lobby</span>
+                </a>
+                <a href="entrenar.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                    <span class="text-[8px] font-bold uppercase">Gimnasio</span>
+                </a>
+                <a href="soberania-biologica.html" class="flex flex-col items-center gap-1 text-neon scale-110">
+                    <div class="w-1 h-1 rounded-full bg-neon mb-1"></div>
+                    <span class="material-symbols-outlined filled" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                    <span class="text-[8px] font-black uppercase">Bio-Score</span>
+                </a>
+                <a href="recompensas.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">redeem</span>
+                    <span class="text-[8px] font-bold uppercase">Market</span>
+                </a>
+            </div>
+        </nav>
     </div>
+
     <script>
+        // ─── Cloud Data Sync (Fase 20) ───────────────────────────────────────
+        async function syncBioData() {
+            try {
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                const userDoc = window.hb_db.collection('users').doc(userId);
+
+                // Initial UI from Local
+                const localNtk = localStorage.getItem('hb_ntk') || '450';
+                const localScore = localStorage.getItem('hb_bio_score') || '92';
+                const localHrv = localStorage.getItem('hb_hrv') || '74';
+                const localGlucose = localStorage.getItem('hb_glucose') || '98';
+
+                updateUI({ ntk: localNtk, bioScore: localScore, hrv: localHrv, glucosa: localGlucose });
+
+                // Cloud Listener & Auto-Seed
+                userDoc.onSnapshot(async (doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        updateUI({
+                            ntk: data.ntkBalance || localNtk,
+                            bioScore: data.bioScore || localScore,
+                            hrv: data.hrv || localHrv,
+                            glucosa: data.glucosa || localGlucose
+                        });
+                        // Mirror to local
+                        localStorage.setItem('hb_ntk', data.ntkBalance || localNtk);
+                    } else {
+                        // FIRST TIME SYNC: Seed Cloud with Local Data
+                        console.log("Seeding Cloud for the first time...");
+                        await userDoc.set({
+                            ntkBalance: parseInt(localNtk),
+                            bioScore: localScore,
+                            hrv: localHrv,
+                            glucosa: localGlucose,
+                            lastUpdate: new Date().toISOString()
+                        });
+                    }
+                });
+
+            } catch (e) {
+                console.warn("Bio-Cloud Sync Error:", e);
+                // Fallback to local
+                const ntk = localStorage.getItem('hb_ntk') || '450';
+                const score = localStorage.getItem('hb_bio_score') || '92';
+                updateUI({ ntk, bioScore: score, hrv: '74', glucosa: '98' });
+            }
+        }
+
+        function updateUI(data) {
+            const score = parseInt(data.bioScore || '92');
+            const glucose = parseInt(data.glucosa || '98');
+
+            document.getElementById('ntk-balance').textContent = data.ntk || '0';
+            document.getElementById('bio-score').textContent = score + '%';
+            document.getElementById('hrv-val').textContent = data.hrv || '74';
+
+            // Gauge calculation
+            const circumference = 603;
+            const progress = score / 100;
+            const offset = circumference * (1 - progress);
+            document.getElementById('score-ring').style.strokeDashoffset = offset;
+
+            // Glucose Context
+            const gLabel = document.getElementById('glucose-label');
+            if (glucose > 105) {
+                gLabel.textContent = 'Moderada';
+                gLabel.className = 'text-2xl font-black italic text-bio-orange';
+            } else {
+                gLabel.textContent = 'Baja';
+                gLabel.className = 'text-2xl font-black italic text-bio-green';
+            }
+
+            // AI Advice Update
+            const advice = document.getElementById('ai-advice');
+            if (score > 90 && glucose < 100) {
+                advice.innerHTML = `"Tus sistemas están en <span class='text-neon'>sincronía total</span>. Protocolo de hoy: Entrenamiento de alta intensidad en ventana de ayuno para máximos picos de BDNF."`;
+            } else if (score < 80) {
+                advice.innerHTML = `"Se detecta fatiga del CNS. Prioriza <span class='text-bio-orange'>recuperación activa</span> y protocolos de sueño profundo."`;
+            }
+        }
+
         function applyUserBg() {
             const bg = localStorage.getItem('hb_user_bg') || 'tech';
             const bgOverlay = document.createElement('div');
@@ -232,7 +357,10 @@
             bgOverlay.style.backgroundPosition = 'center';
             document.body.appendChild(bgOverlay);
         }
+
         applyUserBg();
+        syncBioData();
+        window.addEventListener('focus', syncBioData);
     </script>
 </body>
 

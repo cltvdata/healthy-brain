@@ -11,6 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+
+    <!-- Bio-Cloud Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -186,6 +192,57 @@
 
             </div>
 
+            <!-- Extra: Body Measurements -->
+            <div class="mt-8">
+                <button onclick="toggleMeasurements()" class="w-full flex justify-between items-center bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-neon">straighten</span>
+                        <span class="text-[12px] font-black uppercase tracking-widest text-white">Registro de Medidas</span>
+                    </div>
+                    <span id="meas-icon" class="material-symbols-outlined text-text-gray">expand_more</span>
+                </button>
+                
+                <div id="measurements-container" class="hidden mt-4 space-y-4 animate-fade-in p-5 glass-card border-white/5">
+                    <p class="text-[9px] font-bold text-text-gray uppercase tracking-widest text-center mb-4">Unidad: <span id="meas-unit-label" class="text-neon font-black">cm</span></p>
+
+                    <!-- Inputs grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Cuello</label>
+                            <input type="number" step="0.1" id="meas-neck" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Hombros</label>
+                            <input type="number" step="0.1" id="meas-shoulders" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Pecho</label>
+                            <input type="number" step="0.1" id="meas-chest" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Cintura</label>
+                            <input type="number" step="0.1" id="meas-waist" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Cadera</label>
+                            <input type="number" step="0.1" id="meas-hips" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Brazos (L-R)</label>
+                            <input type="number" step="0.1" id="meas-arms" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Muslos</label>
+                            <input type="number" step="0.1" id="meas-thighs" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-text-gray uppercase tracking-widest block mb-2">Pantorrillas</label>
+                            <input type="number" step="0.1" id="meas-calves" class="w-full bg-black/40 border border-white/5 rounded-xl py-3 px-3 text-[12px] font-bold text-white outline-none focus:border-neon transition-all" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Disclaimer Card -->
             <div class="mt-12 glass-card border-primary/20 p-6 flex gap-4 border-dashed relative overflow-hidden">
                 <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
@@ -243,10 +300,12 @@
                 btnCm.className = "px-4 py-1.5 text-[9px] font-black rounded-lg bg-primary text-dark shadow-xl transition-all uppercase italic";
                 btnFt.className = "px-4 py-1.5 text-[9px] font-black rounded-lg text-text-gray hover:text-white transition-all uppercase italic";
                 input.placeholder = "175";
+                if(document.getElementById('meas-unit-label')) document.getElementById('meas-unit-label').innerText = 'cm';
             } else {
                 btnFt.className = "px-4 py-1.5 text-[9px] font-black rounded-lg bg-primary text-dark shadow-xl transition-all uppercase italic";
                 btnCm.className = "px-4 py-1.5 text-[9px] font-black rounded-lg text-text-gray hover:text-white transition-all uppercase italic";
                 input.placeholder = "5' 9\"";
+                if(document.getElementById('meas-unit-label')) document.getElementById('meas-unit-label').innerText = 'in (pulgadas)';
             }
         }
 
@@ -278,11 +337,26 @@
             return parseFloat(str) || 0;
         }
 
-        function saveBioData() {
+        function toggleMeasurements() {
+            const container = document.getElementById('measurements-container');
+            const icon = document.getElementById('meas-icon');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                icon.innerText = 'expand_less';
+            } else {
+                container.classList.add('hidden');
+                icon.innerText = 'expand_more';
+            }
+        }
+
+        async function saveBioData() {
             const age = document.getElementById('setup-age').value;
             const heightRaw = document.getElementById('setup-height').value;
             const weight = document.getElementById('setup-weight').value;
             const activityVal = document.getElementById('setup-activity').value;
+
+            const btn = document.querySelector('.glow-btn');
+            const originalText = btn.innerHTML;
 
             let currentData = JSON.parse(localStorage.getItem('hb_macros_data') || '{}');
 
@@ -297,11 +371,60 @@
             if (weight) currentData.weight = parseFloat(weight);
             currentData.activity = parseFloat(activityVal);
             currentData.unitSystem = setupData.unitSystem;
+            currentData.weightUnit = setupData.weightUnit;
 
-            localStorage.setItem('hb_macros_data', JSON.stringify(currentData));
-            localStorage.setItem('hb_user_bg', setupData.selectedBg);
+            currentData.measurements = {
+                neck: document.getElementById('meas-neck').value,
+                shoulders: document.getElementById('meas-shoulders').value,
+                chest: document.getElementById('meas-chest').value,
+                waist: document.getElementById('meas-waist').value,
+                hips: document.getElementById('meas-hips').value,
+                arms: document.getElementById('meas-arms').value,
+                thighs: document.getElementById('meas-thighs').value,
+                calves: document.getElementById('meas-calves').value
+            };
 
-            window.location.href = 'index.html';
+            // Calculate initial bioScore based on completed data
+            const stats = [70, 70, 70, 70, 70]; // Default base
+            const bioScore = 7.0; 
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> SINCRONIZANDO NUCLEO...`;
+
+                // Authentication Check
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                // Sync to Cloud
+                await db.collection('users').doc(userId).set({
+                    age: currentData.age || 25,
+                    height: currentData.height || 170,
+                    weight: currentData.weight || 70,
+                    activity: currentData.activity || 1.55,
+                    measurements: currentData.measurements,
+                    selectedBg: setupData.selectedBg,
+                    bioScore: bioScore,
+                    bioStats: stats,
+                    displayName: "Guerrero_" + userId.substring(0, 4),
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Save Local
+                localStorage.setItem('hb_macros_data', JSON.stringify(currentData));
+                localStorage.setItem('hb_user_bg', setupData.selectedBg);
+                localStorage.setItem('hb_bio_stats', JSON.stringify(stats));
+
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Cloud Setup Error:", error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert("Error al sincronizar con Bio-Cloud. Inténtalo de nuevo.");
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -325,8 +448,19 @@
                 if (parsed.height) document.getElementById('setup-height').value = parsed.height;
                 if (parsed.weight) document.getElementById('setup-weight').value = parsed.weight;
                 if (parsed.unitSystem) setHeightUnit(parsed.unitSystem);
-                if (parsed.unitSystem) setWeightUnit(parsed.unitSystem);
+                if (parsed.weightUnit) setWeightUnit(parsed.weightUnit);
                 if (parsed.activity) document.getElementById('setup-activity').value = parsed.activity;
+                
+                if (parsed.measurements) {
+                    document.getElementById('meas-neck').value = parsed.measurements.neck || '';
+                    document.getElementById('meas-shoulders').value = parsed.measurements.shoulders || '';
+                    document.getElementById('meas-chest').value = parsed.measurements.chest || '';
+                    document.getElementById('meas-waist').value = parsed.measurements.waist || '';
+                    document.getElementById('meas-hips').value = parsed.measurements.hips || '';
+                    document.getElementById('meas-arms').value = parsed.measurements.arms || '';
+                    document.getElementById('meas-thighs').value = parsed.measurements.thighs || '';
+                    document.getElementById('meas-calves').value = parsed.measurements.calves || '';
+                }
             }
         });
     </script>

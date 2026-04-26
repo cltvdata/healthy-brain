@@ -11,6 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    
+    <!-- Cloud & 3D Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -127,19 +133,19 @@
                     <div class="glass-card p-6 border-primary/20 bg-primary/5">
                         <div class="flex items-center gap-3 mb-3">
                             <span class="material-symbols-outlined text-primary">psychology</span>
-                            <h3 class="text-xs font-black uppercase tracking-widest text-white">Estado de Flujo</h3>
+                            <h3 class="text-xs font-black uppercase tracking-widest text-white">Estado Sistémico (Reflejo del Sueño)</h3>
                         </div>
-                        <p class="text-[11px] text-primary font-bold italic">"Limpieza de residuos metabólicos detectada. Mantén la cadencia para maximizar el lavado linfático neural."</p>
+                        <p id="hud-msg" class="text-[11px] text-primary font-bold italic">"Esperando datos del último ciclo de recuperación nocturna..."</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="glass-card p-5 border-white/10">
                             <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-1">VFC (Variabilidad)</p>
-                            <span class="text-xl font-black text-white italic">72 <span class="text-[10px] text-neon ml-1">↑+4%</span></span>
+                            <span id="hud-vfc-val" class="text-xl font-black text-white italic">-- <span class="text-[10px] text-neon ml-1"></span></span>
                         </div>
                         <div class="glass-card p-5 border-white/10">
                             <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-1">Carga Neural</p>
-                            <span class="text-xl font-black text-white italic">Low <span class="text-[10px] text-primary ml-1">Optimal</span></span>
+                            <span id="hud-neural-val" class="text-xl font-black text-white italic">-- <span class="text-[10px] text-primary ml-1"></span></span>
                         </div>
                     </div>
                 </div>
@@ -218,6 +224,7 @@
             exercises.push({
                 id: Date.now(),
                 name: '',
+                equip: 'barra',
                 sets: [{ id: Date.now() + 1, reps: '', weight: '' }]
             });
             renderAll();
@@ -254,6 +261,13 @@
 
             if (type === 'name') {
                 exercises[exIndex].name = val;
+            } else if (type === 'equip') {
+                exercises[exIndex].equip = val;
+                // If calisthenics, block weights
+                if (val === 'bodyweight') {
+                    exercises[exIndex].sets.forEach(s => s.weight = '');
+                }
+                renderAll(); // Rerender to reflect disabled inputs
             } else if (setId) {
                 const setIndex = exercises[exIndex].sets.findIndex(s => s.id === setId);
                 if (setIndex > -1) {
@@ -267,7 +281,7 @@
             localStorage.setItem('hb_current_workout', JSON.stringify(exercises));
         }
 
-        function saveWorkout() {
+        async function saveWorkout() {
             const validExercises = exercises.filter(ex => ex.name.trim() !== "" && ex.sets.some(s => s.reps !== "" || s.weight !== ""));
 
             if (validExercises.length === 0) {
@@ -275,32 +289,82 @@
                 return;
             }
 
-            if (!confirm("¿Has terminado tu entrenamiento? Se guardará en el historial.")) return;
+            if (!confirm("¿Has terminado tu entrenamiento? Se guardará en la Bio-Cloud.")) return;
 
-            const history = JSON.parse(localStorage.getItem('hb_workout_history') || '[]');
-            const newSession = {
-                timestamp: Date.now(),
-                exercises: validExercises,
-                type: "Fuerza",
-                duration: "45 min"
-            };
+            const btn = document.querySelector('button[onclick="saveWorkout()"]');
+            const originalText = btn.innerText;
 
-            history.push(newSession);
-            localStorage.setItem('hb_workout_history', JSON.stringify(history));
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> SINCRONIZANDO...`;
 
-            alert('¡Enhorabuena! Sesión registrada con éxito.');
+                // Authentication Check
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
 
-            exercises = [];
-            localStorage.removeItem('hb_current_workout');
-            window.location.href = "historial.html";
+                const newSession = {
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    exercises: validExercises,
+                    type: "Fuerza",
+                    duration: "45 min"
+                };
+
+                // 1. Save to Unified Cloud Logs (for Timeline)
+                const userRef = db.collection('users').doc(userId);
+                
+                await userRef.collection('logs').add({
+                    ...newSession,
+                    category: 'workout',
+                    type: 'workout'
+                });
+
+                // 1b. Also keep in detailed workouts (optional redundancy)
+                await userRef.collection('workouts').add(newSession);
+
+                // 2. Local Fallback Mirror (for offline/speed)
+                const history = JSON.parse(localStorage.getItem('hb_workout_history') || '[]');
+                history.push({...newSession, timestamp: Date.now()}); 
+                localStorage.setItem('hb_workout_history', JSON.stringify(history));
+
+                // 3. Update User Experience (NTK for hard work)
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+                    const data = doc.data() || {};
+                    const currentBalance = parseInt(data.ntkBalance || '0');
+                    const newNtk = currentBalance + 25; // Standard workout reward
+                    transaction.update(userRef, { 
+                        ntkBalance: newNtk,
+                        lastWorkout: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                alert('¡Misión Cumplida! Sesión sincronizada con éxito.');
+                exercises = [];
+                localStorage.removeItem('hb_current_workout');
+                window.location.href = "historial.html";
+
+            } catch (error) {
+                console.error("Cloud Sync Error:", error);
+                btn.disabled = false;
+                btn.innerText = "ERROR DE CONEXIÓN";
+                setTimeout(() => btn.innerText = originalText, 2000);
+            }
         }
 
         function renderAll() {
             const container = document.getElementById('workout-container');
             container.innerHTML = '';
 
+            const macrosData = JSON.parse(localStorage.getItem('hb_macros_data') || '{}');
+            const actualUnit = macrosData.weightUnit || macrosData.unitSystem || 'metric';
+            const weightLabel = actualUnit === 'imperial' ? 'lb' : 'kg';
+
             // Dynamic HUD Update based on exercises
             updateHUDIcon();
+            updateHUDSleepData();
             
             exercises.forEach((ex, index) => {
                 const exDiv = document.createElement('div');
@@ -313,29 +377,29 @@
 
                 let setsHtml = '';
                 ex.sets.forEach((set, sIndex) => {
+                    const isBodyweight = ex.equip === 'bodyweight';
                     setsHtml += `
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center text-xs text-neon font-black shrink-0">
                                 ${sIndex + 1}
                             </div>
-                            <div class="flex-1 glass-card border-white/5 rounded-xl flex items-center px-4 h-12 bg-black/20">
-                                <span class="text-[10px] font-black text-text-gray mr-3 uppercase tracking-tighter shrink-0">kg</span>
+                            <div class="flex-1 glass-card border-white/5 rounded-xl flex items-center px-3 h-12 bg-black/20 ${isBodyweight ? 'opacity-30 pointer-events-none' : ''}">
                                 <input type="number" 
-                                    class="bg-transparent w-full high-contrast-input h-8 px-2 rounded-lg text-white text-sm font-black outline-none" 
+                                    class="bg-transparent w-full high-contrast-input h-8 px-1 rounded-lg text-white text-base font-black outline-none" 
                                     placeholder="0" value="${set.weight}" 
-                                    onchange="updateData(${ex.id}, 'weight', this.value, ${set.id})">
-                                <span class="material-symbols-outlined text-neon/30 text-sm ml-2">monitor_weight</span>
+                                    onchange="updateData(${ex.id}, 'weight', this.value, ${set.id})" ${isBodyweight ? 'disabled' : ''}>
+                                <span class="text-[11px] font-black text-neon ml-2 uppercase tracking-tighter shrink-0 text-right">${weightLabel}</span>
                             </div>
-                            <div class="flex-1 glass-card border-white/5 rounded-xl flex items-center px-4 h-12 bg-black/20">
-                                <span class="text-[10px] font-black text-text-gray mr-3 uppercase tracking-tighter shrink-0">reps</span>
+                            <div class="flex-1 glass-card border-white/5 rounded-xl flex items-center px-2 h-12 bg-black/20">
+                                <span class="text-[10px] font-black text-text-gray mr-2 uppercase tracking-tighter shrink-0">reps</span>
                                 <input type="number" 
-                                    class="bg-transparent w-full high-contrast-input h-8 px-2 rounded-lg text-white text-sm font-black outline-none" 
+                                    class="bg-transparent w-full high-contrast-input h-8 px-1 rounded-lg text-white text-sm font-black outline-none" 
                                     placeholder="0" value="${set.reps}"
                                     onchange="updateData(${ex.id}, 'reps', this.value, ${set.id})">
-                                <span class="material-symbols-outlined text-neon/30 text-sm ml-2">rebase_edit</span>
+                                <span class="material-symbols-outlined text-neon/30 text-[16px] ml-1">rebase_edit</span>
                             </div>
-                            <button onclick="removeSet(${ex.id}, ${set.id})" class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 flex items-center justify-center shrink-0 transition-all">
-                                <span class="material-symbols-outlined text-[18px]">remove</span>
+                            <button onclick="removeSet(${ex.id}, ${set.id})" class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 flex items-center justify-center shrink-0 transition-all">
+                                <span class="material-symbols-outlined text-[16px]">remove</span>
                             </button>
                         </div>
                     `;
@@ -343,9 +407,20 @@
 
                 exDiv.innerHTML = `
                     ${deleteExBtn}
-                    <div class="mb-6 pr-10">
-                        <p class="text-[10px] font-black text-neon uppercase tracking-[0.2em] mb-2">Ejercicio ACTIVO</p>
-                        <input type="text" class="w-full h-12 px-4 rounded-xl high-contrast-input text-xl font-black outline-none border-b border-white/5 transition-all uppercase tracking-tight" placeholder="Nombre (ej. PRESS BANCA)" value="${ex.name}" onchange="updateData(${ex.id}, 'name', this.value)">
+                    <div class="mb-5 pr-8">
+                        <p class="text-[10px] font-black text-neon uppercase tracking-[0.2em] mb-2 flex justify-between">Ejercicio ACTIVO <span class="text-text-gray text-[8px]">${ex.equip || 'barra'}</span></p>
+                        
+                        <div class="flex flex-col gap-2 relative">
+                            <select onchange="updateData(${ex.id}, 'equip', this.value)" class="w-full appearance-none h-12 bg-white/5 rounded-xl border border-white/10 text-[10px] font-black text-white hover:text-primary uppercase tracking-widest px-4 outline-none">
+                                <option value="barra" ${ex.equip === 'barra' ? 'selected' : ''}>BARRA (CARGA TOTAL)</option>
+                                <option value="mancuerna" ${ex.equip === 'mancuerna' ? 'selected' : ''}>MANCUERNAS (POR BRAZO/PIERNA)</option>
+                                <option value="maquina" ${ex.equip === 'maquina' ? 'selected' : ''}>MÁQUINA/POLEA</option>
+                                <option value="bodyweight" ${ex.equip === 'bodyweight' ? 'selected' : ''}>PESO CORPORAL (CALISTENIA)</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-4 top-3.5 text-text-gray pointer-events-none text-lg">expand_more</span>
+                            
+                            <input type="text" class="w-full h-12 px-4 rounded-xl high-contrast-input text-xl font-black outline-none border border-white/5 bg-transparent transition-all uppercase tracking-tight" placeholder="Nombre (ej. PRESS BANCA)" value="${ex.name}" onchange="updateData(${ex.id}, 'name', this.value)">
+                        </div>
                     </div>
                     
                     <div class="flex flex-col mb-4">
@@ -399,6 +474,38 @@
                 hudImg.src = 'assets/images/3d_respiratory_system.png';
             } else {
                 hudImg.src = 'assets/images/3d_torso_muscles_organs.png';
+            }
+        }
+
+        function updateHUDSleepData() {
+            const sleepRaw = localStorage.getItem('hb_sleep_data');
+            if (sleepRaw) {
+                const sleepInfo = JSON.parse(sleepRaw);
+                const hrs = parseFloat(sleepInfo.hours);
+                
+                let vfcText = "Mod";
+                let vfcPct = "↓-15%";
+                let neuralText = "ALTA";
+                let neuralStatus = "Sobrecarga";
+                let msg = `"Se detecta limpieza de residuos ineficiente por sueño fragmentado. Peligro de micro-lesiones musculares mayor. Modula volumen hoy."`;
+
+                if (hrs >= 7.5) {
+                    vfcText = "120"; vfcPct = "↑+18%";
+                    neuralText = "LOW"; neuralStatus = "Optimal";
+                    msg = `"Remodelación neural nocturna exitosa al 98%. Reclutamiento de fibras musculares maximizado. Luces verdes para RPE alto."`;
+                } else if (hrs >= 6) {
+                    vfcText = "72"; vfcPct = "↑+4%";
+                    neuralText = "MOD"; neuralStatus = "Stable";
+                    msg = `"Lavado linfático neural aceptable. Parámetros de oxidación y síntesis de proteína estables. Rendimiento basal normal."`;
+                } else if (hrs < 5) {
+                    vfcText = "Crítica"; vfcPct = "↓-40%";
+                    neuralText = "DANGER"; neuralStatus = "Agotado";
+                    msg = `"ALERTA: Cortisol crónico detectado (sueño < 5h). Catabolismo predominante. Sugerimos calistenia ligera o descanso total."`;
+                }
+
+                document.getElementById('hud-vfc-val').innerHTML = `${vfcText} <span class="text-[10px] text-neon ml-1">${vfcPct}</span>`;
+                document.getElementById('hud-neural-val').innerHTML = `${neuralText} <span class="text-[10px] text-primary ml-1">${neuralStatus}</span>`;
+                document.getElementById('hud-msg').innerText = msg;
             }
         }
 

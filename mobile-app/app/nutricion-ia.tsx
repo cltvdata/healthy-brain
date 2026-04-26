@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Easing, ActivityIndicator } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import { db, auth } from '@/constants/FirebaseConfig';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -13,6 +15,7 @@ export default function NutricionIAScreen() {
   const [appState, setAppState] = useState<'camera' | 'analyzing' | 'results'>('camera');
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisText, setAnalysisText] = useState('Identificando ingredientes...');
+  const [isSaving, setIsSaving] = useState(false);
   
   const scanAnim = useRef(new Animated.Value(0)).current;
 
@@ -66,6 +69,47 @@ export default function NutricionIAScreen() {
     inputRange: [0, 1],
     outputRange: [0, height * 0.4],
   });
+
+  const saveToDiary = async () => {
+    if (!auth.currentUser) return;
+    setIsSaving(true);
+    
+    try {
+      const userId = auth.currentUser.uid;
+      const userRef = doc(db, 'users', userId);
+      const logsRef = collection(userRef, 'logs');
+
+      // 1. Save to Unified Cloud Logs
+      await addDoc(logsRef, {
+        type: 'diet',
+        category: 'nutrition',
+        foodName: "Bowl de Salmón y Quinoa",
+        imageUrl: "", // Placeholder or URI from camera if available
+        macros: {
+          protein: 42,
+          carbs: 55,
+          fats: 30
+        },
+        calories: 680,
+        timestamp: serverTimestamp()
+      });
+
+      // 2. Update User Totals and NTK Balance
+      await updateDoc(userRef, {
+        ntkBalance: increment(50), 
+        totalCalories: increment(680),
+        protein: increment(42),
+        carbs: increment(55),
+        fats: increment(30)
+      });
+
+      router.push('/');
+    } catch (error) {
+      console.error("Save Nutrition Error:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!permission) {
     return <View style={AppStyles.body} />;
@@ -236,8 +280,16 @@ export default function NutricionIAScreen() {
              </View>
           </View>
 
-          <TouchableOpacity style={[AppStyles.glowBtnBlue, { marginTop: 10 }]} onPress={() => router.push('/')}>
-             <Text style={AppStyles.glowBtnBlueText}>AÑADIR AL DIARIO</Text>
+          <TouchableOpacity 
+            style={[AppStyles.glowBtnBlue, { marginTop: 10, opacity: isSaving ? 0.6 : 1 }]} 
+            onPress={saveToDiary}
+            disabled={isSaving}
+          >
+             {isSaving ? (
+               <ActivityIndicator color="white" size="small" />
+             ) : (
+               <Text style={AppStyles.glowBtnBlueText}>AÑADIR AL DIARIO (+50 NTK)</Text>
+             )}
           </TouchableOpacity>
           
           <TouchableOpacity style={[AppStyles.highContrastInput, { marginTop: 10, alignItems: 'center' }]} onPress={() => setAppState('camera')}>
