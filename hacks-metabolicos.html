@@ -5,20 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HEALTHY + BRAIN - Hacks Metabólicos</title>
+    <meta name="description" content="Protocolos científicos de optimización metabólica: secuenciación de macros, control glucémico y biohacks de rendimiento cognitivo.">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+
+    <!-- Bio-Cloud Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         primary: '#ff8a00',
-                        neon: '#ff8a00',
+                        neon: '#00d1ff',
+                        green: { bio: '#13ec5b' },
                         dark: '#0a0a0a',
+                        'surface-dark': '#141414',
                     },
                     fontFamily: { sans: ['Outfit', 'sans-serif'] },
                 }
@@ -29,203 +37,627 @@
         body {
             font-family: 'Outfit', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            background-color: #0a0a0a;
             background-image:
-                radial-gradient(circle at 50% 10%, rgba(255, 138, 0, 0.05) 0%, transparent 50%),
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+                radial-gradient(ellipse at 20% 0%, rgba(255, 138, 0, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(0, 209, 255, 0.04) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
         }
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animated glucose bar */
+        @keyframes fillBar {
+            from { width: 0%; }
+            to { width: var(--target-w); }
+        }
+        .bar-fill { animation: fillBar 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+        /* Vinegar timer pulse */
+        @keyframes vinegar-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 138, 0, 0.3); }
+            50% { box-shadow: 0 0 20px 8px rgba(255, 138, 0, 0.05); }
+        }
+        .vinegar-active { animation: vinegar-pulse 2s ease-in-out infinite; }
+
+        /* Hack card hover */
+        .hack-card { transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+        .hack-card:hover { transform: translateY(-2px); }
+        .hack-card:active { transform: scale(0.98); }
+
+        /* Toast */
+        #m-toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+            opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 200;
+        }
+        #m-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Dot tracker */
+        .dot-track { position: relative; }
+        .dot-track::before {
+            content: '';
+            position: absolute;
+            left: 15px; top: 30px;
+            width: 2px; height: calc(100% - 24px);
+            background: linear-gradient(to bottom, rgba(255,138,0,0.3), transparent);
         }
 
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        /* Score ring animation */
+        @keyframes scoreRingIn {
+            from { stroke-dashoffset: 201; }
         }
+        #score-ring { animation: scoreRingIn 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
     </style>
 </head>
 
-<body class="bg-dark text-white min-h-screen">
-    <div
-        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 shadow-2xl border-x border-white/5">
+<body class="bg-dark text-white min-h-screen antialiased">
 
-        <!-- Header Section -->
-        <header class="sticky top-0 z-50 bg-dark/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+    <!-- Toast -->
+    <div id="m-toast" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[#141414] border border-primary/40 shadow-2xl">
+        <span class="material-symbols-outlined text-primary text-xl">bolt</span>
+        <span id="m-toast-msg" class="text-sm font-bold text-white"></span>
+    </div>
+
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden shadow-2xl border-x border-white/5">
+
+        <!-- Header -->
+        <header class="sticky top-0 z-50 bg-[#0a0a0a]/85 backdrop-blur-2xl border-b border-white/5 px-5 py-4">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-tight uppercase">HACKS <span
-                            class="text-neon">METABÓLICOS</span></h1>
-                    <div class="flex items-center gap-1 mt-1">
-                        <span
-                            class="inline-block w-2 h-2 rounded-full bg-neon animate-pulse shadow-[0_0_5px_rgba(255,138,0,0.8)]"></span>
-                        <p class="text-[10px] text-text-gray font-black uppercase tracking-widest">Estado: Mitocondrias
-                            Optimizadas</p>
+                <div class="flex items-center gap-3">
+                    <a href="historial.html" class="h-9 w-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:border-primary/50 transition-all">
+                        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1 class="text-[17px] font-black tracking-tight uppercase leading-none">Hacks <span class="text-primary">Metabólicos</span></h1>
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mt-0.5">Control Glucémico · Inchauspé</p>
                     </div>
                 </div>
-                <a href="index.html"
-                    class="h-10 w-10 flex flex-shrink-0 items-center justify-center rounded-xl bg-surface-glass border border-white/10 hover:border-neon transition-colors">
-                    <span class="material-symbols-outlined text-text-gray text-[20px]">close</span>
-                </a>
+                <!-- NTK + Score -->
+                <div class="flex items-center gap-2">
+                    <div id="bio-score-widget" class="relative w-9 h-9">
+                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,138,0,0.1)" stroke-width="3"/>
+                            <circle id="score-ring" cx="18" cy="18" r="15" fill="none" stroke="#ff8a00" stroke-width="3"
+                                stroke-dasharray="201" stroke-dashoffset="50" stroke-linecap="round"
+                                style="transition: stroke-dashoffset 1.5s cubic-bezier(0.22,1,0.36,1);"/>
+                        </svg>
+                        <span id="score-val" class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-primary">75</span>
+                    </div>
+                    <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10">
+                        <span class="material-symbols-outlined text-primary text-[14px]">bolt</span>
+                        <span id="ntk-display" class="text-[11px] font-black">—</span>
+                        <span class="text-[9px] text-white/40 font-bold">NTK</span>
+                    </div>
+                </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 px-4 py-6 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-24">
+        <main class="flex-1 px-4 py-5 flex flex-col gap-5 overflow-y-auto no-scrollbar pb-28">
 
-            <!-- Greeting -->
-            <section class="px-2">
-                <h2 class="text-3xl font-black tracking-tight text-white leading-tight">
-                    BUENOS DÍAS.<br />
-                    <span class="text-neon font-bold text-xl uppercase tracking-widest">Metabolismo Preparado</span>
-                </h2>
-            </section>
-
-            <!-- Glucose Stability Index (Hero) -->
-            <section class="glass-card p-6 border-neon/20 bg-neon/5 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <span class="material-symbols-outlined text-8xl text-neon">ssid_chart</span>
-                </div>
-                <div class="flex justify-between items-start mb-6">
+            <!-- Hero: Glucose Score -->
+            <section class="glass-card p-5 border-primary/25 bg-primary/5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,138,0,0.08),transparent_70%)] pointer-events-none"></div>
+                <div class="flex items-start justify-between mb-4 relative z-10">
                     <div>
-                        <h3 class="text-[10px] font-black text-text-gray uppercase tracking-[0.2em] mb-1">Índice
-                            Estabilidad</h3>
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-[0.25em] mb-1">Índice Glucémico Hoy</p>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-5xl font-black text-white tracking-tighter">92</span>
-                            <span class="text-sm text-text-gray font-bold">/ 100</span>
+                            <span id="glucose-score" class="text-[52px] font-black text-white leading-none tracking-tighter">92</span>
+                            <span class="text-[13px] text-white/40 font-bold">/100</span>
+                        </div>
+                        <div id="glucose-badge" class="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-[#13ec5b]/15 border border-[#13ec5b]/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#13ec5b] animate-pulse"></span>
+                            <span class="text-[9px] font-black text-[#13ec5b] uppercase tracking-widest">Óptimo · Curva Plana</span>
                         </div>
                     </div>
-                    <div class="flex flex-col items-end">
-                        <div class="flex items-center gap-1 bg-neon/20 px-3 py-1 rounded-lg border border-neon/30">
-                            <span class="material-symbols-outlined text-neon text-sm font-bold">trending_up</span>
-                            <span class="text-xs font-black text-neon">+5%</span>
-                        </div>
-                        <span class="text-[9px] font-bold text-text-gray uppercase tracking-widest mt-2">vs. ayer</span>
+                    <!-- Sparkline -->
+                    <div class="w-28 h-16">
+                        <svg class="w-full h-full overflow-visible" viewBox="0 0 112 64" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="glu-grad" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#ff8a00" stop-opacity="0.35"/>
+                                    <stop offset="100%" stop-color="#ff8a00" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0,50 C15,50 20,30 35,28 S55,40 70,35 S90,22 112,18 V64 H0Z" fill="url(#glu-grad)"/>
+                            <path d="M0,50 C15,50 20,30 35,28 S55,40 70,35 S90,22 112,18" fill="none" stroke="#ff8a00" stroke-width="2.5" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(255,138,0,0.5))"/>
+                            <circle cx="112" cy="18" r="3.5" fill="#ff8a00" stroke="#0a0a0a" stroke-width="2"/>
+                        </svg>
                     </div>
                 </div>
 
-                <!-- Chart Area -->
-                <div class="relative h-48 w-full mt-4 glass-card border-white/5 bg-black/20 p-4">
-                    <svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 100 50">
-                        <defs>
-                            <lineargradient id="grad-orange" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#ff8a00" stop-opacity="0.3"></stop>
-                                <stop offset="100%" stop-color="#ff8a00" stop-opacity="0"></stop>
-                            </lineargradient>
-                        </defs>
-                        <path d="M0,35 C20,35 30,15 50,15 S80,30 100,20 V50 H0 Z" fill="url(#grad-orange)"></path>
-                        <path class="drop-shadow-[0_0_8px_rgba(255,138,0,0.5)]"
-                            d="M0,35 C20,35 30,15 50,15 S80,30 100,20" fill="none" stroke="#ff8a00"
-                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        <circle cx="100" cy="20" fill="#ff8a00" r="3" stroke="#0a0a0a" stroke-width="1.5"></circle>
-                    </svg>
-                </div>
-                <div
-                    class="flex justify-between text-[9px] text-text-gray mt-4 font-black uppercase tracking-widest px-2">
-                    <span>6am</span>
-                    <span>12pm</span>
-                    <span>6pm</span>
-                    <span>9pm</span>
+                <!-- Glucose Log Buttons -->
+                <div class="relative z-10">
+                    <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Registrar Comida</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="logMeal('fibra', 10)" class="meal-tag text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-[#13ec5b]/30 text-[#13ec5b] bg-[#13ec5b]/5 hover:bg-[#13ec5b]/15 transition-all active:scale-95">🥦 Fibra</button>
+                        <button onclick="logMeal('proteina', 8)" class="meal-tag text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-neon/30 text-neon bg-neon/5 hover:bg-neon/15 transition-all active:scale-95">🥚 Proteína</button>
+                        <button onclick="logMeal('carbs', -5)" class="meal-tag text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-primary/30 text-primary bg-primary/5 hover:bg-primary/15 transition-all active:scale-95">🍞 Carbs</button>
+                        <button onclick="logMeal('dulce', -12)" class="meal-tag text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/15 transition-all active:scale-95">🍫 Dulce</button>
+                    </div>
                 </div>
             </section>
 
-            <!-- Meal Sequencing Hacks -->
-            <section class="mt-4">
-                <div class="flex items-center justify-between mb-5 px-2">
-                    <h3 class="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                        <span class="material-symbols-outlined text-neon text-xl font-bold">auto_fix_high</span>
-                        Secuencia de Comidas
-                    </h3>
+            <!-- Secuencia de Comidas (Interactive) -->
+            <section>
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h2 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[16px]">restaurant</span>
+                        Secuencia Inchauspé
+                    </h2>
+                    <span id="seq-complete" class="text-[9px] font-black text-white/30 uppercase tracking-widest">0/3 completados</span>
                 </div>
-                <div class="flex flex-col gap-4">
-                    <!-- Step 1: Fiber -->
-                    <div
-                        class="glass-card p-5 border-neon/10 bg-gradient-to-br from-dark to-surface-glass group relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-green-500/5 blur-2xl rounded-full"></div>
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="h-12 w-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 shrink-0">
-                                <span class="material-symbols-outlined font-bold">grass</span>
+
+                <div class="dot-track flex flex-col gap-3 pl-0">
+                    <!-- Fase 1 -->
+                    <div id="seq-1" onclick="completeSequence(1)" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-[#13ec5b]/40 transition-all relative overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-1 bg-white/5 rounded-r-xl" id="seq-bar-1"></div>
+                        <div class="flex items-center gap-4">
+                            <div id="seq-icon-1" class="h-10 w-10 rounded-xl bg-[#13ec5b]/10 border border-[#13ec5b]/20 flex items-center justify-center text-[#13ec5b] shrink-0 transition-all">
+                                <span class="material-symbols-outlined text-[20px]">grass</span>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[9px] font-black text-green-500/60 uppercase tracking-widest">Fase
-                                        01</span>
-                                    <h4 class="text-base font-black text-white uppercase tracking-tight">Fibra Primero
-                                    </h4>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[8px] font-black text-[#13ec5b]/50 uppercase tracking-widest">Fase 01</span>
+                                    <span id="seq-check-1" class="hidden text-[8px] font-black text-[#13ec5b] bg-[#13ec5b]/10 px-1.5 py-0.5 rounded-md uppercase">✓ Hecho</span>
                                 </div>
-                                <p class="text-[11px] text-text-gray font-medium leading-relaxed">
-                                    Crea una malla gástrica que bloquea la absorción rápida de glucosa. <span
-                                        class="text-green-500 font-bold">Indispensable.</span>
-                                </p>
+                                <h3 class="text-[13px] font-black uppercase tracking-tight">Fibra Primero</h3>
+                                <p class="text-[10px] text-white/40 mt-0.5 leading-tight">Malla gástrica → bloquea absorción rápida de glucosa. <span class="text-[#13ec5b]">Indispensable.</span></p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Protein -->
-                    <div
-                        class="glass-card p-5 border-neon/10 bg-gradient-to-br from-dark to-surface-glass group relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 blur-2xl rounded-full"></div>
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="h-12 w-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0">
-                                <span class="material-symbols-outlined font-bold">egg_alt</span>
+                    <!-- Fase 2 -->
+                    <div id="seq-2" onclick="completeSequence(2)" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-neon/40 transition-all relative overflow-hidden">
+                        <div class="flex items-center gap-4">
+                            <div id="seq-icon-2" class="h-10 w-10 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon shrink-0 transition-all">
+                                <span class="material-symbols-outlined text-[20px]">egg_alt</span>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[9px] font-black text-blue-500/60 uppercase tracking-widest">Fase
-                                        02</span>
-                                    <h4 class="text-base font-black text-white uppercase tracking-tight">Ancla de
-                                        Proteína</h4>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[8px] font-black text-neon/50 uppercase tracking-widest">Fase 02</span>
+                                    <span id="seq-check-2" class="hidden text-[8px] font-black text-neon bg-neon/10 px-1.5 py-0.5 rounded-md uppercase">✓ Hecho</span>
                                 </div>
-                                <p class="text-[11px] text-text-gray font-medium leading-relaxed">
-                                    Ralentiza el vaciado gástrico. <span class="text-blue-500 font-bold">Consolida la
-                                        energía</span> sin picos de insulina.
-                                </p>
+                                <h3 class="text-[13px] font-black uppercase tracking-tight">Ancla de Proteína</h3>
+                                <p class="text-[10px] text-white/40 mt-0.5 leading-tight">Ralentiza vaciado gástrico. <span class="text-neon">Consolida energía</span> sin picos de insulina.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: Starch -->
-                    <div
-                        class="glass-card p-5 border-neon/20 bg-neon/10 group relative overflow-hidden shadow-lg shadow-neon/5">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-neon/10 blur-2xl rounded-full"></div>
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="h-12 w-12 rounded-xl bg-neon/20 border border-neon/30 flex items-center justify-center text-neon shrink-0">
-                                <span class="material-symbols-outlined font-bold">cake</span>
+                    <!-- Fase 3 -->
+                    <div id="seq-3" onclick="completeSequence(3)" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-primary/40 transition-all relative overflow-hidden">
+                        <div class="flex items-center gap-4">
+                            <div id="seq-icon-3" class="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 transition-all">
+                                <span class="material-symbols-outlined text-[20px]">cake</span>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[9px] font-black text-neon/60 uppercase tracking-widest">Fase
-                                        03</span>
-                                    <h4 class="text-base font-black text-white uppercase tracking-tight">Carbohidratos
-                                        al Final</h4>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[8px] font-black text-primary/50 uppercase tracking-widest">Fase 03</span>
+                                    <span id="seq-check-3" class="hidden text-[8px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-md uppercase">✓ Hecho</span>
                                 </div>
-                                <p class="text-[11px] text-text-gray font-medium leading-relaxed">
-                                    Aplanamiento dramático de la curva. <span class="text-neon font-bold">Disfruta sin
-                                        el choque metabólico.</span>
-                                </p>
+                                <h3 class="text-[13px] font-black uppercase tracking-tight">Carbohidratos al Final</h3>
+                                <p class="text-[10px] text-white/40 mt-0.5 leading-tight">Curva glucémica aplanada. <span class="text-primary">Disfruta sin choque metabólico.</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <!-- Hack Rápido: Vinagre de Manzana -->
+            <section class="glass-card p-5 border-amber-500/20 bg-amber-500/5 relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
+                <div class="flex items-start gap-4">
+                    <div class="h-12 w-12 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
+                        <span class="material-symbols-outlined text-[24px]">water_drop</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-[9px] font-black text-amber-500/60 uppercase tracking-widest mb-0.5">Hack Glucémico #1</p>
+                        <h3 class="text-[15px] font-black uppercase tracking-tight mb-1">Vinagre de Manzana</h3>
+                        <p class="text-[10px] text-white/40 leading-relaxed mb-3">1 cda en 200ml agua, 20 min antes de comer. Reduce pico glucémico hasta un <span class="text-amber-400 font-bold">30%</span>.</p>
+                        <!-- Timer -->
+                        <div class="flex items-center gap-3">
+                            <div id="vinegar-timer-display" class="text-[28px] font-black tracking-tighter text-amber-400 font-variant-numeric tabular-nums leading-none">20:00</div>
+                            <button id="vinegar-btn" onclick="toggleVinegarTimer()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/25 transition-all active:scale-95">
+                                <span id="vinegar-icon" class="material-symbols-outlined text-[16px]">play_arrow</span>
+                                <span id="vinegar-label">Iniciar</span>
+                            </button>
+                            <button onclick="resetVinegarTimer()" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all">
+                                <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hacks Grid (Movement + Muscle Brake + Walking) -->
+            <section>
+                <h2 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 px-1 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-neon text-[16px]">bolt</span>
+                    Protocolos Anti-Pico
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+
+                    <!-- 10-min Walk -->
+                    <div onclick="logActivity('walk')" id="walk-card" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-[#13ec5b]/40 col-span-2 flex items-center gap-4 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#13ec5b]/5 to-transparent pointer-events-none"></div>
+                        <div class="h-12 w-12 rounded-2xl bg-[#13ec5b]/10 border border-[#13ec5b]/20 flex items-center justify-center text-[#13ec5b] shrink-0">
+                            <span class="material-symbols-outlined text-[24px]">directions_walk</span>
+                        </div>
+                        <div class="flex-1 z-10">
+                            <p class="text-[9px] font-black text-[#13ec5b]/60 uppercase tracking-widest mb-0.5">Prioritario · Inchauspé</p>
+                            <h3 class="text-[14px] font-black uppercase tracking-tight">Caminar 10 min Post-Comida</h3>
+                            <p class="text-[10px] text-white/40 mt-0.5">Contracción muscular consume glucosa directamente. <span class="text-[#13ec5b] font-bold">-30% pico.</span></p>
+                        </div>
+                        <div id="walk-done" class="hidden h-8 w-8 rounded-xl bg-[#13ec5b]/20 border border-[#13ec5b]/40 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[#13ec5b] text-[18px]">check</span>
+                        </div>
+                    </div>
+
+                    <!-- Muscle Brake (Calf Raises) -->
+                    <div onclick="logActivity('calf')" id="calf-card" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-neon/40">
+                        <div class="h-10 w-10 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon mb-3">
+                            <span class="material-symbols-outlined text-[20px]">accessibility_new</span>
+                        </div>
+                        <p class="text-[8px] font-black text-neon/50 uppercase tracking-widest mb-0.5">Freno Muscular</p>
+                        <h4 class="text-[12px] font-black uppercase tracking-tight">Calf Raises</h4>
+                        <p class="text-[10px] text-white/40 mt-1 leading-tight">25 reps cada hora. Activación del músculo sóleo.</p>
+                        <div id="calf-done" class="hidden mt-2 text-[9px] font-black text-neon">✓ Hecho hoy</div>
+                    </div>
+
+                    <!-- Ayuno Cognitivo -->
+                    <div onclick="logActivity('fast')" id="fast-card" class="hack-card glass-card p-4 border-white/5 cursor-pointer hover:border-purple-400/40">
+                        <div class="h-10 w-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+                            <span class="material-symbols-outlined text-[20px]">schedule</span>
+                        </div>
+                        <p class="text-[8px] font-black text-purple-400/50 uppercase tracking-widest mb-0.5">BDNF +40%</p>
+                        <h4 class="text-[12px] font-black uppercase tracking-tight">Ayuno 12h</h4>
+                        <p class="text-[10px] text-white/40 mt-1 leading-tight">Ayuno nocturno completado hoy.</p>
+                        <div id="fast-done" class="hidden mt-2 text-[9px] font-black text-purple-400">✓ Completado</div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Biomarkers Rápidos -->
+            <section class="glass-card p-5 border-white/5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,209,255,0.04),transparent_70%)] pointer-events-none"></div>
+                <h2 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 relative z-10">
+                    <span class="material-symbols-outlined text-neon text-[16px]">monitoring</span>
+                    Biomarcadores Clave
+                </h2>
+                <div class="space-y-3 relative z-10">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-2 h-2 rounded-full bg-[#13ec5b]"></div>
+                            <span class="text-[11px] font-bold text-white/70">Insulina Basal</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-[#13ec5b] rounded-full bar-fill" style="--target-w: 65%;"></div>
+                            </div>
+                            <span class="text-[11px] font-black text-[#13ec5b] w-8 text-right">Bajo</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-2 h-2 rounded-full bg-primary"></div>
+                            <span class="text-[11px] font-bold text-white/70">Glucemia Post</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-primary rounded-full bar-fill" style="--target-w: 55%;"></div>
+                            </div>
+                            <span class="text-[11px] font-black text-primary w-8 text-right">Mod</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-2 h-2 rounded-full bg-neon"></div>
+                            <span class="text-[11px] font-bold text-white/70">BDNF Estimado</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-neon rounded-full bar-fill" style="--target-w: 82%;"></div>
+                            </div>
+                            <span class="text-[11px] font-black text-neon w-8 text-right">Alto</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                            <span class="text-[11px] font-bold text-white/70">Cortisol</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-purple-400 rounded-full bar-fill" style="--target-w: 38%;"></div>
+                            </div>
+                            <span class="text-[11px] font-black text-purple-400 w-8 text-right">Bajo</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Link to Biochemical Dashboard -->
+            <a href="evolucion-bioquimica.html" class="hack-card glass-card p-5 border-neon/20 bg-neon/5 flex items-center gap-4 cursor-pointer group">
+                <div class="h-12 w-12 rounded-2xl bg-neon/15 border border-neon/30 flex items-center justify-center text-neon shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">biotech</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[9px] font-black text-neon/60 uppercase tracking-widest mb-0.5">Dashboard Completo</p>
+                    <h3 class="text-[14px] font-black uppercase tracking-tight group-hover:text-neon transition-colors">Bio-Intelligence Hub</h3>
+                    <p class="text-[10px] text-white/40">HRV · Sueño · Biomarcadores · IA Insights</p>
+                </div>
+                <span class="material-symbols-outlined text-white/30 group-hover:text-neon transition-colors">chevron_right</span>
+            </a>
 
         </main>
+
+        <!-- Bottom Nav -->
+        <nav class="fixed bottom-0 left-0 w-full border-t border-white/5 bg-[#0a0a0a]/90 backdrop-blur-3xl pb-safe pt-4 z-50">
+            <div class="flex items-center justify-around max-w-md mx-auto px-4 pb-4">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined text-[22px]">home</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Lobby</span>
+                </a>
+                <a href="entrenar.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined text-[22px]">fitness_center</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Gym</span>
+                </a>
+                <a href="historial.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined text-[22px]">analytics</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Progreso</span>
+                </a>
+                <a href="descanso.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined text-[22px]">psychology</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Neuro</span>
+                </a>
+                <a href="ejercicios.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined text-[22px]">library_books</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Biblio</span>
+                </a>
+            </div>
+        </nav>
     </div>
+
     <script>
+        // ─── State ────────────────────────────────────────────────────────────
+        let ntkBalance = parseInt(localStorage.getItem('hb_ntk')) || 0;
+        let glucoseScore = parseInt(localStorage.getItem('hb_glucose_score')) || 92;
+        let seqDone = JSON.parse(localStorage.getItem('hb_seq_done') || '[]');
+        let actsDone = JSON.parse(localStorage.getItem('hb_acts_done') || '[]');
+
+        // Vinegar timer
+        let vinegarTime = 20 * 60;
+        let vinegarRunning = false;
+        let vinegarInterval = null;
+
+        // ─── Boot ─────────────────────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            syncCloud();
+            restoreState();
+            applyUserBg();
+            updateGlucoseDisplay();
+        });
+
+        async function syncCloud() {
+            try {
+                if (!window.hb_auth.currentUser) await window.hb_auth.signInAnonymously();
+                const uid = window.hb_auth.currentUser.uid;
+                window.hb_db.collection('users').doc(uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        ntkBalance = doc.data().ntkBalance || 0;
+                        document.getElementById('ntk-display').textContent = ntkBalance;
+                        const score = doc.data().bioScore || glucoseScore;
+                        updateScoreRing(score);
+                        localStorage.setItem('hb_ntk', ntkBalance);
+                    }
+                });
+            } catch (e) {
+                document.getElementById('ntk-display').textContent = ntkBalance;
+                updateScoreRing(glucoseScore);
+            }
+        }
+
+        // ─── Glucose Display ─────────────────────────────────────────────────
+        function updateGlucoseDisplay() {
+            document.getElementById('glucose-score').textContent = glucoseScore;
+            const badge = document.getElementById('glucose-badge');
+            if (glucoseScore >= 85) {
+                badge.className = 'inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-[#13ec5b]/15 border border-[#13ec5b]/30';
+                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-[#13ec5b] animate-pulse"></span><span class="text-[9px] font-black text-[#13ec5b] uppercase tracking-widest">Óptimo · Curva Plana</span>';
+            } else if (glucoseScore >= 60) {
+                badge.className = 'inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-primary/15 border border-primary/30';
+                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span class="text-[9px] font-black text-primary uppercase tracking-widest">Moderado · Estabilizar</span>';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30';
+                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span><span class="text-[9px] font-black text-red-400 uppercase tracking-widest">Alerta · Aplicar Hacks</span>';
+            }
+        }
+
+        function updateScoreRing(val) {
+            document.getElementById('score-val').textContent = val;
+            const circumference = 201;
+            const offset = circumference - (val / 100) * circumference;
+            document.getElementById('score-ring').style.strokeDashoffset = offset;
+        }
+
+        // ─── Meal Logging ────────────────────────────────────────────────────
+        function logMeal(type, delta) {
+            glucoseScore = Math.max(0, Math.min(100, glucoseScore + delta));
+            localStorage.setItem('hb_glucose_score', glucoseScore);
+            updateGlucoseDisplay();
+
+            const labels = { fibra: '🥦 Fibra registrada', proteina: '🥚 Proteína registrada', carbs: '🍞 Carbs registrados', dulce: '🍫 Dulce registrado' };
+            const colors = { fibra: '#13ec5b', proteina: '#00d1ff', carbs: '#ff8a00', dulce: '#ef4444' };
+            showToast(labels[type] + (delta > 0 ? ` (+${delta} pts)` : ` (${delta} pts)`), colors[type]);
+
+            // Cloud log
+            cloudLogQuick({ type: 'meal', mealType: type, glucoseDelta: delta });
+        }
+
+        // ─── Sequence Tracker ────────────────────────────────────────────────
+        function completeSequence(n) {
+            if (seqDone.includes(n)) return;
+            seqDone.push(n);
+            localStorage.setItem('hb_seq_done', JSON.stringify(seqDone));
+
+            document.getElementById(`seq-check-${n}`).classList.remove('hidden');
+
+            const rewardNTK = 20;
+            showToast(`✓ Fase ${n} completada · +${rewardNTK} NTK`, '#13ec5b');
+            document.getElementById('seq-complete').textContent = `${seqDone.length}/3 completados`;
+
+            cloudLogQuick({ type: 'sequence', phase: n, ntkEarned: rewardNTK });
+
+            if (seqDone.length === 3) {
+                setTimeout(() => showToast('🏆 ¡Secuencia completa! +100 NTK BONUS', '#ff8a00'), 800);
+                cloudLogQuick({ type: 'sequence_bonus', ntkEarned: 100 });
+            }
+        }
+
+        // ─── Activity Logger ─────────────────────────────────────────────────
+        function logActivity(type) {
+            if (actsDone.includes(type)) {
+                showToast('Ya registrado hoy 👍', '#00d1ff');
+                return;
+            }
+            actsDone.push(type);
+            localStorage.setItem('hb_acts_done', JSON.stringify(actsDone));
+
+            const configs = {
+                walk:  { el: 'walk-done',  msg: '🚶 Caminata post-comida · +30 NTK', color: '#13ec5b', ntk: 30 },
+                calf:  { el: 'calf-done',  msg: '🦵 Calf Raises · +15 NTK', color: '#00d1ff', ntk: 15 },
+                fast:  { el: 'fast-done',  msg: '⏱ Ayuno 12h completado · +50 NTK', color: '#c084fc', ntk: 50 },
+            };
+            const c = configs[type];
+            document.getElementById(c.el).classList.remove('hidden');
+            document.getElementById(c.el).classList.add('flex');
+
+            glucoseScore = Math.min(100, glucoseScore + (type === 'walk' ? 5 : type === 'calf' ? 3 : 8));
+            localStorage.setItem('hb_glucose_score', glucoseScore);
+            updateGlucoseDisplay();
+
+            showToast(c.msg, c.color);
+            cloudLogQuick({ type: 'activity', activity: type, ntkEarned: c.ntk });
+        }
+
+        // ─── Vinegar Timer ───────────────────────────────────────────────────
+        function toggleVinegarTimer() {
+            if (vinegarRunning) {
+                vinegarRunning = false;
+                clearInterval(vinegarInterval);
+                document.getElementById('vinegar-icon').textContent = 'play_arrow';
+                document.getElementById('vinegar-label').textContent = 'Reanudar';
+                document.getElementById('vinegar-btn').classList.remove('vinegar-active');
+            } else {
+                if (vinegarTime <= 0) return;
+                vinegarRunning = true;
+                document.getElementById('vinegar-icon').textContent = 'pause';
+                document.getElementById('vinegar-label').textContent = 'Pausar';
+                document.getElementById('vinegar-btn').classList.add('vinegar-active');
+                vinegarInterval = setInterval(() => {
+                    vinegarTime--;
+                    updateVinegarDisplay();
+                    if (vinegarTime <= 0) {
+                        clearInterval(vinegarInterval);
+                        vinegarRunning = false;
+                        document.getElementById('vinegar-icon').textContent = 'check_circle';
+                        document.getElementById('vinegar-label').textContent = '¡Listo!';
+                        document.getElementById('vinegar-btn').classList.remove('vinegar-active');
+                        document.getElementById('vinegar-btn').style.borderColor = 'rgba(19,236,91,0.4)';
+                        document.getElementById('vinegar-btn').style.color = '#13ec5b';
+                        if ('vibrate' in navigator) navigator.vibrate([200, 100, 400]);
+                        showToast('🍵 ¡Toma tu vinagre ahora! +10 NTK', '#ff8a00');
+                        cloudLogQuick({ type: 'vinegar_protocol', ntkEarned: 10 });
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetVinegarTimer() {
+            clearInterval(vinegarInterval);
+            vinegarRunning = false;
+            vinegarTime = 20 * 60;
+            updateVinegarDisplay();
+            document.getElementById('vinegar-icon').textContent = 'play_arrow';
+            document.getElementById('vinegar-label').textContent = 'Iniciar';
+            document.getElementById('vinegar-btn').classList.remove('vinegar-active');
+            document.getElementById('vinegar-btn').style.borderColor = '';
+            document.getElementById('vinegar-btn').style.color = '';
+        }
+
+        function updateVinegarDisplay() {
+            const m = String(Math.floor(vinegarTime / 60)).padStart(2, '0');
+            const s = String(vinegarTime % 60).padStart(2, '0');
+            document.getElementById('vinegar-timer-display').textContent = `${m}:${s}`;
+        }
+
+        // ─── Restore State ───────────────────────────────────────────────────
+        function restoreState() {
+            seqDone.forEach(n => {
+                const el = document.getElementById(`seq-check-${n}`);
+                if (el) el.classList.remove('hidden');
+            });
+            document.getElementById('seq-complete').textContent = `${seqDone.length}/3 completados`;
+
+            actsDone.forEach(type => {
+                const ids = { walk: 'walk-done', calf: 'calf-done', fast: 'fast-done' };
+                const el = document.getElementById(ids[type]);
+                if (el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            });
+        }
+
+        // ─── Cloud Quick Log ─────────────────────────────────────────────────
+        async function cloudLogQuick(data) {
+            try {
+                if (!window.hb_auth.currentUser) await window.hb_auth.signInAnonymously();
+                const uid = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+                const userRef = db.collection('users').doc(uid);
+
+                await db.runTransaction(async t => {
+                    const userDoc = await t.get(userRef);
+                    const logRef = userRef.collection('logs').doc();
+                    t.set(logRef, {
+                        ...data,
+                        category: 'metabolic',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    if (userDoc.exists && data.ntkEarned) {
+                        t.update(userRef, {
+                            ntkBalance: (userDoc.data().ntkBalance || 0) + data.ntkEarned,
+                            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                });
+            } catch (e) {
+                console.warn('Cloud log error (local fallback):', e);
+            }
+        }
+
+        // ─── Toast ────────────────────────────────────────────────────────────
+        let toastTimer = null;
+        function showToast(msg, color = '#13ec5b') {
+            const t = document.getElementById('m-toast');
+            document.getElementById('m-toast-msg').textContent = msg;
+            document.getElementById('m-toast-msg').style.color = color;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // ─── Dynamic BG ───────────────────────────────────────────────────────
         function applyUserBg() {
             const bg = localStorage.getItem('hb_user_bg') || 'tech';
-            const bgOverlay = document.createElement('div');
-            bgOverlay.id = 'dynamic-bg';
-            bgOverlay.className = 'fixed inset-0 pointer-events-none z-[-1] opacity-[0.08] transition-opacity duration-1000';
-            bgOverlay.style.backgroundImage = `url('assets/images/bg_${bg}.png')`;
-            bgOverlay.style.backgroundSize = 'cover';
-            bgOverlay.style.backgroundPosition = 'center';
-            document.body.appendChild(bgOverlay);
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 pointer-events-none z-[-1] opacity-[0.04]';
+            overlay.style.backgroundImage = `url('assets/images/bg_${bg}.png')`;
+            overlay.style.backgroundSize = 'cover';
+            document.body.appendChild(overlay);
         }
-        applyUserBg();
     </script>
 </body>
 

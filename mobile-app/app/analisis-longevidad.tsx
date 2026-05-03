@@ -21,6 +21,7 @@ export default function AnalisisLongevidad() {
   // Projections
   const [metabolicAge, setMetabolicAge] = useState(0);
   const [prediction, setPrediction] = useState('');
+  const [userAge, setUserAge] = useState(30);
 
   useEffect(() => {
     loadData();
@@ -37,10 +38,11 @@ export default function AnalisisLongevidad() {
       setSteps(data.steps || 8000);
       setNtk(data.ntkBalance || 0);
       setUnlocked(data.longevityUnlocked || false);
+      setUserAge(data.age || 30);
       
       const mAge = BioForecasting.estimateMetabolicAge(data.age || 30, data.hrv || 55, data.steps || 8000);
       setMetabolicAge(mAge);
-      setPrediction(BioForecasting.getInsight(data.bioScore || 75, mAge - (data.age || 30)));
+      setPrediction(BioForecasting.getInsight(data.bioScore || 75, mAge - (data.age || 30), 0));
     }
     setLoading(false);
   };
@@ -66,6 +68,8 @@ export default function AnalisisLongevidad() {
   };
 
   if (loading) return <View style={AppStyles.body}><Text style={AppStyles.textWhite}>PROCESANDO RED BIO-NEURAL...</Text></View>;
+
+  const twinData = BioForecasting.project2050(userAge, bioScore, hrv);
 
   return (
     <View style={AppStyles.body}>
@@ -107,8 +111,8 @@ export default function AnalisisLongevidad() {
                 <Text style={[AppStyles.textGray, { fontSize: 14, fontWeight: 'bold' }]}>EDAD METABÓLICA</Text>
                 <Text style={styles.ageValue}>{metabolicAge}</Text>
                 <Text style={styles.ageLabel}>Años Biológicos</Text>
-                <View style={[styles.badge, { backgroundColor: metabolicAge < 30 ? AppColors.primaryBioGreen : AppColors.primaryOrange }]}>
-                   <Text style={{ color: 'black', fontSize: 10, fontWeight: 'bold' }}>{metabolicAge < 30 ? 'SOBERANÍA ÓPTIMA' : 'MODO RECUPERACIÓN'}</Text>
+                <View style={[styles.badge, { backgroundColor: metabolicAge < userAge - 2 ? AppColors.primaryBioGreen : AppColors.primaryOrange }]}>
+                   <Text style={{ color: 'black', fontSize: 10, fontWeight: 'bold' }}>{metabolicAge < userAge - 2 ? 'SOBERANÍA ÓPTIMA' : 'MODO RECUPERACIÓN'}</Text>
                 </View>
              </LinearGradient>
 
@@ -118,8 +122,32 @@ export default function AnalisisLongevidad() {
                 <Text style={styles.predictionText}>{prediction}</Text>
              </View>
 
+             {/* Bio-Twin 2050 Projection (NEW) */}
+             <View style={[AppStyles.glassCard, { padding: 25, marginBottom: 25, borderStyle: 'dashed', borderDashArray: [10, 5], borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }]}>
+                 <View style={AppStyles.rowBetween}>
+                    <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Bio-Twin 🧬 2050</Text>
+                    <View style={{ backgroundColor: 'rgba(0, 209, 255, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                       <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 10, fontWeight: 'bold' }}>ESTIMACIÓN ZKP</Text>
+                    </View>
+                 </View>
+                 
+                 <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flex: 1 }}>
+                       <Text style={{ color: AppColors.textGray, fontSize: 11 }}>PROBABILIDAD DE SOBERANÍA LONGEVA (PSL)</Text>
+                       <Text style={{ color: 'white', fontSize: 32, fontWeight: '900', marginTop: 5 }}>{twinData.probability}%</Text>
+                    </View>
+                    <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 4, borderColor: AppColors.primaryNeonBlue, alignItems: 'center', justifyContent: 'center' }}>
+                       <Ionicons name="infinite" size={32} color={AppColors.primaryNeonBlue} />
+                    </View>
+                 </View>
+
+                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginTop: 15, fontStyle: 'italic' }}>
+                    "{twinData.narrative}"
+                 </Text>
+              </View>
+
              {/* Chart Simulation */}
-             <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25, height: 200 }]}>
+             <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25, height: 180 }]}>
                 <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 20 }]}>TENDENCIA BIO-SCORE (30 DÍAS)</Text>
                 <View style={styles.chartArea}>
                    <View style={[styles.bar, { height: '60%', backgroundColor: 'rgba(255,255,255,0.1)' }]} />
@@ -136,19 +164,19 @@ export default function AnalisisLongevidad() {
              </View>
 
              {/* Longevity Pillars */}
-             <View style={{ gap: 15 }}>
+             <View style={{ gap: 15, marginBottom: 30 }}>
                 <View style={styles.pillarItem}>
                    <Ionicons name="heart" size={24} color={AppColors.primaryNeonBlue} />
                    <Text style={styles.pillarText}>Resiliencia Cardíaca: <Text style={{ color: 'white', fontWeight: 'bold' }}>94%</Text></Text>
                 </View>
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                <View style={[styles.pillarItem, { alignSelf: 'flex-end', width: '90%' }]}>
                    <Ionicons name="leaf" size={24} color={AppColors.primaryBioGreen} />
                    <Text style={styles.pillarText}>Capacidad Celular: <Text style={{ color: 'white', fontWeight: 'bold' }}>Excelente</Text></Text>
                 </View>
              </View>
 
              <TouchableOpacity 
-              style={[AppStyles.glowBtnOrange, { marginTop: 30, height: 65 }]}
+              style={[AppStyles.glowBtnOrange, { marginTop: 20, height: 65 }]}
               // @ts-ignore
               onPress={() => router.push('/certificado')}
              >

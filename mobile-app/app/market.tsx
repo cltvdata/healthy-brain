@@ -18,6 +18,24 @@ const REWARDS = [
     image: 'https://images.unsplash.com/photo-1593094855729-19cca04f3748?auto=format&fit=crop&q=80&w=200'
   },
   { 
+    id: 'shield', 
+    title: 'Bio-Shield Protector', 
+    description: 'Protege tu racha de 24h ante fallos de sincronización.',
+    cost: 250, 
+    icon: 'shield-half', 
+    color: '#6366f1',
+    image: 'https://images.unsplash.com/photo-1510511459019-5dee997ddfdf?auto=format&fit=crop&q=80&w=200'
+  },
+  { 
+    id: 'passport', 
+    title: 'Bio-Pasaporte: Soberano', 
+    description: 'Artefacto Digital. Multiplicador 1.5x en minado social.',
+    cost: 5000, 
+    icon: 'id-card', 
+    color: '#13ec5b',
+    image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=200'
+  },
+  { 
     id: '2', 
     title: 'Cinturón Halterofilia Pro', 
     description: 'Bio-Tech Affiliate - Soporte Lumbar Elite',
@@ -25,15 +43,6 @@ const REWARDS = [
     icon: 'fitness', 
     color: '#ff8a00',
     image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80&w=200'
-  },
-  { 
-    id: '3', 
-    title: 'Auriculares Bio-Feedback', 
-    description: 'WaveState Analytics - Monitorización HRV',
-    cost: 2500, 
-    icon: 'headset', 
-    color: '#a855f7',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=200'
   }
 ];
 
@@ -72,10 +81,24 @@ export default function MarketScreen() {
         const userDoc = await transaction.get(userRef);
         if (!userDoc.exists()) throw "Usuario no encontrado";
 
-        const currentNtk = userDoc.data().ntkBalance || 0;
+        const userData = userDoc.data();
+        const currentNtk = userData.ntkBalance || 0;
         if (currentNtk < reward.cost) throw "NTK Insuficiente";
 
-        transaction.update(userRef, { ntkBalance: currentNtk - reward.cost });
+        let updates: any = { ntkBalance: currentNtk - reward.cost };
+        
+        if (reward.id === 'shield') {
+          updates.bioShields = (userData.bioShields || 0) + 1;
+        } else if (reward.id === 'passport') {
+          updates.activeBoost = {
+            id: 'soberano',
+            multiplier: 1.5,
+            expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+            title: 'Soberano Pass'
+          };
+        }
+
+        transaction.update(userRef, updates);
       });
 
       await addDoc(logRef, {
@@ -180,7 +203,7 @@ export default function MarketScreen() {
                             key={amt}
                             onPress={() => sendGift(amt)}
                             disabled={processing || balance < amt}
-                            style={[styles.giftBtn, balance < amt && { opacity: 0.3 }]}
+                            style={[styles.giftBtn, AppStyles.glassCardInteractive, balance < amt && { opacity: 0.3 }]}
                         >
                             <Text style={styles.giftText}>{amt} NTK</Text>
                         </TouchableOpacity>
@@ -193,7 +216,7 @@ export default function MarketScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 25 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
              {['TODO', 'ENERGÍA', 'LONGEVIDAD', 'EQUIPO'].map((cat, i) => (
-                <TouchableOpacity key={i} style={[styles.filterChip, i === 0 && styles.activeFilterChip]}>
+                <TouchableOpacity key={i} style={[styles.filterChip, AppStyles.glassCardInteractive, i === 0 && styles.activeFilterChip]}>
                   <Text style={[styles.filterText, i === 0 && styles.activeFilterText]}>{cat}</Text>
                 </TouchableOpacity>
              ))}
@@ -250,12 +273,12 @@ export default function MarketScreen() {
                         <TouchableOpacity 
                             onPress={() => handleRedeem(reward)}
                             disabled={processing || balance < reward.cost}
-                            style={[styles.redeemBtn, { backgroundColor: reward.color }, balance < reward.cost && styles.disabledBtn]}
+                            style={[styles.redeemBtn, AppStyles.glassCardInteractive, { backgroundColor: reward.color }, balance < reward.cost && styles.disabledBtn]}
                         >
                             {processing ? (
                                 <ActivityIndicator color="black" size="small" />
                             ) : (
-                                <Text style={styles.redeemText}>CANJEAR</Text>
+                                <Text style={styles.redeemText}>CANJEAR NTK</Text>
                             )}
                         </TouchableOpacity>
                     </View>

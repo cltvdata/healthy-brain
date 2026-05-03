@@ -57,20 +57,38 @@ export default function BioSyncScreen() {
         if (!auth.currentUser) return;
         const userId = auth.currentUser.uid;
         
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+        
+        const today = new Date().toISOString().split('T')[0];
+        const lastSync = userData?.lastHealthSync || '';
+        const canReward = lastSync !== today;
+
         await addDoc(collection(db, 'users', userId, 'logs'), {
           ...extractedData,
           title: `SYNC EXTERNO: ${Object.keys(extractedData).filter(k => k !== 'type' && k !== 'timestamp').join(', ')}`,
-          value: ntkReward,
+          value: canReward ? ntkReward : 0,
           unit: 'NTK+'
         });
 
-        // Update Balance
-        await updateDoc(doc(db, 'users', userId), {
-          ntkBalance: increment(ntkReward)
-        });
+        // Update Balance and Timestamp
+        const updateData: any = {
+           lastHealthSync: today
+        };
+        
+        if (canReward) {
+           updateData.ntkBalance = increment(ntkReward);
+        }
+
+        await updateDoc(userRef, updateData);
 
         setIsParsing(false);
-        Alert.alert("Sincronización Exitosa", `La IA ha procesado tus datos externos. +${ntkReward} NTK acreditados.`);
+        if (canReward) {
+           Alert.alert("Sincronización Exitosa", `La IA ha procesado tus datos externos. +${ntkReward} NTK acreditados.`);
+        } else {
+           Alert.alert("Datos Actualizados", "Tus métricas se han guardado en tu historial. (Nota: Ya has reclamado tu recompensa de Soberanía diaria).");
+        }
         router.back();
 
       } catch (error) {

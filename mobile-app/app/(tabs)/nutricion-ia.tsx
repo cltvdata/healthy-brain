@@ -7,6 +7,7 @@ import { SynergyService } from '@/services/SynergyService';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BioCycleService, BioCycleState } from '@/services/BioCycleService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,6 +17,7 @@ export default function NutritionIAScreen() {
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanProgress] = useState(new Animated.Value(0));
   const [showHUD, setShowHUD] = useState(true);
+  const [cycleState, setCycleState] = useState<BioCycleState | null>(null);
 
   const startScan = () => {
     setIsScanning(true);
@@ -31,6 +33,16 @@ export default function NutritionIAScreen() {
   };
 
   const generateMockResult = () => {
+    let baseScore = 94;
+    let personalizedAdvice = "";
+
+    if (cycleState) {
+        if (cycleState.phase === 'Menstrual') personalizedAdvice = "⚠️ Prioriza Hierro y Magnesio.";
+        if (cycleState.phase === 'Folicular') personalizedAdvice = "⚡ Óptimo para metabolizar estrógenos.";
+        if (cycleState.phase === 'Ovulatoria') personalizedAdvice = "🔥 Pico de energía: Buen soporte antioxidante.";
+        if (cycleState.phase === 'Lútea') personalizedAdvice = "🌙 Enfócate en carbohidratos complejos.";
+    }
+
     setScanResult({
       name: "Bowl de Proteína y Vegetales",
       calories: 450,
@@ -39,10 +51,27 @@ export default function NutritionIAScreen() {
         carbs: 45,
         fats: 12
       },
-      bioScore: 94,
-      ntkReward: 12
+      bioScore: baseScore,
+      ntkReward: 12,
+      hormonalAdvice: personalizedAdvice
     });
   };
+
+  useEffect(() => {
+    const fetchCycle = async () => {
+       if (auth.currentUser) {
+          const userSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+          if (userSnap.exists()) {
+             const data = userSnap.data();
+             if (data.enableCycleTracking && data.lastPeriodDate) {
+                const state = BioCycleService.calculateState(data.lastPeriodDate, data.cycleLength || 28);
+                setCycleState(state);
+             }
+          }
+       }
+    };
+    fetchCycle();
+  }, []);
 
   const syncNutrition = async () => {
     if (!auth.currentUser || !scanResult) return;
@@ -147,6 +176,13 @@ export default function NutritionIAScreen() {
                    <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold' }}>{scanResult.bioScore}%</Text>
                 </View>
              </View>
+
+             {scanResult.hormonalAdvice && (
+                <View style={{ backgroundColor: cycleState?.color + '20', padding: 10, borderRadius: 12, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: cycleState?.color }}>
+                   <Text style={{ color: cycleState?.color, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }}>{cycleState?.phase.toUpperCase()} CONTEXT IA:</Text>
+                   <Text style={{ color: 'white', fontSize: 12, marginTop: 4, lineHeight: 16 }}>{scanResult.hormonalAdvice}</Text>
+                </View>
+             )}
 
              <Text style={styles.macroLabel}>{t('nutrition.macros')}</Text>
              <View style={styles.macroRow}>

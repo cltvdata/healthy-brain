@@ -11,9 +11,9 @@ import { BioEconomy } from '@/constants/BioEconomy';
 const { width } = Dimensions.get('window');
 
 const REWARDS = [
-  { id: 1, title: 'Cinturón Halterofilia Pro', vendor: 'Bio-Tech Affiliate', price: 1200, icon: 'fitness', color: AppColors.primaryOrange },
-  { id: 2, title: 'Pack Proteína Aislada', vendor: 'Metabolic Solutions', price: 400, icon: 'flask', color: AppColors.primaryNeonBlue },
-  { id: 3, title: 'Auriculares Bio-Feedback', vendor: 'WaveState Analytics', price: 2500, icon: 'headset', color: AppColors.textGray },
+  { id: 1, title: 'Cinturón Halterofilia Pro', vendor: 'Bio-Tech Affiliate', price: 1200, icon: 'fitness', color: AppColors.primaryOrange, type: 'physical' },
+  { id: 2, title: 'Fuego Metabólico (12h)', vendor: 'Digital Boost', price: 300, icon: 'flame', color: AppColors.primaryBioGreen, type: 'boost', multiplier: 1.5 },
+  { id: 3, title: 'Auriculares Bio-Feedback', vendor: 'WaveState Analytics', price: 2500, icon: 'headset', color: AppColors.textGray, type: 'physical' },
 ];
 
 export default function RecompensasScreen() {
@@ -37,7 +37,8 @@ export default function RecompensasScreen() {
     return () => unsubscribe();
   }, []);
 
-  const redeem = async (price: number, title: string) => {
+  const redeem = async (reward: any) => {
+    const { price, title, type, multiplier } = reward;
     if (balance < price || !auth.currentUser) return;
 
     try {
@@ -47,25 +48,36 @@ export default function RecompensasScreen() {
         if (!userDoc.exists()) throw "User doc missing";
         
         const currentBalance = userDoc.data().ntkBalance || 0;
-        if (currentBalance >= price) {
-          transaction.update(userRef, { ntkBalance: currentBalance - price });
-        } else {
-          throw "Saldo insuficiente";
+        if (currentBalance < price) throw "Saldo insuficiente";
+
+        const updateData: any = { ntkBalance: currentBalance - price };
+
+        // Handle Digital Boost Logic
+        if (type === 'boost') {
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 12);
+          updateData.activeBoost = {
+             title,
+             multiplier,
+             expiresAt: expiresAt.getTime()
+          };
         }
+
+        transaction.update(userRef, updateData);
       });
 
       // Log to Bio-Cloud History
       const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'logs'), {
-        type: 'redeem',
+        type: type === 'boost' ? 'boost_activate' : 'redeem',
         category: 'market',
-        title: `Canjeado: ${title}`,
+        title: type === 'boost' ? `Activado: ${title}` : `Canjeado: ${title}`,
         value: -price,
         unit: 'NTK',
         timestamp: serverTimestamp()
       });
 
-      setToast(`Canjeado en Bio-Red: ${title}`);
+      setToast(type === 'boost' ? `🔥 Boost Activo: ${title}` : `Canjeado en Bio-Red: ${title}`);
       setTimeout(() => setToast(null), 3000);
     } catch (error) {
       console.error("Redeem Error:", error);
@@ -112,7 +124,7 @@ export default function RecompensasScreen() {
             </View>
             <TouchableOpacity 
               style={{ paddingHorizontal: 15, paddingVertical: 8, borderRadius: 10, backgroundColor: balance >= reward.price ? 'rgba(255, 138, 0, 0.1)' : 'rgba(255,255,255,0.05)' }}
-              onPress={() => redeem(reward.price, reward.title)}
+              onPress={() => redeem(reward)}
               disabled={balance < reward.price}
             >
                <Text style={{ color: balance >= reward.price ? AppColors.primaryOrange : 'rgba(255,255,255,0.2)', fontWeight: 'bold', fontSize: 10 }}>
@@ -121,6 +133,74 @@ export default function RecompensasScreen() {
             </TouchableOpacity>
           </View>
         ))}
+
+        {/* Buy Tokens Section */}
+        <Text style={[AppStyles.textWhite, { fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginTop: 25, marginBottom: 20, textTransform: 'uppercase' }]}>Recargas de Neuro-Tokens</Text>
+        
+        <TouchableOpacity 
+          style={[AppStyles.glassCard, { padding: 15, marginBottom: 10, flexDirection: 'row', alignItems: 'center' }]}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/p1C6yuV3')}
+        >
+          <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: 'rgba(255, 138, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
+             <Ionicons name="battery-charging" size={24} color={AppColors.primaryOrange} />
+          </View>
+          <View style={{ flex: 1 }}>
+             <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Bio-Beginner (1,000 NTK)</Text>
+             <Text style={{ color: AppColors.primaryOrange, fontWeight: 'bold', fontSize: 11 }}>$9.99 USD</Text>
+          </View>
+          <Ionicons name="cart-outline" size={20} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[AppStyles.glassCard, { padding: 15, marginBottom: 10, flexDirection: 'row', alignItems: 'center', borderColor: AppColors.primaryBioGreen, borderWidth: 1 }]}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/GIHh27Y0')}
+        >
+          <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: 'rgba(0, 209, 255, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
+             <Ionicons name="battery-full" size={24} color={AppColors.primaryBioGreen} />
+          </View>
+          <View style={{ flex: 1 }}>
+             <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Neuro-Optimizer (3,500 NTK)</Text>
+             <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 11 }}>$24.99 USD</Text>
+          </View>
+          <Ionicons name="star" size={16} color={AppColors.primaryBioGreen} style={{ marginRight: 10 }} />
+          <Ionicons name="cart-outline" size={20} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[AppStyles.glassCard, { padding: 15, marginBottom: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 138, 0, 0.1)' }]}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/vx2qZn8R')}
+        >
+          <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: AppColors.primaryOrange, alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
+             <Ionicons name="trophy" size={24} color="black" />
+          </View>
+          <View style={{ flex: 1 }}>
+             <Text style={[AppStyles.textWhite, { fontSize: 13, fontWeight: 'bold' }]}>Soberanía Elite (12,000 NTK)</Text>
+             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 11 }}>$74.99 USD</Text>
+          </View>
+          <Text style={{ color: AppColors.primaryOrange, fontSize: 8, fontWeight: 'black', marginRight: 10 }}>MEJOR VALOR</Text>
+          <Ionicons name="cart-outline" size={20} color="white" />
+        </TouchableOpacity>
+
+        {/* Sponsors Section */}
+        <Text style={[AppStyles.textWhite, { fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginTop: 25, marginBottom: 20, textTransform: 'uppercase' }]}>Patrocinadores Bio-Elite</Text>
+        
+        <TouchableOpacity 
+          style={[AppStyles.glassCard, { padding: 20, marginBottom: 15, flexDirection: 'row', alignItems: 'center', borderColor: AppColors.primaryOrange }]}
+          onPress={() => require('react-native').Linking.openURL('https://www.adidas.com/us/invite?invitationCode=adidasSC63JFLWF3FN')}
+        >
+          <View style={{ width: 60, height: 60, borderRadius: 15, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
+             <Image 
+                source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg' }} 
+                style={{ width: 40, height: 40 }}
+                resizeMode="contain"
+             />
+          </View>
+          <View style={{ flex: 1 }}>
+             <Text style={[AppStyles.textWhite, { fontSize: 14, fontWeight: 'bold', marginBottom: 2 }]}>adiClub Membership</Text>
+             <Text style={[AppStyles.textGray, { fontSize: 10, lineHeight: 14 }]}>Únete a Adidas y obtén $10 USD de descuento exclusivos para Bio-Hackers.</Text>
+          </View>
+          <Ionicons name="open-outline" size={18} color={AppColors.primaryOrange} />
+        </TouchableOpacity>
 
         {/* Affiliate Banner */}
         <View style={[AppStyles.glassCard, { padding: 20, marginTop: 20, backgroundColor: 'rgba(255, 138, 0, 0.05)', borderColor: 'rgba(255, 138, 0, 0.2)' }]}>

@@ -11,12 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    <script src="js/i18n.js"></script>
 
     <!-- Bio-Cloud Infrastructure -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/seed-data.js"></script>
+    <script src="js/nano-banana.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -58,9 +61,12 @@
     </style>
 </head>
 
-<body class="text-white min-h-screen">
+<body class="text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
     <div
-        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden bg-dark border-x border-white/5 shadow-2xl">
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden bg-dark border-x border-white/5 shadow-2xl z-10">
 
         <!-- Header -->
         <header class="flex items-center gap-4 p-6 pb-4 bg-dark/80 backdrop-blur-xl sticky top-0 z-40">
@@ -71,8 +77,19 @@
             <div>
                 <h1 class="text-xl font-black tracking-tighter uppercase italic leading-tight">Bio-<span
                         class="text-primary">Identity</span></h1>
-                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-0.5">Configuración del
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-0.5" data-i18n="bio_identity">Configuración del
                     Nucleo</p>
+            </div>
+            
+            <!-- Language Selector Expansion (Fase 41) -->
+            <div class="flex flex-wrap gap-1.5 ml-auto max-w-[140px] justify-end">
+                <button onclick="i18n.setLanguage('es')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">ES</button>
+                <button onclick="i18n.setLanguage('en')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">EN</button>
+                <button onclick="i18n.setLanguage('zh')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">ZH</button>
+                <button onclick="i18n.setLanguage('ru')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">RU</button>
+                <button onclick="i18n.setLanguage('fr')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">FR</button>
+                <button onclick="i18n.setLanguage('ko')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">KO</button>
+                <button onclick="i18n.setLanguage('pt')" class="w-7 h-7 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black hover:bg-primary hover:text-black transition-all">PT</button>
             </div>
         </header>
 
@@ -111,6 +128,31 @@
                         <img src="assets/images/bg_energy.png" class="w-full h-20 object-cover opacity-60" alt="Energy">
                         <p class="text-[8px] font-black text-center py-2 uppercase tracking-tighter">Neural-Flow</p>
                     </div>
+                </div>
+            </section>
+
+            <!-- Authenticative Access (Fase 40) -->
+            <section class="mb-10 p-6 rounded-3xl bg-white/[0.03] border border-white/10 relative overflow-hidden group">
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-primary/5 blur-3xl rounded-full"></div>
+                
+                <h3 class="text-[10px] font-black text-text-gray uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-sm">key</span>
+                    Soberanía de Acceso
+                </h3>
+
+                <div class="space-y-4 relative z-10">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-[18px]">email</span>
+                        <input type="email" id="reg-email" placeholder="email@bio-sovereign.com" class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-bold focus:border-primary transition-all outline-none">
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-[18px]">lock</span>
+                        <input type="password" id="reg-pass" placeholder="••••••••" class="w-full bg-black/40 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-[13px] font-bold focus:border-primary transition-all outline-none">
+                    </div>
+                    
+                    <p class="text-[8px] text-text-gray font-black uppercase tracking-widest leading-relaxed">
+                        * Al registrarte recibirás un link de verificación para activar tu Bio-ID.
+                    </p>
                 </div>
             </section>
 
@@ -190,6 +232,22 @@
                     </div>
                 </div>
 
+                <!-- Cronotype (Longevity Insight) -->
+                <div class="group">
+                    <label
+                        class="text-[10px] font-black text-text-gray uppercase tracking-[0.3em] mb-4 block group-focus-within:text-primary transition-colors">Identidad Circadiana (Cronotipo)</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="selectCronotype('morning', this)" class="cronotype-btn p-4 rounded-2xl border border-white/5 bg-white/2 flex flex-col items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-amber-400">wb_sunny</span>
+                            <span class="text-[9px] font-black uppercase tracking-tighter">Matutino (León)</span>
+                        </button>
+                        <button onclick="selectCronotype('evening', this)" class="cronotype-btn p-4 rounded-2xl border border-white/5 bg-white/2 flex flex-col items-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-indigo-400">dark_mode</span>
+                            <span class="text-[9px] font-black uppercase tracking-tighter">Vespertino (Lobo)</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Extra: Body Measurements -->
@@ -241,7 +299,28 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
+
+            <!-- Referral Program (Growth Strategy) -->
+            <section class="mt-8">
+                <div class="glass-card p-6 border-neon/20 bg-neon/5 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-[10px] font-black text-neon uppercase tracking-[0.3em]">Tu Código Cerebral (Referidos)</h3>
+                        <span class="material-symbols-outlined text-neon text-lg">qr_code_2</span>
+                    </div>
+                    <p class="text-[10px] text-white/50 font-bold mb-4 uppercase tracking-tighter">Comparte tu código para minar +250 NTK por cada nuevo guerrero que se una a la red.</p>
+                    
+                    <div class="flex gap-2">
+                        <div id="referral-code-display" class="flex-1 bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-center font-black text-white tracking-[0.2em] animate-pulse">
+                            CARGANDO...
+                        </div>
+                        <button onclick="copyReferralCode()" class="w-12 h-12 rounded-xl bg-neon text-dark flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,209,255,0.3)]">
+                            <span class="material-symbols-outlined font-black">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
 
             <!-- Disclaimer Card -->
             <div class="mt-12 glass-card border-primary/20 p-6 flex gap-4 border-dashed relative overflow-hidden">
@@ -250,10 +329,22 @@
                     class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
                     <span class="material-symbols-outlined text-primary text-[20px] font-black">shield</span>
                 </div>
-                <p class="text-[10px] text-text-gray font-bold leading-relaxed uppercase tracking-tight">
-                    Tus parámetros biométricos se utilizan para calibrar los bucles de feedback neuro-dinámicos. Cifrado
-                    de extremo a extremo activo.
-                </p>
+                <div>
+                    <h4 class="text-[10px] font-black text-white uppercase tracking-widest mb-1" data-i18n="disclaimer_title">Acuerdo de Soberanía</h4>
+                    <p class="text-[9px] text-text-gray font-bold leading-relaxed uppercase tracking-tight" data-i18n="disclaimer_body">
+                        Tus parámetros biométricos se utilizan para calibrar los bucles de feedback neuro-dinámicos. Cifrado
+                        de extremo a extremo activo.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Anti-Bot / Proof of Biology -->
+            <div class="mt-6 p-4 border border-neon/20 bg-neon/5 rounded-2xl flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-neon animate-pulse">fingerprint</span>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest" data-i18n="anti_bot_check">Prueba de Biología</span>
+                </div>
+                <input type="checkbox" id="bio-check" class="w-6 h-6 rounded-lg bg-black border border-white/10 accent-neon cursor-pointer">
             </div>
 
             <!-- Action Button -->
@@ -269,9 +360,33 @@
             </button>
 
             <button onclick="window.location.href='index.html'"
-                class="w-full text-center text-[10px] font-black text-text-gray hover:text-white transition-all uppercase tracking-[0.4em] mb-12">
+                class="w-full text-center text-[10px] font-black text-text-gray hover:text-white transition-all uppercase tracking-[0.4em] mb-4">
                 Volver al Lobby
             </button>
+
+            <!-- Dev Test Button -->
+            <button onclick="seedDummyData()"
+                class="w-full text-center text-[10px] font-black text-alert border border-alert/30 rounded-xl py-3 hover:bg-alert/10 transition-all uppercase tracking-[0.2em] mb-12">
+                [DEV] Generar Datos Prueba (7 Días)
+            </button>
+
+            </section>
+
+            <!-- Viral Hook: Welcome Bonus -->
+            <div id="welcome-bonus-banner" class="hidden mt-8 p-4 bg-primary/10 border border-primary/20 rounded-2xl animate-bounce">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">redeem</span>
+                    <p class="text-[10px] font-black uppercase text-white tracking-widest">¡Bono de Bienvenida Activo! <span class="text-primary">+500 NTK</span> al completar tu perfil.</p>
+                </div>
+            </div>
+
+            <!-- Viral Hook: Welcome Bonus -->
+            <div id="welcome-bonus-banner" class="hidden mt-8 p-4 bg-primary/10 border border-primary/20 rounded-2xl animate-bounce">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">redeem</span>
+                    <p class="text-[10px] font-black uppercase text-white tracking-widest">¡Bono de Bienvenida Activo! <span class="text-primary">+500 NTK</span> al completar tu perfil.</p>
+                </div>
+            </div>
 
         </main>
     </div>
@@ -280,8 +395,30 @@
         let setupData = {
             unitSystem: 'metric',
             weightUnit: 'metric',
-            selectedBg: 'tech'
+            selectedBg: 'tech',
+            cronotype: 'neutral',
+            referralCodeUsed: null
         };
+
+        // Viral Growth: Detect Referral from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) {
+            setupData.referralCodeUsed = refCode.toUpperCase();
+            localStorage.setItem('hb_pending_ref', setupData.referralCodeUsed);
+            console.log("Viral Hub: Referral Detected", refCode);
+        }
+
+        function selectCronotype(type, element) {
+            setupData.cronotype = type;
+            document.querySelectorAll('.cronotype-btn').forEach(el => {
+                el.classList.remove('border-primary', 'bg-primary/10');
+                el.classList.add('border-white/5', 'bg-white/2');
+            });
+            element.classList.remove('border-white/5', 'bg-white/2');
+            element.classList.add('border-primary', 'bg-primary/10');
+            localStorage.setItem('hb_user_cronotype', type);
+        }
 
         function selectBg(type, element) {
             setupData.selectedBg = type;
@@ -350,10 +487,23 @@
         }
 
         async function saveBioData() {
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
             const age = document.getElementById('setup-age').value;
             const heightRaw = document.getElementById('setup-height').value;
             const weight = document.getElementById('setup-weight').value;
             const activityVal = document.getElementById('setup-activity').value;
+            const bioCheck = document.getElementById('bio-check').checked;
+
+            if (!email || !pass) {
+                alert(i18n.currentLang === 'es' ? "Se requiere Email y Password para la soberanía de acceso." : "Email and Password are required for access sovereignty.");
+                return;
+            }
+
+            if (!bioCheck) {
+                alert(i18n.currentLang === 'es' ? "Por favor completa la Prueba de Biología (Anti-Bot)." : "Please complete the Biology Proof (Anti-Bot).");
+                return;
+            }
 
             const btn = document.querySelector('.glow-btn');
             const originalText = btn.innerHTML;
@@ -392,11 +542,18 @@
                 btn.disabled = true;
                 btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> SINCRONIZANDO NUCLEO...`;
 
-                // Authentication Check
-                if (!window.hb_auth.currentUser) {
-                    await window.hb_auth.signInAnonymously();
+                // Authentication with Verification (Fase 40)
+                let user;
+                if (!window.hb_auth.currentUser || window.hb_auth.currentUser.isAnonymous) {
+                    const res = await window.hb_secure_auth.signUpWithVerification(email, pass);
+                    if (!res.success) throw new Error(res.error);
+                    user = res.user;
+                    alert(i18n.t('email_verification_sent'));
+                } else {
+                    user = window.hb_auth.currentUser;
                 }
-                const userId = window.hb_auth.currentUser.uid;
+
+                const userId = user.uid;
                 const db = window.hb_db;
 
                 // Sync to Cloud
@@ -407,11 +564,41 @@
                     activity: currentData.activity || 1.55,
                     measurements: currentData.measurements,
                     selectedBg: setupData.selectedBg,
-                    bioScore: bioScore,
+                    cronotype: setupData.cronotype,
                     bioStats: stats,
                     displayName: "Guerrero_" + userId.substring(0, 4),
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    brainCode: localStorage.getItem('hb_brain_code') || userId.substring(0, 6).toUpperCase(),
+                    isAnabolicResistanceRisk: (currentData.age || 0) >= 40,
+                    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                    ntkBalance: setupData.referralCodeUsed ? 600 : 100 // 100 base + 500 bonus
                 }, { merge: true });
+
+                // --- Viral Reward Logic (Inviter) ---
+                if (setupData.referralCodeUsed) {
+                    const inviterSnapshot = await db.collection('users')
+                        .where('brainCode', '==', setupData.referralCodeUsed)
+                        .limit(1)
+                        .get();
+                    
+                    if (!inviterSnapshot.empty) {
+                        const inviterId = inviterSnapshot.docs[0].id;
+                        await db.collection('users').doc(inviterId).update({
+                            ntkBalance: firebase.firestore.FieldValue.increment(250)
+                        });
+                        // Add activity to feed
+                        await db.collection('sinergias').add({
+                            userId: inviterId,
+                            userName: inviterSnapshot.docs[0].data().displayName,
+                            type: 'referral_bonus',
+                            icon: 'group_add',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            glows: 0,
+                            glowedBy: []
+                        });
+                    }
+                    localStorage.removeItem('hb_pending_ref');
+                }
+                // ------------------------------------
 
                 // Save Local
                 localStorage.setItem('hb_macros_data', JSON.stringify(currentData));
@@ -423,13 +610,20 @@
                 console.error("Cloud Setup Error:", error);
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                alert("Error al sincronizar con Bio-Cloud. Inténtalo de nuevo.");
+                alert("Error al sincronizar con Bio-Cloud: " + error.message);
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            const isEditing = new URLSearchParams(window.location.search).get('edit') === 'true';
             const savedData = localStorage.getItem('hb_macros_data');
             const savedBg = localStorage.getItem('hb_user_bg');
+
+            // Redirect to Dashboard if already setup and not returning to edit
+            if (savedData && !isEditing) {
+                window.location.href = 'index.html';
+                return;
+            }
 
             if (savedBg) {
                 const bgChoices = {
@@ -462,7 +656,49 @@
                     document.getElementById('meas-calves').value = parsed.measurements.calves || '';
                 }
             }
+
+            // Load/Generate Referral Code
+            const auth = window.hb_auth;
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    const code = user.uid.substring(0, 6).toUpperCase();
+                    localStorage.setItem('hb_brain_code', code);
+                    document.getElementById('referral-code-display').innerText = code;
+                    document.getElementById('referral-code-display').classList.remove('animate-pulse');
+                }
+            });
+
+            // Show Welcome Bonus Banner if referral detected
+            const pendingRef = setupData.referralCodeUsed || localStorage.getItem('hb_pending_ref');
+            if (pendingRef) {
+                document.getElementById('welcome-bonus-banner').classList.remove('hidden');
+                setupData.referralCodeUsed = pendingRef;
+            }
+
+            // Initialize Nano-Banana
+            if (window.NanoBanana) {
+                new NanoBanana('neural-bg');
+            }
         });
+
+        function copyReferralCode() {
+            const code = document.getElementById('referral-code-display').innerText;
+            if (code === 'CARGANDO...') return;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('button[onclick="copyReferralCode()"]');
+                const icon = btn.querySelector('.material-symbols-outlined');
+                icon.innerText = 'done';
+                btn.classList.add('bg-primary');
+                btn.classList.remove('bg-neon');
+                
+                setTimeout(() => {
+                    icon.innerText = 'content_copy';
+                    btn.classList.remove('bg-primary');
+                    btn.classList.add('bg-neon');
+                }, 2000);
+            });
+        }
     </script>
 </body>
 

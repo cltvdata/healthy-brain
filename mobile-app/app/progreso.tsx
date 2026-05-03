@@ -7,7 +7,13 @@ import Svg, { Polygon, Line, Circle, Polyline } from 'react-native-svg';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { router } from 'expo-router';
 import { collection, query, orderBy, limit, onSnapshot, doc, getDocs, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, doc, getDocs, where, Timestamp } from 'firebase/firestore';
 import { BioHeatmap } from '@/components/HistoryCharts';
+import { NativeHealthService, BioMetrics } from '@/services/NativeHealthService';
+import { BioScoreService } from '@/services/BioScoreService';
+import { BioTrendChart } from '@/components/BioTrendChart';
+import { BioDistributionBars } from '@/components/BioDistributionBars';
+import { Image, TextInput } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -61,6 +67,42 @@ export default function ProgresoScreen() {
     resistencia: 75,
     recuperacion: 80
   });
+
+  const [wearableInput, setWearableInput] = useState({
+    steps: '',
+    sleep: '',
+    hrv: ''
+  });
+  const [weeklyData, setWeeklyData] = useState<BioMetrics[]>([]);
+  const [activeRisks, setActiveRisks] = useState<any[] | null>(null);
+  const [showManualSync, setShowManualSync] = useState(false);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const history = await NativeHealthService.fetchWeeklyMetrics();
+      setWeeklyData(history);
+      
+      // Calculate averaged stats for radar
+      if (history.length > 0) {
+        const avgHrv = history.reduce((sum, h) => sum + h.hrv, 0) / history.length;
+        const avgSteps = history.reduce((sum, h) => sum + h.steps, 0) / history.length;
+        
+        setStats({
+          fuerza: Math.min((avgSteps / 5000) * 100, 100),
+          enfoque: Math.min((avgHrv / 60) * 100, 100),
+          movilidad: 75,
+          resistencia: Math.min((avgSteps / 8000) * 100, 100),
+          recuperacion: Math.round(history[history.length - 1].sleepHours * 12.5)
+        });
+
+        // Detect risks for visual highlighting
+        const risks = BioScoreService.detectBiometricRisks(history[history.length - 1], history.slice(0, -1));
+        setActiveRisks(risks);
+      }
+    };
+    
+    fetchHistory();
+  }, []);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -127,10 +169,74 @@ export default function ProgresoScreen() {
     <View style={AppStyles.body}>
       <ScrollView contentContainerStyle={{ padding: 25, paddingBottom: 100 }}>
         
+        {/* PREMIUM 3D TWIN EVOLUTION SECTION */}
+        <View style={{ marginBottom: 30 }}>
+          <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: '900', letterSpacing: 1, marginBottom: 5 }]}>Evolución Cinética</Text>
+          <Text style={[AppStyles.textGray, { fontSize: 12, marginBottom: 15 }]}>Comparativa de recomposición corporal basada en IA</Text>
+
+          <View style={{ gap: 15 }}>
+            {/* CURRENT BUILD (30% FAT) */}
+            <LinearGradient 
+              colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={{ padding: 20, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', minHeight: 140, alignItems: 'center' }}
+            >
+               <View style={{ flex: 1, zIndex: 2 }}>
+                  <Text style={[AppStyles.textWhite, { fontSize: 32, fontWeight: '900' }]}>30%</Text>
+                  <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginTop: -5 }]}>BODY FAT</Text>
+                  <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 10, fontWeight: 'bold', marginTop: 5, letterSpacing: 1 }}>ESTADO ACTUAL</Text>
+               </View>
+               <View style={{ position: 'absolute', right: 0, bottom: -20, opacity: 0.5 }}>
+                 {/* Placeholder for 30% body model */}
+                 <Ionicons name="body" size={160} color="rgba(255,255,255,0.4)" />
+               </View>
+            </LinearGradient>
+
+            {/* LEAN BUILD (8% FAT) */}
+            <LinearGradient 
+              colors={['rgba(0, 255, 128, 0.1)', 'rgba(0, 209, 255, 0.05)']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={{ padding: 20, borderRadius: 20, borderWidth: 1, borderColor: AppColors.primaryBioGreen, flexDirection: 'row', minHeight: 140, alignItems: 'center' }}
+            >
+               <View style={{ flex: 1, zIndex: 2 }}>
+                  <Text style={[AppStyles.textWhite, { fontSize: 32, fontWeight: '900' }]}>8%</Text>
+                  <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold', marginTop: -5 }]}>BODY FAT</Text>
+                  <Text style={{ color: AppColors.primaryBioGreen, fontSize: 10, fontWeight: 'bold', marginTop: 5, letterSpacing: 1 }}>GEMELO FIT & LEAN</Text>
+               </View>
+               <View style={{ position: 'absolute', right: 0, bottom: -20, opacity: 0.8 }}>
+                 {/* Placeholder for lean body model */}
+                 <Ionicons name="body" size={160} color={AppColors.primaryBioGreen} />
+               </View>
+            </LinearGradient>
+          </View>
+
+          {/* TISSULAR COMPOSITION MAP */}
+          <View style={{ marginTop: 20, padding: 20, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '900', textAlign: 'center', marginBottom: 15, letterSpacing: 1 }}>MAPA DE COMPOSICIÓN TISULAR PROYECTADA</Text>
+            
+            {/* Composition Bar */}
+            <View style={{ height: 10, width: '100%', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, overflow: 'hidden', marginBottom: 15 }}>
+               <View style={{ height: '100%', width: '30%', backgroundColor: AppColors.primaryNeonBlue, position: 'absolute', left: 0 }} />
+               <View style={{ height: '100%', width: '10%', backgroundColor: AppColors.primaryBioGreen, position: 'absolute', left: '30%', borderLeftWidth: 2, borderColor: 'black' }} />
+            </View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: AppColors.primaryNeonBlue, marginRight: 5 }} />
+                  <Text style={{ color: 'white', fontSize: 9 }}>GRASA ACTUAL (30%)</Text>
+               </View>
+               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: AppColors.primaryBioGreen, marginRight: 5 }} />
+                  <Text style={{ color: 'white', fontSize: 9 }}>META ATHLETIC (8%)</Text>
+               </View>
+            </View>
+          </View>
+        </View>
+
         {/* Bio-Heatmap Section */}
         <BioHeatmap data={heatmapData} />
 
-        {/* Radar Chart */}
+        {/* Radar Chart Head */}
         <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 25 }]}>
           <Text style={[AppStyles.textGray, { fontSize: 10, fontWeight: 'bold', letterSpacing: 2, textTransform: 'uppercase' }]}>Analítica Biográfica</Text>
           <View style={[AppStyles.rowBetween, { marginTop: 5 }]}>
@@ -141,6 +247,23 @@ export default function ProgresoScreen() {
             >
               <Text style={{ color: AppColors.primaryBioGreen, fontSize: 10, fontWeight: 'bold' }}>📄 EMITIR REPORTE</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* AI BIO-ASSISTANT INSTRUCTIONS INCORPORATION */}
+        <View style={[styles.cardHeader, { marginTop: 10 }]}>
+           <Text style={styles.cardTitle}>Bio-Insight de IA</Text>
+           <Text style={styles.cardSub}>Asesoría adaptativa según tus biomarcadores</Text>
+        </View>
+        <View style={{ backgroundColor: 'rgba(0, 209, 255, 0.05)', borderRadius: 15, padding: 20, borderWidth: 1, borderColor: 'rgba(0, 209, 255, 0.3)', marginBottom: 30, flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0, 209, 255, 0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 15 }}>
+            <Ionicons name="sparkles" size={20} color={AppColors.primaryNeonBlue} />
+          </View>
+          <View style={{ flex: 1 }}>
+             <Text style={{ color: AppColors.primaryNeonBlue, fontWeight: '900', fontSize: 12, marginBottom: 5 }}>SISTEMA NERVIOSO: TENSO</Text>
+             <Text style={{ color: 'white', fontSize: 12, lineHeight: 18, fontStyle: 'italic' }}>
+               "Tus últimas sesiones generaron un alto volumen muscular, pero has dormido bajo la cuota regenerativa (+7h). Prioriza movilidad articular y LISS cardiovascular hoy para evitar hipertrofia asimétrica."
+             </Text>
           </View>
         </View>
 
@@ -164,32 +287,37 @@ export default function ProgresoScreen() {
           </View>
         </LinearGradient>
 
-        {/* Muscle Volume Growth Section */}
+        {/* NEW: Automated Progress Charts */}
         <View style={[styles.cardHeader, { marginTop: 30 }]}>
-           <Text style={styles.cardTitle}>Volumen de Carga Muscular</Text>
-           <Text style={styles.cardSub}>Progreso acumulado: +12.5% este mes</Text>
+           <Text style={styles.cardTitle}>Análisis de Tendencia IA</Text>
+           <Text style={styles.cardSub}>Basado en tus biomarcadores de los últimos 7 días</Text>
         </View>
-         <View style={styles.statsCard}>
-            {/* Integrated Synergy Graphic (SVG) */}
-            <Svg height="140" width={width - 80}>
-              {/* Strength bars (Volume) */}
-              {[40, 60, 45, 80, 55, 90, 85].map((h, i) => (
-                <View key={i} style={{ position: 'absolute', bottom: 30, left: i * 40, width: 20, height: h, backgroundColor: 'rgba(255, 138, 0, 0.3)', borderRadius: 4 }} />
-              ))}
-              {/* Cardio Line (Intensity) */}
-              <Polyline
-                points={`10,100 50,85 130,52 170,70 210,60 250,45 290,10`}
-                fill="none"
-                stroke={AppColors.accentBlue}
-                strokeWidth="3"
-              />
-              <Circle cx="290" cy="10" r="5" fill={AppColors.accentBlue} />
-            </Svg>
-            <View style={[AppStyles.rowBetween, { marginTop: 15 }]}>
-               <View style={AppStyles.rowCentered}><View style={{ width: 8, height: 8, backgroundColor: 'rgba(255, 138, 0, 0.6)', marginRight: 5, borderRadius: 2 }} /><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>VOLUMEN FUERZA</Text></View>
-               <View style={AppStyles.rowCentered}><View style={{ width: 8, height: 8, backgroundColor: AppColors.accentBlue, marginRight: 5, borderRadius: 2 }} /><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>INTENSIDAD CARDIO</Text></View>
-            </View>
-         </View>
+
+        {weeklyData.length > 0 && (
+          <>
+            <BioTrendChart 
+              data={weeklyData.map(d => BioScoreService.calculateScore(d).score)} 
+              label="Evolución Bio-Soberanía" 
+              color={AppColors.primaryBioGreen} 
+            />
+            
+            <BioTrendChart 
+              data={weeklyData.map(d => d.hrv)} 
+              label="Estado del Sistema Nervioso (HRV)" 
+              color={AppColors.primaryNeonBlue} 
+              hasAlert={activeRisks?.some(r => r.type === 'CNS_FATIGUE')}
+            />
+
+            <BioDistributionBars 
+              data={weeklyData.map(d => ({
+                deep: d.sleepStages.deepMinutes,
+                rem: d.sleepStages.remMinutes,
+                light: d.sleepStages.lightMinutes,
+                date: d.timestamp.toLocaleDateString([], { weekday: 'short' })
+              }))} 
+            />
+          </>
+        )}
 
         {/* Community Synergy Section */}
         <View style={[styles.cardHeader, { marginTop: 30 }]}>
@@ -205,6 +333,75 @@ export default function ProgresoScreen() {
               <Ionicons name="people" size={32} color={AppColors.primaryOrange} />
            </View>
         </View>
+
+        {/* WEARABLE SYNC SECTION */}
+        <View style={[styles.cardHeader, { marginTop: 40 }]}>
+           <Text style={styles.cardTitle}>Conexión Smart Devices</Text>
+           <Text style={styles.cardSub}>Actualiza tus métricas desde Apple Health, Garmin o ingresos manuales de tu Smartwatch.</Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+          {/* Integrated Services */}
+          {[
+            { icon: 'watch', name: 'Apple', color: '#FFF' },
+            { icon: 'fitness', name: 'Google Fit', color: '#4285F4' },
+            { icon: 'hardware-chip', name: 'Garmin', color: '#007CC3' },
+            { icon: 'radio', name: 'Oura', color: '#97825C' }
+          ].map((device, idx) => (
+            <TouchableOpacity key={idx} style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 10, alignItems: 'center', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }}>
+               <Ionicons name={device.icon as any} size={20} color={device.color} />
+               <Text style={{ color: 'white', fontSize: 8, marginTop: 5, fontWeight: 'bold' }}>{device.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity 
+          onPress={() => setShowManualSync(!showManualSync)}
+          style={{ backgroundColor: showManualSync ? 'rgba(0, 209, 255, 0.1)' : 'rgba(255,255,255,0.02)', padding: 15, borderRadius: 15, alignItems: 'center', borderColor: showManualSync ? AppColors.primaryNeonBlue : 'rgba(255,255,255,0.1)', borderWidth: 1 }}
+        >
+           <View style={AppStyles.rowCentered}>
+             <Ionicons name="create-outline" color={showManualSync ? AppColors.primaryNeonBlue : "white"} size={16} />
+             <Text style={{ color: showManualSync ? AppColors.primaryNeonBlue : 'white', fontSize: 12, fontWeight: 'bold', marginLeft: 8 }}>INGRESO MANUAL DE SMARTWATCH</Text>
+           </View>
+        </TouchableOpacity>
+
+        {showManualSync && (
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 15, padding: 20, marginTop: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+             <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', marginBottom: 15, color: AppColors.textGray }}>Inserta los datos como figuran en tu pulsera inteligente:</Text>
+             <View style={{ flexDirection: 'row', gap: 10 }}>
+               <View style={{ flex: 1 }}>
+                 <Text style={styles.legendText}>Pasos hoy</Text>
+                 <TextInput
+                   placeholder="Ej. 8500"
+                   placeholderTextColor="#666"
+                   keyboardType="numeric"
+                   style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 8, color: 'white', marginTop: 5 }}
+                 />
+               </View>
+               <View style={{ flex: 1 }}>
+                 <Text style={styles.legendText}>Horas de sueño</Text>
+                 <TextInput
+                   placeholder="Ej. 7.5"
+                   placeholderTextColor="#666"
+                   keyboardType="numeric"
+                   style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 8, color: 'white', marginTop: 5 }}
+                 />
+               </View>
+               <View style={{ flex: 1 }}>
+                 <Text style={styles.legendText}>Kcal activas</Text>
+                 <TextInput
+                   placeholder="Ej. 450"
+                   placeholderTextColor="#666"
+                   keyboardType="numeric"
+                   style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 8, color: 'white', marginTop: 5 }}
+                 />
+               </View>
+             </View>
+             <TouchableOpacity style={{ backgroundColor: AppColors.primaryBioGreen, padding: 12, borderRadius: 8, marginTop: 15, alignItems: 'center' }}>
+               <Text style={{ color: 'black', fontWeight: 'bold', fontSize: 12 }}>SINCRONIZAR A LA IA</Text>
+             </TouchableOpacity>
+          </View>
+        )}
 
         {/* Timeline (Unified Cloud Logs) */}
         <View style={[styles.cardHeader, { marginTop: 30 }]}>

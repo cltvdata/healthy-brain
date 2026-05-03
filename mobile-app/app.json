@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile-app",
-    "slug": "mobile-app",
+    "name": "HEALTHY + BRAIN",
+    "slug": "healthy-brain",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cltv.healthybrain",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "HEALTHY + BRAIN necesita acceso a tus pasos y biometrías para recompensar tu bio-economía en tiempo real.",
+        "NSHealthUpdateUsageDescription": "Sincronizamos tus datos de salud para calcular tu Bio-Score de longevidad.",
+        "UIBackgroundModes": ["fetch", "remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +26,14 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.cltv.healthybrain"
+      "package": "com.cltv.healthybrain",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "FOREGROUND_SERVICE",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_SLEEP"
+      ]
     },
     "web": {
       "output": "static",

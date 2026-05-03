@@ -15,6 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -163,38 +164,177 @@
                 </div>
             </section>
 
-            <!-- Bio-Radar Comparison -->
+            <!-- Bio-Radar Comparison (Dynamic Chart.js) -->
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-6 px-1">
                     <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Benchmarks de Rendimiento</h3>
                     <span class="text-[9px] text-neon font-bold uppercase">vs Optimal Man</span>
                 </div>
                 
-                <div class="glass-card p-4 flex items-center justify-center aspect-square relative bg-dark/40 overflow-hidden">
-                    <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
-                        <span class="material-symbols-outlined text-[200px]">3d_rotation</span>
+                <div class="glass-card p-4 relative bg-dark/40 overflow-hidden" style="aspect-ratio:1/1">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                        <span class="material-symbols-outlined text-[180px]">hub</span>
                     </div>
-                    
-                    <!-- Radar Chart SVG (Simplified) -->
-                    <svg class="w-full h-full" viewBox="0 0 200 200">
-                        <!-- BG Circles -->
-                        <circle cx="100" cy="100" r="80" class="radar-grid" fill="none" />
-                        <circle cx="100" cy="100" r="60" class="radar-grid" fill="none" />
-                        <circle cx="100" cy="100" r="40" class="radar-grid" fill="none" />
-                        
-                        <!-- Axes -->
-                        <line x1="100" y1="20" x2="100" y2="180" class="radar-grid" />
-                        <line x1="20" y1="100" x2="180" y2="100" class="radar-grid" />
-                        
-                        <!-- Area (User) -->
-                        <polygon points="100,40 160,80 140,150 60,150 40,80" class="radar-area animate-pulse-ring" />
-                        
-                        <!-- Labels -->
-                        <text x="100" y="15" text-anchor="middle" fill="#666" font-size="8" font-weight="bold">HRV</text>
-                        <text x="185" y="100" text-anchor="start" fill="#666" font-size="8" font-weight="bold">MET</text>
-                        <text x="100" y="195" text-anchor="middle" fill="#666" font-size="8" font-weight="bold">DOP</text>
-                        <text x="15" y="100" text-anchor="end" fill="#666" font-size="8" font-weight="bold">SLP</text>
-                    </svg>
+                    <canvas id="bioRadar" width="300" height="300"></canvas>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex gap-4 mt-3 justify-center">
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-1.5 rounded-full bg-neon"></div>
+                        <span class="text-[9px] text-white/40 font-bold uppercase">Tú</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-3 h-1.5 rounded-full bg-white/20"></div>
+                        <span class="text-[9px] text-white/40 font-bold uppercase">Promedio Global</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- ADVANCED ANALYTICS DASHBOARD (Chart.js Fase 25)       -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+
+            <!-- Section: 7-Day HRV & Bio-Score Trend -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Tendencia 7 Días</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">HRV · Bio-Score · Glucosa</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bio-green/10 border border-bio-green/20">
+                        <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_6px_#13ec5b]"></div>
+                        <span class="text-[8px] font-black text-bio-green uppercase">Live Sync</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 pb-2 relative overflow-hidden">
+                    <div class="absolute top-3 right-3 flex gap-3 z-10">
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-1 rounded-full bg-neon"></div>
+                            <span class="text-[7px] text-white/40 font-bold uppercase">HRV</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-1 rounded-full bg-bio-orange"></div>
+                            <span class="text-[7px] text-white/40 font-bold uppercase">Bio-Score</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-1 rounded-full bg-purple-400"></div>
+                            <span class="text-[7px] text-white/40 font-bold uppercase">Glucosa</span>
+                        </div>
+                    </div>
+                    <canvas id="trendChart" height="200"></canvas>
+                </div>
+
+                <!-- Micro KPI Row -->
+                <div class="grid grid-cols-3 gap-2 mt-3">
+                    <div class="glass-card p-3 text-center border-white/5">
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest">HRV Δ 7d</p>
+                        <p id="hrv-delta" class="text-sm font-black text-bio-green">+6%</p>
+                    </div>
+                    <div class="glass-card p-3 text-center border-white/5">
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Score Δ</p>
+                        <p id="score-delta" class="text-sm font-black text-neon">+4%</p>
+                    </div>
+                    <div class="glass-card p-3 text-center border-white/5">
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Glucosa Avg</p>
+                        <p id="glucose-avg" class="text-sm font-black text-bio-green">94 mg</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Sleep Architecture -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Arquitectura del Sueño</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Deep · REM · Light · Awake</p>
+                    </div>
+                    <span class="material-symbols-outlined text-neon/40 text-base">bedtime</span>
+                </div>
+
+                <div class="glass-card p-4 pb-2 relative overflow-hidden">
+                    <canvas id="sleepChart" height="180"></canvas>
+                </div>
+
+                <div class="flex gap-3 mt-3 justify-center flex-wrap">
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-sm bg-indigo-500"></div>
+                        <span class="text-[8px] text-white/40 font-bold uppercase">Deep</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-sm bg-neon"></div>
+                        <span class="text-[8px] text-white/40 font-bold uppercase">REM</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-sm bg-blue-400/50"></div>
+                        <span class="text-[8px] text-white/40 font-bold uppercase">Light</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-sm bg-white/10"></div>
+                        <span class="text-[8px] text-white/40 font-bold uppercase">Awake</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Metabolic Composition Ring -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Composición Metabólica</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Distribución Macro · Hoy</p>
+                    </div>
+                    <span class="material-symbols-outlined text-bio-orange/40 text-base">donut_large</span>
+                </div>
+
+                <div class="glass-card p-5 relative overflow-hidden">
+                    <div class="flex items-center gap-6">
+                        <div class="w-36 h-36 shrink-0 relative">
+                            <canvas id="macroRing"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="macro-kcal" class="text-lg font-black text-white">2,140</span>
+                                <span class="text-[7px] text-gray-500 font-black uppercase tracking-widest">kcal</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-[9px] font-bold text-white/60 uppercase">Proteína</span>
+                                    <span id="macro-prot" class="text-[9px] font-black text-bio-orange">142g</span>
+                                </div>
+                                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-bio-orange rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-[9px] font-bold text-white/60 uppercase">Carbos</span>
+                                    <span id="macro-carb" class="text-[9px] font-black text-neon">210g</span>
+                                </div>
+                                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-neon rounded-full" style="width: 58%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-[9px] font-bold text-white/60 uppercase">Grasas</span>
+                                    <span id="macro-fat" class="text-[9px] font-black text-purple-400">68g</span>
+                                </div>
+                                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-purple-400 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-[9px] font-bold text-white/60 uppercase">Fibra</span>
+                                    <span id="macro-fiber" class="text-[9px] font-black text-bio-green">28g</span>
+                                </div>
+                                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-bio-green rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -205,35 +345,53 @@
                 </div>
                 
                 <div class="space-y-3">
-                    <div class="glass-card p-4 border-white/5 flex items-center gap-4">
+                    <a href="hacks-metabolicos.html" class="glass-card p-4 border-white/5 flex items-center gap-4 hover:border-bio-orange/30 transition-all block">
                         <div class="w-10 h-10 rounded-xl bg-bio-orange/10 text-bio-orange flex items-center justify-center shrink-0">
                             <span class="material-symbols-outlined font-black">nutrition</span>
                         </div>
                         <div>
                             <h4 class="text-[11px] font-black uppercase">Protocolo Inchauspé</h4>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">Glucosa Estable (Fibra > Pro > Carb)</p>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">Glucosa Estable (Fibra &gt; Pro &gt; Carb)</p>
                         </div>
                         <div class="ml-auto flex gap-1">
                             <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
                             <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
                             <div class="w-1.5 h-1.5 rounded-full bg-white/10"></div>
                         </div>
-                    </div>
+                    </a>
                     
-                    <div class="glass-card p-4 border-white/5 flex items-center gap-4">
+                    <!-- NAD+ Protocol (conditionally unlocked by JS) -->
+                    <div id="nad-protocol" class="glass-card p-4 border-white/5 flex items-center gap-4">
                         <div class="w-10 h-10 rounded-xl bg-neon/10 text-neon flex items-center justify-center shrink-0">
                             <span class="material-symbols-outlined font-black">flask</span>
                         </div>
                         <div>
                             <h4 class="text-[11px] font-black uppercase">Reparación NAD+</h4>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">Pila: NMN + Ca-AKG</p>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">Pila: NMN + Ca-AKG · Bio-Score &gt; 85</p>
                         </div>
-                        <div class="ml-auto w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-600">
+                        <div id="nad-lock" class="ml-auto w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-600">
                             <span class="material-symbols-outlined text-xs">lock</span>
                         </div>
                     </div>
+
+                    <!-- Huberman AM Protocol -->
+                    <a href="descanso.html" class="glass-card p-4 border-white/5 flex items-center gap-4 hover:border-neon/20 transition-all block">
+                        <div class="w-10 h-10 rounded-xl bg-neon/10 text-neon flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined font-black">wb_sunny</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[11px] font-black uppercase">Protocolo Huberman AM</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">Sol matinal · Sin cafeína 90 min</p>
+                        </div>
+                        <div class="ml-auto flex gap-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                        </div>
+                    </a>
                 </div>
             </section>
+
 
             <p class="text-center text-[9px] text-gray-700 uppercase font-black tracking-widest mt-12 pb-10">Bio-Security Layer Encryption Protocol Active</p>
         </main>
@@ -317,16 +475,23 @@
         function updateUI(data) {
             const score = parseInt(data.bioScore || '92');
             const glucose = parseInt(data.glucosa || '98');
+            const hrv = parseInt(data.hrv || '74');
 
             document.getElementById('ntk-balance').textContent = data.ntk || '0';
             document.getElementById('bio-score').textContent = score + '%';
-            document.getElementById('hrv-val').textContent = data.hrv || '74';
+            document.getElementById('hrv-val').textContent = hrv;
 
             // Gauge calculation
             const circumference = 603;
             const progress = score / 100;
             const offset = circumference * (1 - progress);
-            document.getElementById('score-ring').style.strokeDashoffset = offset;
+            const ring = document.getElementById('score-ring');
+            ring.style.strokeDashoffset = offset;
+            // Color by zone
+            ring.setAttribute('stroke', score >= 85 ? '#13ec5b' : score >= 70 ? '#00d1ff' : '#ff8a00');
+            ring.style.filter = score >= 85
+                ? 'drop-shadow(0 0 14px rgba(19,236,91,0.5))'
+                : 'drop-shadow(0 0 12px rgba(0,209,255,0.4))';
 
             // Glucose Context
             const gLabel = document.getElementById('glucose-label');
@@ -338,13 +503,152 @@
                 gLabel.className = 'text-2xl font-black italic text-bio-green';
             }
 
-            // AI Advice Update
+            // AI Advice — 6-branch engine driven by live biometrics
             const advice = document.getElementById('ai-advice');
-            if (score > 90 && glucose < 100) {
-                advice.innerHTML = `"Tus sistemas están en <span class='text-neon'>sincronía total</span>. Protocolo de hoy: Entrenamiento de alta intensidad en ventana de ayuno para máximos picos de BDNF."`;
-            } else if (score < 80) {
-                advice.innerHTML = `"Se detecta fatiga del CNS. Prioriza <span class='text-bio-orange'>recuperación activa</span> y protocolos de sueño profundo."`;
+            const hour = new Date().getHours();
+            if (score >= 90 && glucose < 100 && hrv > 70) {
+                advice.innerHTML = `"Tus sistemas están en <span class='text-neon'>sincronía total</span>. Hoy es el día ideal para entrenamiento de alta intensidad en ventana de ayuno — picos máximos de BDNF garantizados."`;
+            } else if (hrv < 55) {
+                advice.innerHTML = `"<span class='text-bio-orange'>CNS sobrecargado</span>. Prioriza movilidad Zona 2 (&lt;130 bpm) y suplementa Mg-Glicinato nocturno para restaurar variabilidad cardiíaca."`;
+            } else if (glucose > 105) {
+                advice.innerHTML = `"Glucemia elevada detectada. Activa el <span class='text-bio-orange'>Protocolo Vinagre</span> (15 ml ACV antes de comer) y añade 10 min de caminata post-comida para curva plana."`;
+            } else if (hour >= 6 && hour <= 10) {
+                advice.innerHTML = `"Ventana circadiana óptima. <span class='text-neon'>Luz solar directa</span> 10-30 min ahora + retrasa café 90 min para máximo pico de cortisol natural (Huberman AM)."`;
+            } else if (score < 75) {
+                advice.innerHTML = `"Bio-estado en recuperación. Prioriza <span class='text-bio-orange'>síntesis protéica</span>: 2g prot/kg + creatina 5g. Evita ayuno prolongado hoy."`;
+            } else {
+                advice.innerHTML = `"Bio-estado óptimo. Mantiene tu <span class='text-neon'>racha metabólica</span>: secuencia Fibra-Protéina-Carbohidrato en cada comida para glucosa sub-100."`;
             }
+
+            // NAD+ unlock (score > 85)
+            if (score > 85) {
+                const lock = document.getElementById('nad-lock');
+                if (lock) {
+                    lock.innerHTML = '<span class="material-symbols-outlined text-neon text-xs">lock_open</span>';
+                    lock.className = 'ml-auto w-8 h-8 rounded-lg bg-neon/10 border border-neon/30 flex items-center justify-center';
+                    document.getElementById('nad-protocol').className = 'glass-card p-4 border-neon/20 bg-neon/5 flex items-center gap-4';
+                }
+            }
+
+            // Render dynamic radar
+            renderRadar([hrv, score, glucose < 100 ? 80 : 60, 75]);
+            renderTrendChart();
+            renderSleepChart();
+            renderMacroRing();
+        }
+
+        function renderRadar(userStats) {
+            const ctx = document.getElementById('bioRadar');
+            if (!ctx) return;
+            if (window._bioRadarChart) { window._bioRadarChart.destroy(); }
+            window._bioRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['HRV', 'Bio-Score', 'Metabolismo', 'Dopamina', 'Sueño'],
+                    datasets: [{
+                        label: 'Tú',
+                        data: [...userStats, Math.round((userStats[0] + userStats[1]) / 2)],
+                        fill: true,
+                        backgroundColor: 'rgba(0, 209, 255, 0.15)',
+                        borderColor: '#00d1ff',
+                        pointBackgroundColor: '#00d1ff',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        tension: 0.3
+                    }, {
+                        label: 'Promedio Global',
+                        data: [68, 72, 65, 70, 68],
+                        fill: true,
+                        backgroundColor: 'rgba(255,255,255,0.04)',
+                        borderColor: 'rgba(255,255,255,0.15)',
+                        pointBackgroundColor: 'rgba(255,255,255,0.2)',
+                        pointBorderColor: '#fff',
+                        pointRadius: 3,
+                    }]
+                },
+                options: {
+                    animation: { duration: 1000 },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            grid: { color: 'rgba(255,255,255,0.07)' },
+                            angleLines: { color: 'rgba(255,255,255,0.07)' },
+                            pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 9, family: 'Outfit', weight: '700' } },
+                            ticks: { display: false },
+                            suggestedMin: 0, suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // ─── 7-Day Trend Chart ─────────────────────────────────────────
+        function renderTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+            if (window._trendChart) window._trendChart.destroy();
+            const labels = getLast7DayLabels();
+            const hrvData = [68, 70, 72, 71, 74, 76, 74];
+            const scoreData = [85, 87, 88, 90, 89, 91, 92];
+            const glucData = [102, 99, 97, 95, 98, 93, 94];
+            const c = ctx.getContext('2d');
+            const gNeon = c.createLinearGradient(0, 0, 0, 200);
+            gNeon.addColorStop(0, 'rgba(0,209,255,0.25)'); gNeon.addColorStop(1, 'rgba(0,209,255,0)');
+            const gOrange = c.createLinearGradient(0, 0, 0, 200);
+            gOrange.addColorStop(0, 'rgba(255,138,0,0.2)'); gOrange.addColorStop(1, 'rgba(255,138,0,0)');
+            window._trendChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [
+                    { label:'HRV', data:hrvData, borderColor:'#00d1ff', backgroundColor:gNeon, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#00d1ff', borderWidth:2 },
+                    { label:'Bio-Score', data:scoreData, borderColor:'#ff8a00', backgroundColor:gOrange, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#ff8a00', borderWidth:2 },
+                    { label:'Glucosa', data:glucData, borderColor:'#a78bfa', backgroundColor:'transparent', fill:false, tension:0.4, pointRadius:2, pointBackgroundColor:'#a78bfa', borderWidth:1.5, borderDash:[4,3] }
+                ]},
+                options: { animation:{duration:800}, plugins:{legend:{display:false}}, scales:{
+                    x:{grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'rgba(255,255,255,0.3)', font:{size:8, family:'Outfit', weight:'700'}}},
+                    y:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.2)', font:{size:8}, stepSize:10}, min:50, max:110}
+                }}
+            });
+        }
+
+        // ─── Sleep Architecture Chart ──────────────────────────────────
+        function renderSleepChart() {
+            const ctx = document.getElementById('sleepChart');
+            if (!ctx) return;
+            if (window._sleepChart) window._sleepChart.destroy();
+            const labels = getLast7DayLabels();
+            window._sleepChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [
+                    { label:'Deep', data:[1.8,2.1,1.5,2.0,1.9,2.3,2.1], backgroundColor:'#6366f1', borderRadius:4 },
+                    { label:'REM', data:[1.5,1.2,1.8,1.4,1.6,1.3,1.7], backgroundColor:'#00d1ff', borderRadius:4 },
+                    { label:'Light', data:[3.0,3.2,3.5,3.1,2.8,3.0,2.9], backgroundColor:'rgba(96,165,250,0.35)', borderRadius:4 },
+                    { label:'Awake', data:[0.3,0.5,0.2,0.4,0.3,0.2,0.3], backgroundColor:'rgba(255,255,255,0.08)', borderRadius:4 }
+                ]},
+                options: { animation:{duration:800}, plugins:{legend:{display:false}}, responsive:true, scales:{
+                    x:{stacked:true, grid:{display:false}, ticks:{color:'rgba(255,255,255,0.3)', font:{size:8, family:'Outfit', weight:'700'}}},
+                    y:{stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.2)', font:{size:8}, callback:v=>v+'h'}, max:8}
+                }}
+            });
+        }
+
+        // ─── Macro Composition Ring ────────────────────────────────────
+        function renderMacroRing() {
+            const ctx = document.getElementById('macroRing');
+            if (!ctx) return;
+            if (window._macroRing) window._macroRing.destroy();
+            window._macroRing = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels:['Proteína','Carbos','Grasas','Fibra'], datasets:[{
+                    data:[142*4, 210*4, 68*9, 28*2],
+                    backgroundColor:['#ff8a00','#00d1ff','#a78bfa','#13ec5b'],
+                    borderWidth:0, hoverOffset:6, spacing:2
+                }]},
+                options: { cutout:'72%', animation:{duration:800}, plugins:{legend:{display:false}}}
+            });
+        }
+
+        function getLast7DayLabels() {
+            const d=[]; for(let i=6;i>=0;i--){ const t=new Date(); t.setDate(t.getDate()-i); d.push(t.toLocaleDateString('es',{weekday:'short'}).substring(0,3).toUpperCase()); } return d;
         }
 
         function applyUserBg() {

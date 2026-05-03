@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import BreathingTimer from '@/components/BreathingTimer';
+import { db, auth } from '@/constants/FirebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { BioCycleService, BioCycleState } from '@/services/BioCycleService';
 
 const { width } = Dimensions.get('window');
 
@@ -10,7 +13,26 @@ export default function EntrenarScreen() {
   const [isResting, setIsResting] = useState(false);
   const [showFemaleAnatomy, setShowFemaleAnatomy] = useState(false);
   const [currentSet, setCurrentSet] = useState(1);
+  const [cycleState, setCycleState] = useState<BioCycleState | null>(null);
   const totalSets = 4;
+
+  useEffect(() => {
+    const fetchCycle = async () => {
+      if (auth.currentUser) {
+        const userSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          if (data.enableCycleTracking && data.lastPeriodDate) {
+            const state = BioCycleService.calculateState(data.lastPeriodDate, data.cycleLength || 28);
+            setCycleState(state);
+            // Default anatomy for female users
+            if (data.genero === 'Femenino') setShowFemaleAnatomy(true);
+          }
+        }
+      }
+    };
+    fetchCycle();
+  }, []);
 
   const handleNextSet = () => {
     if (currentSet < totalSets) {
@@ -120,6 +142,18 @@ export default function EntrenarScreen() {
       {/* Bio-Feed Section */}
       <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold', marginBottom: 15 }]}>Inteligencia de Sesión</Text>
       
+      {cycleState && (
+        <View style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, borderColor: cycleState.color, borderLeftWidth: 4, backgroundColor: cycleState.color + '10' }]}>
+          <View style={[AppStyles.rowCentered, { gap: 10 }]}>
+            <Ionicons name="moon" size={24} color={cycleState.color} />
+            <View style={{ flex: 1 }}>
+              <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>IA Bio-Ciclo: {cycleState.phase}</Text>
+              <Text style={[AppStyles.textGray, { fontSize: 12 }]}>{cycleState.trainingAdvice}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       <View style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, borderColor: AppColors.primaryBioGreen, borderLeftWidth: 4 }]}>
         <View style={[AppStyles.rowCentered, { gap: 10 }]}>
           <Ionicons name="shield-checkmark" size={24} color={AppColors.primaryBioGreen} />

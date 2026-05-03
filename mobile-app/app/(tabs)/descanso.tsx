@@ -1,11 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
 export default function DescansoScreen() {
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  const toggleSound = async (id: string, url: string) => {
+    try {
+      if (playing === id) {
+        // Stop current
+        if (sound) await sound.pauseAsync();
+        setPlaying(null);
+      } else {
+        // Stop any old sound
+        if (sound) await sound.unloadAsync();
+        
+        // Start new
+        const { sound: newSound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true, isLooping: true });
+        setSound(newSound);
+        setPlaying(id);
+      }
+    } catch (err) {
+      console.log('Audio Error:', err);
+    }
+  };
+
   return (
     <ScrollView style={AppStyles.body} contentContainerStyle={{ padding: 20 }}>
       {/* Header */}
@@ -89,9 +121,12 @@ export default function DescansoScreen() {
       {/* Neuroplasticity Meditations */}
       <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold', marginBottom: 15 }]}>Audios de Neuroplasticidad</Text>
       
-      <TouchableOpacity style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, flexDirection: 'row', alignItems: 'center' }]}>
+      <TouchableOpacity 
+         onPress={() => toggleSound('nsdr', 'https://dns.google/health/ping')} // Replace with a real audio URL later, demo mode now uses raw uri
+         style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, flexDirection: 'row', alignItems: 'center' }]}
+      >
          <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(0, 209, 255, 0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 15 }}>
-            <Ionicons name="play" size={24} color={AppColors.primaryNeonBlue} style={{ marginLeft: 4 }} />
+            <Ionicons name={playing === 'nsdr' ? "pause" : "play"} size={24} color={AppColors.primaryNeonBlue} style={{ marginLeft: playing === 'nsdr' ? 0 : 4 }} />
          </View>
          <View style={{ flex: 1 }}>
             <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold' }]}>NSDR (Non-Sleep Deep Rest)</Text>
@@ -99,9 +134,12 @@ export default function DescansoScreen() {
          </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, flexDirection: 'row', alignItems: 'center' }]}>
+      <TouchableOpacity 
+         onPress={() => toggleSound('cortex', 'https://dns.google/health/ping')}
+         style={[AppStyles.glassCard, { padding: 15, marginBottom: 15, flexDirection: 'row', alignItems: 'center' }]}
+      >
          <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255, 138, 0, 0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 15 }}>
-            <Ionicons name="play" size={24} color={AppColors.primaryOrange} style={{ marginLeft: 4 }} />
+            <Ionicons name={playing === 'cortex' ? "pause" : "play"} size={24} color={AppColors.primaryOrange} style={{ marginLeft: playing === 'cortex' ? 0 : 4 }} />
          </View>
          <View style={{ flex: 1 }}>
             <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: 'bold' }]}>Apagado Reactivo Córtex</Text>

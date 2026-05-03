@@ -12,16 +12,34 @@ const ASSETS = {
 
 type Layer = 'skeletal' | 'muscular' | 'organs' | 'brain' | 'respiratory';
 
-export default function AtlasOrganico() {
+interface AtlasOrganicoProps {
+  score?: number;
+  hrv?: number;
+}
+
+export default function AtlasOrganico({ score = 85, hrv = 60 }: AtlasOrganicoProps) {
   const [activeLayer, setActiveLayer] = useState<Layer>('muscular');
   const scanAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Calculate dynamic colors
+  const getStatusColor = () => {
+    if (hrv > 75) return AppColors.primaryBioGreen; // Optimal
+    if (hrv > 55) return AppColors.primaryNeonBlue; // Good / Stable
+    if (hrv > 40) return AppColors.primaryOrange;   // Recovering
+    return '#FF4D4D';                               // Fatigue / Red
+  };
+
+  const statusColor = getStatusColor();
+  const scanDuration = 4000 - (score * 20); // Faster scan with higher score
 
   useEffect(() => {
+    // Scan Line Loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(scanAnim, {
           toValue: 1,
-          duration: 3000,
+          duration: scanDuration,
           easing: Easing.linear,
           useNativeDriver: true,
         }),
@@ -32,11 +50,27 @@ export default function AtlasOrganico() {
         }),
       ])
     ).start();
-  }, []);
+
+    // Soft Pulse Loop
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [score, hrv]);
 
   const translateY = scanAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 200],
+    outputRange: [0, 250],
   });
 
   return (
@@ -54,20 +88,25 @@ export default function AtlasOrganico() {
       {/* Interactive Anatomy Preview Area */}
       <View style={styles.anatomyContainer}>
          {/* Anatomy Layers Simulation */}
-         <View style={styles.anatomyFrame}>
-            {activeLayer === 'skeletal' && (
-              <Ionicons name="skull" size={120} color="rgba(255,255,255,0.7)" style={styles.anatomyIcon} />
-            )}
-            {activeLayer === 'muscular' && (
-              <Ionicons name="body" size={140} color={AppColors.primaryOrange} style={styles.anatomyIcon} />
-            )}
-            {activeLayer === 'organs' && (
-              <Ionicons name="heart" size={100} color="#ff3b30" style={styles.anatomyIcon} />
-            )}
+            {/* Anatomy Layers Simulation */}
+            <Animated.View style={[styles.anatomyFrame, { transform: [{ scale: pulseAnim }] }]}>
+               {activeLayer === 'skeletal' && (
+                  <Image source={ASSETS.torso} style={[styles.image, { tintColor: statusColor, opacity: 0.4 }]} />
+               )}
+               {activeLayer === 'muscular' && (
+                  <Image source={ASSETS.torso} style={[styles.image, { opacity: 0.9 }]} />
+               )}
+               {activeLayer === 'organs' && (
+                  <Image source={ASSETS.respiratory} style={[styles.image, { tintColor: statusColor, opacity: 0.8 }]} />
+               )}
+               {activeLayer === 'brain' && (
+                  <Image source={ASSETS.brain} style={[styles.image, { tintColor: statusColor, opacity: 0.9 }]} />
+               )}
 
-            {/* Scanning Line Overlay */}
-            <Animated.View style={[styles.scanLine, { transform: [{ translateY }] }]}>
-               <View style={styles.scanGlow} />
+               {/* Scanning Line Overlay */}
+               <Animated.View style={[styles.scanLine, { transform: [{ translateY }], backgroundColor: statusColor }]}>
+                  <View style={[styles.scanGlow, { backgroundColor: statusColor + '20' }]} />
+               </Animated.View>
             </Animated.View>
          </View>
 
@@ -121,6 +160,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+    position: 'absolute',
   },
   anatomyIcon: {
     opacity: 0.8,

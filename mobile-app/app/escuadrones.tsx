@@ -18,6 +18,8 @@ export default function EscuadronesScreen() {
   const [availableSquads, setAvailableSquads] = useState<any[]>([]);
   const [newSquadName, setNewSquadName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -120,7 +122,7 @@ export default function EscuadronesScreen() {
                <View style={AppStyles.rowBetween}>
                   <View style={{ alignItems: 'center' }}>
                     <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 18, fontWeight: 'bold' }}>{squad.avgHrv || '--'}</Text>
-                    <Text style={{ color: AppColors.textGray, fontSize: 9 }}>HRV EQUIPO</Text>
+                    <Text style={{ color: AppColors.textGray, fontSize: 9 }}>RESILIENCIA GRUPAL</Text>
                   </View>
                   <View style={{ width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.1)' }} />
                   <View style={{ alignItems: 'center' }}>
@@ -130,9 +132,53 @@ export default function EscuadronesScreen() {
                   <View style={{ width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.1)' }} />
                   <View style={{ alignItems: 'center' }}>
                     <Text style={{ color: AppColors.primaryBioGreen, fontSize: 18, fontWeight: 'bold' }}>{squad.totalPoints || 0}</Text>
-                    <Text style={{ color: AppColors.textGray, fontSize: 9 }}>RANK GLOBAL</Text>
+                    <Text style={{ color: AppColors.textGray, fontSize: 9 }}>MINADO TOTAL</Text>
                   </View>
                </View>
+
+               <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: AppColors.primaryBioGreen }} />
+                  <Text style={{ color: AppColors.primaryBioGreen, fontSize: 10, fontWeight: 'bold', letterSpacing: 1 }}>SISTEMA DE MINADO ACTIVO</Text>
+               </View>
+            </View>
+
+            {/* Bio-Evidence Section */}
+            <View style={[AppStyles.glassCard, { marginTop: 20, padding: 20 }]}>
+              <Text style={[AppStyles.textWhite, { fontSize: 14, fontWeight: 'bold', marginBottom: 12 }]}>📸 BIO-EVIDENCIA DEL DÍA</Text>
+              <Text style={[AppStyles.textGray, { fontSize: 11, marginBottom: 15 }]}>Sube una evidencia (comida, entreno, sol) para validar tu hito y ganar NTK extra.</Text>
+              
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                <TouchableOpacity 
+                  onPress={() => setIsPublic(!isPublic)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}
+                >
+                  <Ionicons 
+                    name={isPublic ? "radio-button-on" : "radio-button-off"} 
+                    size={20} 
+                    color={isPublic ? AppColors.primaryBioGreen : AppColors.textGray} 
+                  />
+                  <View>
+                    <Text style={{ color: 'white', fontSize: 13 }}>Compartir en Comunidad Global</Text>
+                    <Text style={{ color: AppColors.textGray, fontSize: 10 }}>{isPublic ? 'Visible para todos' : 'Privado (Solo tu Escuadrón)'}</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity 
+                style={[AppStyles.glowBtnBioGreen, uploadingEvidence && { opacity: 0.7 }]}
+                disabled={uploadingEvidence}
+                onPress={() => {
+                  setUploadingEvidence(true);
+                  setTimeout(() => {
+                    setUploadingEvidence(false);
+                    Alert.alert("¡Evidencia Subida!", `Tu logro ha sido compartido con el alcance: ${isPublic ? 'Público' : 'Escuadrón'}.`);
+                  }, 2000);
+                }}
+              >
+                <Text style={AppStyles.glowBtnBioGreenText}>
+                  {uploadingEvidence ? 'SUBIENDO...' : 'SUBIR BIO-EVIDENCIA'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity 

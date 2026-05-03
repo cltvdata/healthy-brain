@@ -326,9 +326,29 @@
                 const userId = window.hb_auth.currentUser.uid;
                 const db = window.hb_db;
 
-                await db.runTransaction(async (transaction) => {
+                const earnedReward = await db.runTransaction(async (transaction) => {
                     const userRef = db.collection('users').doc(userId);
                     const userDoc = await transaction.get(userRef);
+
+                    if (!userDoc.exists) throw "Usuario no existe";
+                    let finalReward = reward;
+                    const userData = userDoc.data();
+                    
+                    // --- ANTI-FARMING: Daily Focus Limit (Max 4 rewarded sessions) ---
+                    const MAX_FOCUS_SESSIONS = 4;
+                    const today = new Date().toISOString().split('T')[0];
+                    const focusRecord = userData.dailyFocusRecord || { date: today, count: 0 };
+                    
+                    if (focusRecord.date !== today) {
+                        focusRecord.date = today;
+                        focusRecord.count = 0;
+                    }
+                    
+                    if (focusRecord.count >= MAX_FOCUS_SESSIONS) {
+                        finalReward = 0;
+                    } else {
+                        focusRecord.count += 1;
+                    }
 
                     // Log focus session to unified logs
                     const logRef = userRef.collection('logs').doc();
@@ -336,19 +356,25 @@
                         type: 'focus',
                         category: 'focus',
                         durationMinutes: sessionDuration,
+                        value: finalReward,
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    if (userDoc.exists) {
-                        const currentVal = userDoc.data().ntkBalance || 0;
-                        transaction.update(userRef, { 
-                            ntkBalance: currentVal + reward,
-                            lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
+                    const currentVal = userData.ntkBalance || 0;
+                    transaction.update(userRef, { 
+                        ntkBalance: currentVal + finalReward,
+                        dailyFocusRecord: focusRecord,
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    return finalReward;
                 });
 
-                showToast(`🧠 ¡+${reward} NTK! Pico de dopamina desbloqueado.`, '#13ec5b');
+                if (earnedReward > 0) {
+                   showToast(`🧠 ¡+${earnedReward} NTK! Pico de dopamina desbloqueado.`, '#13ec5b');
+                } else {
+                   showToast(`🧠 Sesión registrada. (Límite diario de ganancias alcanzado)`, '#13ec5b');
+                }
             } catch (e) {
                 console.error("Focus reward error:", e);
                 // Fallback local

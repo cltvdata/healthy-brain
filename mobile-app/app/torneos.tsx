@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { collection, doc, onSnapshot, runTransaction, increment, serverTimestamp, setDoc } from 'firebase/firestore';
-import { BioEconomy } from '@/constants/BioEconomy';
+import { TorneoService } from '@/services/TorneoService';
 
 const { width } = Dimensions.get('window');
 
@@ -51,51 +51,10 @@ export default function TorneosScreen() {
 
     setProcessing(true);
     try {
-      await runTransaction(db, async (transaction) => {
-        const userRef = doc(db, 'users', auth.currentUser!.uid);
-        const tourneyRef = doc(db, 'tournaments', tournament.id);
-        const burnRef = doc(db, 'economy', 'burn_stats');
-
-        const userSnap = await transaction.get(userRef);
-        const tourneySnap = await transaction.get(tourneyRef);
-
-        if (!userSnap.exists() || !tourneySnap.exists()) throw "Error de datos";
-        const balance = userSnap.data().ntkBalance || 0;
-        const currentParticipants = tourneySnap.data().participants || [];
-
-        if (balance < tournament.entryFee) throw "NTK insuficiente (Costo: 200)";
-        if (currentParticipants.length >= 8) throw "Torneo lleno";
-
-        // Logic: 20% burn, 80% pool
-        const burnAmount = tournament.entryFee * 0.20;
-
-        transaction.update(userRef, { ntkBalance: increment(-tournament.entryFee) });
-        transaction.set(burnRef, { totalBurned: increment(burnAmount) }, { merge: true });
-
-        // Enrollment & Auto-Fill
-        if (currentParticipants.length === 0) {
-            const bots = ['BioBot_Alpha', 'BioBot_Beta', 'BioBot_Gamma', 'BioBot_Delta', 'BioBot_Epsilon', 'BioBot_Zeta', 'BioBot_Eta'];
-            const allParticipants = [auth.currentUser!.uid, ...bots];
-            
-            transaction.update(tourneyRef, { 
-              participants: allParticipants,
-              status: 'active',
-              startedAt: serverTimestamp(),
-              'brackets.round1': allParticipants.map(id => ({ 
-                id, 
-                score: id.startsWith('BioBot') ? Math.floor(Math.random() * 30) + 50 : 0 
-              }))
-            });
-        } else {
-            transaction.update(tourneyRef, { 
-              participants: [...currentParticipants, auth.currentUser!.uid] 
-            });
-        }
-      });
-
+      await TorneoService.enrollUser(auth.currentUser.uid, tournament.id, tournament.entryFee);
       Alert.alert("🏁 ¡INSCRITO!", "Has entrado al Bio-Grand Prix. Prepárate para el Viernes.");
     } catch (e: any) {
-      Alert.alert("Error", e.toString());
+      Alert.alert("Error", e.message || e.toString());
     } finally {
       setProcessing(false);
     }
@@ -167,7 +126,25 @@ export default function TorneosScreen() {
                 </View>
             </View>
 
-            <View style={{ marginTop: 50, padding: 20, backgroundColor: 'rgba(255,138,0,0.1)', borderRadius: 20, borderLeftWidth: 4, borderLeftColor: AppColors.primaryOrange }}>
+            {/* Sponsorship Integration */}
+            <TouchableOpacity 
+                onPress={() => router.push('/market')}
+                style={[AppStyles.glassCard, { padding: 15, marginTop: 40, backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }]}
+            >
+                <View style={AppStyles.rowBetween}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 13 }}>PATROCINADO POR ADIDAS</Text>
+                        <Text style={{ color: AppColors.textGray, fontSize: 10, marginTop: 2 }}>Desbloquea equipamiento con tus Neuro-Tokens.</Text>
+                    </View>
+                    <Image 
+                        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg' }} 
+                        style={{ width: 40, height: 26, opacity: 0.8 }} 
+                        resizeMode="contain"
+                    />
+                </View>
+            </TouchableOpacity>
+
+            <View style={{ marginTop: 20, padding: 20, backgroundColor: 'rgba(255,138,0,0.1)', borderRadius: 20, borderLeftWidth: 4, borderLeftColor: AppColors.primaryOrange }}>
                 <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 14, marginBottom: 5 }}>ℹ️ REGLAMENTO BIO-GP</Text>
                 <Text style={{ color: AppColors.textGray, fontSize: 11, lineHeight: 16 }}>
                     1. Cada ronda dura 24h terrestres.{"\n"}

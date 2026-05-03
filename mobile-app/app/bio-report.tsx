@@ -80,7 +80,7 @@ export default function BioReportScreen() {
                 <Text style={{ color: theme.text, fontSize: 44, fontWeight: '900' }}>24.2</Text>
                 <Text style={{ color: theme.primary, fontSize: 16, fontWeight: 'bold' }}>(-3.8 AÑOS)</Text>
              </View>
-             <Text style={{ color: theme.subText, fontSize: 11, marginTop: 10 }}>Optimización basada en 45 sesiones de enfoque y dieta pro-hipertrofia.</Text>
+             <Text style={{ color: theme.subText, fontSize: 11, marginTop: 10 }}>Optimización basada en protocolos de Longevidad (+40) y densidad proteica.</Text>
           </View>
 
           {/* Metric Grid */}
@@ -112,6 +112,14 @@ export default function BioReportScreen() {
                         </View>
                     </View>
                 ))}
+                {/* Longevity Factor: Social Connectivity (Fase 36) */}
+                <View style={{ marginTop: 15, padding: 15, borderRadius: 15, backgroundColor: 'rgba(249, 115, 22, 0.05)', borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(249, 115, 22, 0.3)' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ color: '#f97316', fontSize: 10, fontWeight: 'bold' }}>CONEXIÓN SOCIAL (OXITOCINA)</Text>
+                        <Text style={{ color: isClinical ? '#1A1A1A' : 'white', fontSize: 9, fontWeight: 'bold' }}>OPTIMIZADO</Text>
+                    </View>
+                    <Text style={{ color: isClinical ? '#666666' : 'rgba(255,255,255,0.5)', fontSize: 8, marginTop: 4 }}>Factor clave de supervivencia en +40. Mantiene la plasticidad emocional y reduce el cortisol sistémico.</Text>
+                 </View>
              </View>
           </View>
 

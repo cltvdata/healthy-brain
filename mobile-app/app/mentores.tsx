@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image, Animated } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLanguage } from '@/context/LanguageContext';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ export default function MentoresScreen() {
   const [selectedMentor, setSelectedMentor] = useState<string>('longevity');
   const [bioData, setBioData] = useState<any>(null);
   const [advice, setAdvice] = useState<string>('Analizando tu integridad biológica para darte el mejor consejo...');
+  const [fadeAnim] = useState(new Animated.Value(1));
 
   const mentores: Mentor[] = [
     { 
@@ -62,6 +64,14 @@ export default function MentoresScreen() {
     });
     return () => unsubscribe();
   }, [selectedMentor]);
+
+  const selectMentorWithAnimation = (id: string) => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, { toValue: 0.3, duration: 150, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true })
+    ]).start();
+    setSelectedMentor(id);
+  };
 
   const generateAdvice = (mentorId: string, data: any) => {
     const hrv = data.hrv || 60;
@@ -114,16 +124,17 @@ export default function MentoresScreen() {
           {mentores.map((m) => (
             <TouchableOpacity 
               key={m.id}
-              onPress={() => setSelectedMentor(m.id)}
+              onPress={() => selectMentorWithAnimation(m.id)}
               style={[
-                AppStyles.glassCard, 
+                AppStyles.glassCard,
+                selectedMentor === m.id && AppStyles.glassCardInteractive,
                 { 
                   width: width / 3.6, 
                   height: 100, 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  borderColor: selectedMentor === m.id ? m.color : 'rgba(255,255,255,0.1)',
-                  backgroundColor: selectedMentor === m.id ? `${m.color}10` : 'rgba(0,0,0,0.2)'
+                  borderColor: selectedMentor === m.id ? m.color : AppColors.borderGlass,
+                  backgroundColor: selectedMentor === m.id ? `${m.color}15` : AppColors.surfaceGlassLight
                 }
               ]}
             >
@@ -134,11 +145,14 @@ export default function MentoresScreen() {
         </View>
 
         {/* Active Mentor Insight */}
-        <View style={[AppStyles.glassCard, { padding: 25, borderColor: currentMentor.color, borderLeftWidth: 4 }]}>
+        <Animated.View style={[
+            AppStyles.glassCard, 
+            { padding: 25, borderColor: currentMentor.color, borderLeftWidth: 4, opacity: fadeAnim }
+        ]}>
           <View style={AppStyles.rowBetween}>
             <View>
               <Text style={{ color: currentMentor.color, fontWeight: 'bold', fontSize: 14 }}>{currentMentor.role}</Text>
-              <Text style={[AppStyles.textWhite, { fontSize: 22, fontWeight: 'bold' }]}>{currentMentor.name}</Text>
+              <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: '900', fontStyle: 'italic' }]}>{currentMentor.name}</Text>
             </View>
             <Ionicons name="sparkles" size={24} color={currentMentor.color} />
           </View>
@@ -147,7 +161,7 @@ export default function MentoresScreen() {
 
           <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 20 }} />
 
-          <Text style={[AppStyles.textWhite, { fontSize: 16, lineHeight: 24, fontWeight: '500' }]}>
+          <Text style={[AppStyles.textWhite, { fontSize: 16, lineHeight: 26, fontWeight: '500' }]}>
             "{advice}"
           </Text>
 
@@ -159,25 +173,30 @@ export default function MentoresScreen() {
                 backgroundColor: currentMentor.color, 
                 padding: 15, 
                 borderRadius: 15, 
-                justifyContent: 'center' 
+                justifyContent: 'center',
+                shadowColor: currentMentor.color,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                elevation: 8
               }
             ]}
           >
             <Text style={{ color: 'black', fontWeight: '900', letterSpacing: 1 }}>{t('mentors.advice').toUpperCase()}</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* Bio-Context Summary */}
         <View style={{ marginTop: 40 }}>
-            <Text style={[AppStyles.textGray, { fontSize: 12, fontWeight: 'bold', marginBottom: 15 }]}>BIO-CONTEXTO ACTUAL</Text>
+            <Text style={[AppStyles.textGray, { fontSize: 12, fontWeight: 'bold', marginBottom: 15, letterSpacing: 1 }]}>BIO-CONTEXTO ACTUAL</Text>
             <View style={{ flexDirection: 'row', gap: 15 }}>
-                <View style={[AppStyles.glassCard, { flex: 1, padding: 15, alignItems: 'center' }]}>
-                    <Text style={[AppStyles.textGray, { fontSize: 10 }]}>HRV (REST)</Text>
-                    <Text style={[AppStyles.textWhite, { fontSize: 20, fontWeight: 'bold', color: AppColors.primaryNeonBlue }]}>{bioData?.hrv || '--'}</Text>
+                <View style={[AppStyles.glassCard, AppStyles.glassCardInteractive, { flex: 1, padding: 15, alignItems: 'center' }]}>
+                    <Text style={[AppStyles.textGray, { fontSize: 10, letterSpacing: 1 }]}>HRV (REST)</Text>
+                    <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: '900', color: AppColors.primaryNeonBlue }]}>{bioData?.hrv || '--'}</Text>
                 </View>
-                <View style={[AppStyles.glassCard, { flex: 1, padding: 15, alignItems: 'center' }]}>
-                    <Text style={[AppStyles.textGray, { fontSize: 10 }]}>SCORE</Text>
-                    <Text style={[AppStyles.textWhite, { fontSize: 20, fontWeight: 'bold', color: AppColors.primaryBioGreen }]}>{bioData?.bioScore || '--'}%</Text>
+                <View style={[AppStyles.glassCard, AppStyles.glassCardInteractive, { flex: 1, padding: 15, alignItems: 'center' }]}>
+                    <Text style={[AppStyles.textGray, { fontSize: 10, letterSpacing: 1 }]}>SCORE</Text>
+                    <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: '900', color: AppColors.primaryBioGreen }]}>{bioData?.bioScore || '--'}%</Text>
                 </View>
             </View>
         </View>

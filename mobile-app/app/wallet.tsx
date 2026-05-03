@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -42,6 +42,23 @@ export default function WalletScreen() {
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [voting, setVoting] = useState(false);
+    const [votedId, setVotedId] = useState<string | null>(null);
+
+    const proposals = [
+        { id: 'air', title: 'Filtros de Aire Comunitarios', votes: 12400, icon: 'leaf' },
+        { id: 'silence', title: 'Zonas de Silencio Neural', votes: 8900, icon: 'volume-mute' },
+        { id: 'water', title: 'Inyección de Bio-Minerales', votes: 15100, icon: 'water' },
+    ];
+
+    const handleVote = (id: string) => {
+        setVoting(true);
+        setTimeout(() => {
+            setVotedId(id);
+            setVoting(false);
+            Alert.alert("Voto Registrado", "Tu peso biográfico ha sido inyectado en la red NTK.");
+        }, 1500);
+    };
 
     useEffect(() => {
         if (!auth.currentUser) return;
@@ -96,6 +113,64 @@ export default function WalletScreen() {
                     <View style={AppStyles.rowCentered}>
                         <Ionicons name={rank.icon as any} size={16} color={rank.color} style={{ marginRight: 8 }} />
                         <Text style={{ color: rank.color, fontWeight: 'bold', fontSize: 12 }}>RANGO VITAL ACTIVO</Text>
+                    </View>
+                </View>
+
+                {/* Territorial Governance (NEW) */}
+                <View style={{ marginTop: 30 }}>
+                    <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginBottom: 15 }}>GOBERNANZA TERRITORIAL</Text>
+                    <View style={[AppStyles.glassCard, { padding: 20 }]}>
+                        <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold', marginBottom: 15 }}>Próxima Iniciativa Salud-Local</Text>
+                        <View style={{ gap: 10 }}>
+                            {proposals.map(p => (
+                                <TouchableOpacity 
+                                    key={p.id} 
+                                    onPress={() => handleVote(p.id)}
+                                    disabled={votedId !== null || voting}
+                                    style={{ 
+                                        flexDirection: 'row', 
+                                        alignItems: 'center', 
+                                        padding: 12, 
+                                        borderRadius: 12, 
+                                        backgroundColor: votedId === p.id ? 'rgba(0, 209, 255, 0.1)' : 'rgba(255,255,255,0.03)',
+                                        borderWidth: 1,
+                                        borderColor: votedId === p.id ? AppColors.primaryNeonBlue : 'transparent'
+                                    }}
+                                >
+                                    <Ionicons name={p.icon as any} size={18} color={votedId === p.id ? AppColors.primaryNeonBlue : 'rgba(255,255,255,0.3)'} />
+                                    <View style={{ flex: 1, marginLeft: 12 }}>
+                                        <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>{p.title}</Text>
+                                        <View style={{ height: 4, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 2, marginTop: 6 }}>
+                                            <View style={{ width: `${(p.votes / 20000) * 100}%`, height: '100%', backgroundColor: votedId === p.id ? AppColors.primaryNeonBlue : 'rgba(255,255,255,0.1)' }} />
+                                        </View>
+                                    </View>
+                                    {votedId === p.id && <Ionicons name="checkmark-circle" size={18} color={AppColors.primaryNeonBlue} />}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                        {voting && <ActivityIndicator style={{ marginTop: 15 }} color={AppColors.primaryNeonBlue} />}
+
+                        <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 20 }} />
+                        <TouchableOpacity 
+                            onPress={() => {
+                                if (balance < 100) {
+                                    Alert.alert("Balance Insuficiente", "Se requieren 100 NTK para inscribir una propuesta en la red.");
+                                } else {
+                                    Alert.alert("Inscribir Iniciativa", "¿Deseas gastar 100 NTK para proponer una nueva zona de salud territorial?", [
+                                        { text: "Cancelar", style: "cancel" },
+                                        { text: "Inscribir", onPress: () => Alert.alert("Éxito", "Propuesta enviada a la malla de votación.") }
+                                    ]);
+                                }
+                            }}
+                            style={{ 
+                                backgroundColor: 'white', 
+                                padding: 12, 
+                                borderRadius: 12, 
+                                alignItems: 'center' 
+                            }}
+                        >
+                            <Text style={{ color: 'black', fontWeight: 'bold', fontSize: 12 }}>+ INSCRIBIR NUEVA PROPUESTA (100 NTK)</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
 

@@ -20,11 +20,22 @@ export default function RootLayout() {
           <Stack.Screen name="perfil-setup" />
           <Stack.Screen name="comunidad" />
           <Stack.Screen name="analisis-longevidad" />
+          <Stack.Screen name="analisis-sueño" />
+          <Stack.Screen name="bio-report" />
+          <Stack.Screen name="bio-sync" />
           <Stack.Screen name="certificado" />
           <Stack.Screen name="entrenar" />
-          <Stack.Screen name="nutricion-ia" />
+          <Stack.Screen name="escuadrones" />
           <Stack.Screen name="market" />
+          <Stack.Screen name="mentores" />
+          <Stack.Screen name="notebook-insights" />
+          <Stack.Screen name="nutricion-ia" />
+          <Stack.Screen name="passport" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="ranking" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="recompensas" />
+          <Stack.Screen name="sueno-profundo" />
+          <Stack.Screen name="torneos" />
+          <Stack.Screen name="wallet" />
           <Stack.Screen name="legal-disclaimer" />
           <Stack.Screen name="+not-found" />
         </Stack>

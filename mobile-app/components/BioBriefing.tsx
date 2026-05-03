@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
-import { BioNotification, BioNotificationService } from '@/services/NotificationService';
+import { BioProjection, BioForecasting } from '@/services/BioForecasting';
+import { db, auth } from '@/constants/FirebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface Props {
   visible: boolean;
@@ -12,6 +14,7 @@ interface Props {
 
 export default function BioBriefing({ visible, onClose, userId }: Props) {
   const [notifications, setNotifications] = useState<BioNotification[]>([]);
+  const [trendData, setTrendData] = useState<{ hrvTrend: number; consistency: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [fadeAnim] = useState(new Animated.Value(0));
 
@@ -30,8 +33,16 @@ export default function BioBriefing({ visible, onClose, userId }: Props) {
 
   const loadBriefing = async () => {
     setLoading(true);
-    const unread = await BioNotificationService.getUnreadForBriefing(userId);
-    setNotifications(unread);
+    try {
+      const [unread, trends] = await Promise.all([
+        BioNotificationService.getUnreadForBriefing(userId),
+        BioForecasting.analyzeTrends(userId)
+      ]);
+      setNotifications(unread);
+      setTrendData(trends);
+    } catch (e) {
+      console.error("[BioBriefing] Load error:", e);
+    }
     setLoading(false);
   };
 
@@ -84,10 +95,23 @@ export default function BioBriefing({ visible, onClose, userId }: Props) {
               ))
             )}
 
-            {/* AI Advisor Preview */}
+            {/* AI Advisor Preview (Dynamic) */}
             <View style={styles.mentorPreview}>
-               <Text style={styles.mentorLabel}> CONSEJO DEL DÍA (IA)</Text>
-               <Text style={styles.mentorText}>"Tu HRV ha mostrado una tendencia positiva. Es el momento ideal para realizar tu entrenamiento de mayor intensidad."</Text>
+               <View style={AppStyles.rowBetween}>
+                  <Text style={styles.mentorLabel}> CONSEJO DEL DÍA (IA)</Text>
+                  {trendData && (
+                    <Ionicons 
+                      name={trendData.hrvTrend > 0 ? "trending-up" : "trending-down"} 
+                      size={16} 
+                      color={trendData.hrvTrend > 0 ? AppColors.primaryBioGreen : AppColors.primaryOrange} 
+                    />
+                  )}
+               </View>
+               <Text style={styles.mentorText}>
+                  {trendData 
+                    ? `\"${BioForecasting.getInsight(80, 0, trendData.hrvTrend)}\"`
+                    : "\"Analizando tu bioma... Prepárate para la optimización.\""}
+               </Text>
             </View>
           </ScrollView>
 

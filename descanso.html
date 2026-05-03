@@ -118,6 +118,48 @@
                         </div>
                     </div>
 
+                    <!-- Sleep Quality Score Ring -->
+                    <div id="sleep-score-card" class="hidden glass-card border-primary/20 p-5 flex items-center gap-5">
+                        <div class="relative w-20 h-20 shrink-0">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>
+                                <circle id="sleep-score-ring" cx="40" cy="40" r="34" fill="none" stroke="#ff8a00" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transition: stroke-dashoffset 1.2s ease, stroke 0.5s ease; filter: drop-shadow(0 0 6px rgba(255,138,0,0.4));"/>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="sleep-score-val" class="text-xl font-black text-white">0</span>
+                                <span class="text-[7px] font-black text-gray-500 uppercase">Score</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xs font-black uppercase tracking-widest mb-1">Calidad del Sueño</h3>
+                            <p id="sleep-score-label" class="text-[10px] text-gray-400 leading-relaxed">Sincroniza para calcular tu puntuación.</p>
+                            <div class="flex gap-2 mt-2">
+                                <span id="sleep-badge-eff" class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">—</span>
+                                <span id="sleep-badge-debt" class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/5 text-gray-400 border border-white/10">Deuda: —</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7-Day Sleep History Sparkline -->
+                    <div class="glass-card border-white/5 p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-gray-500">Historial 7 Días</span>
+                            <span id="sleep-avg-label" class="text-[9px] font-black text-primary">Prom: —h</span>
+                        </div>
+                        <div id="sleep-sparkline" class="flex items-end gap-1.5 h-16">
+                            <!-- JS fills 7 bars -->
+                        </div>
+                        <div class="flex justify-between mt-2 px-0.5">
+                            <span class="text-[7px] text-gray-600 font-bold">Lun</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Mar</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Mié</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Jue</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Vie</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Sáb</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Dom</span>
+                        </div>
+                    </div>
+
                     <div id="sleep-result" class="hidden flex-col gap-4 animate-fade-in">
                         <div class="glass-card p-5 border-white/10 bg-white/5">
                             <p id="sleep-verdict" class="text-[11px] font-bold italic text-white mb-4 leading-relaxed"></p>
@@ -239,25 +281,48 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-white/5 cursor-pointer group transition-all">
-                            <span class="material-symbols-outlined text-mind/50 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">water_drop</span>
+                        <!-- Delta Waves -->
+                        <div id="card-delta" onclick="toggleNeuroAudio('delta')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">water_drop</span>
                             <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Delta Waves</h4>
-                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest">Sueño Profundo (1-4 Hz)</p>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Sueño Profundo (2 Hz)</p>
+                            <div id="indicator-delta" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
                         </div>
-                        <div class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-white/5 cursor-pointer group transition-all">
-                            <span class="material-symbols-outlined text-mind/50 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">bolt</span>
-                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Binaural Flow</h4>
-                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest">Enfoque 40Hz (Gamma)</p>
+
+                        <!-- Binaural Gamma -->
+                        <div id="card-gamma" onclick="toggleNeuroAudio('gamma')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">bolt</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Binaural Gamma</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Enfoque 40 Hz</p>
+                            <div id="indicator-gamma" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
                         </div>
-                        <div class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-white/5 cursor-pointer group transition-all">
-                            <span class="material-symbols-outlined text-mind/50 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">self_improvement</span>
-                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Meditación</h4>
-                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest">Vipassana (15m)</p>
+
+                        <!-- Theta Meditation -->
+                        <div id="card-theta" onclick="toggleNeuroAudio('theta')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">self_improvement</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Theta · Flow</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Meditación (6 Hz)</p>
+                            <div id="indicator-theta" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
                         </div>
-                        <div class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-white/5 cursor-pointer group transition-all">
-                            <span class="material-symbols-outlined text-mind/50 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">graphic_eq</span>
+
+                        <!-- Brown Noise -->
+                        <div id="card-brown" onclick="toggleNeuroAudio('brown')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">graphic_eq</span>
                             <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Ruido Marrón</h4>
-                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest">Relajación continua</p>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Relajación continua</p>
+                            <div id="indicator-brown" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -578,6 +643,145 @@
         applyUserBg();
         updateDisplay();
         switchTab('sleep'); // Default tab
+
+        // ─── Neuro Audio Engine (Web Audio API) ──────────────────────────────
+        let audioCtx = null;
+        let neuroNodes = {}; // { type: { left, right, gainL, gainR, source } }
+        let activeNeuro = null;
+
+        const NEURO_CONFIG = {
+            delta: { base: 100, beat: 2,   color: '#b24cff', label: 'Delta · 2 Hz Activo' },
+            gamma: { base: 200, beat: 40,  color: '#b24cff', label: 'Gamma · 40 Hz Activo' },
+            theta: { base: 150, beat: 6,   color: '#b24cff', label: 'Theta · 6 Hz Activo'  },
+            brown: { base: null, beat: null, color: '#b24cff', label: 'Ruido Marrón Activo' },
+        };
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function startBinaural(type) {
+            const ctx = getAudioCtx();
+            const cfg = NEURO_CONFIG[type];
+            const masterGain = ctx.createGain();
+            masterGain.gain.setValueAtTime(0, ctx.currentTime);
+            masterGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 1.5);
+            masterGain.connect(ctx.destination);
+
+            let left, right;
+
+            if (type === 'brown') {
+                // Brown noise: filtered white noise
+                const bufSize = ctx.sampleRate * 4;
+                const buffer = ctx.createBuffer(2, bufSize, ctx.sampleRate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = buffer.getChannelData(ch);
+                    let lastOut = 0;
+                    for (let i = 0; i < bufSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        lastOut = (lastOut + 0.02 * white) / 1.02;
+                        data[i] = lastOut * 3.5;
+                    }
+                }
+                const src = ctx.createBufferSource();
+                src.buffer = buffer;
+                src.loop = true;
+                src.connect(masterGain);
+                src.start();
+                neuroNodes[type] = { src, masterGain };
+            } else {
+                // Binaural beats via stereo panning
+                const merger = ctx.createChannelMerger(2);
+                merger.connect(masterGain);
+
+                left = ctx.createOscillator();
+                left.frequency.value = cfg.base;
+                left.type = 'sine';
+
+                right = ctx.createOscillator();
+                right.frequency.value = cfg.base + cfg.beat;
+                right.type = 'sine';
+
+                // Pan left/right
+                const splitter = ctx.createChannelSplitter(2);
+                left.connect(splitter);
+                const gainL = ctx.createGain(); gainL.gain.value = 1;
+                splitter.connect(gainL, 0);
+                gainL.connect(merger, 0, 0);
+
+                const splitterR = ctx.createChannelSplitter(2);
+                right.connect(splitterR);
+                const gainR = ctx.createGain(); gainR.gain.value = 1;
+                splitterR.connect(gainR, 0);
+                gainR.connect(merger, 0, 1);
+
+                left.start();
+                right.start();
+                neuroNodes[type] = { left, right, gainL, gainR, masterGain };
+            }
+        }
+
+        function stopBinaural(type) {
+            const n = neuroNodes[type];
+            if (!n) return;
+            const ctx = getAudioCtx();
+            if (n.masterGain) {
+                n.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+            }
+            setTimeout(() => {
+                try {
+                    if (n.left)  n.left.stop();
+                    if (n.right) n.right.stop();
+                    if (n.src)   n.src.stop();
+                    if (n.masterGain) n.masterGain.disconnect();
+                } catch(e) {}
+            }, 900);
+            delete neuroNodes[type];
+        }
+
+        function toggleNeuroAudio(type) {
+            if (activeNeuro === type) {
+                // Stop this one
+                stopBinaural(type);
+                activeNeuro = null;
+                setNeuroIndicator(type, false);
+            } else {
+                // Stop any running
+                if (activeNeuro) {
+                    stopBinaural(activeNeuro);
+                    setNeuroIndicator(activeNeuro, false);
+                }
+                startBinaural(type);
+                activeNeuro = type;
+                setNeuroIndicator(type, true);
+            }
+        }
+
+        function setNeuroIndicator(type, active) {
+            const cfg = NEURO_CONFIG[type];
+            const ind = document.getElementById('indicator-' + type);
+            const card = document.getElementById('card-' + type);
+            if (!ind) return;
+            const dot  = ind.querySelector('span:first-child');
+            const label = ind.querySelector('span:last-child');
+            if (active) {
+                dot.style.cssText = `background-color: ${cfg.color}; box-shadow: 0 0 8px ${cfg.color};`;
+                dot.className = 'w-1.5 h-1.5 rounded-full animate-pulse transition-all';
+                label.textContent = cfg.label;
+                label.style.color = cfg.color;
+                card.style.borderColor = cfg.color + '50';
+                card.style.background = cfg.color + '08';
+            } else {
+                dot.style.cssText = '';
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-white/20 transition-all';
+                label.textContent = 'Toca para activar';
+                label.style.color = '';
+                card.style.borderColor = '';
+                card.style.background = '';
+            }
+        }
     </script>
 </body>
 

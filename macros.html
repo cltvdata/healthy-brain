@@ -470,16 +470,57 @@
                 const userId = window.hb_auth.currentUser.uid;
                 const db = window.hb_db;
 
-                await db.collection('users').doc(userId).set({
-                    ...userData,
-                    macros_results: {
-                        calories: Math.round(targetCalories),
-                        protein: Math.round(protein),
-                        carbs: Math.round(carbs),
-                        fats: Math.round(fats)
-                    },
-                    lastUpdateMacros: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                const finalReward = await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(userId);
+                    const userDoc = await transaction.get(userRef);
+                    let reward = 10;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    let userDataFromDB = userDoc.exists ? userDoc.data() : {};
+                    const dietRecord = userDataFromDB.dailyDietRecord || { date: today, count: 0 };
+                    
+                    if (dietRecord.date !== today) {
+                        dietRecord.date = today;
+                        dietRecord.count = 0;
+                    }
+                    
+                    if (dietRecord.count >= 1) {
+                        reward = 0; // Max 1 rewarded calculation per day
+                    } else {
+                        dietRecord.count += 1;
+                    }
+
+                    if (reward > 0) {
+                        const logRef = userRef.collection('logs').doc();
+                        transaction.set(logRef, {
+                            type: 'diet',
+                            category: 'diet',
+                            value: reward,
+                            title: 'Inyección Nutricional',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    const currentVal = userDataFromDB.ntkBalance || 0;
+                    transaction.set(userRef, {
+                        ...userData,
+                        macros_results: {
+                            calories: Math.round(targetCalories),
+                            protein: Math.round(protein),
+                            carbs: Math.round(carbs),
+                            fats: Math.round(fats)
+                        },
+                        ntkBalance: currentVal + reward,
+                        dailyDietRecord: dietRecord,
+                        lastUpdateMacros: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                    return reward;
+                });
+                
+                if (finalReward > 0) {
+                    alert(`🥦 ¡+${finalReward} NTK! Parámetros biocromáticos guardados.`);
+                }
 
             } catch (e) {
                 console.error("Macros cloud save error:", e);

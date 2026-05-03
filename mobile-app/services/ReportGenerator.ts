@@ -1,5 +1,6 @@
 import { auth, db } from '@/constants/FirebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/constants/FirebaseConfig';
+import { doc, getDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 export interface BioReport {
   userName: string;
@@ -21,16 +22,33 @@ export class ReportGenerator {
       
       if (!snap.exists()) return null;
       
-      const data = snap.data();
-      const hrv = data.hrv || 50;
+      const userData = snap.data();
+      const hrv = userData.hrv || 50;
+
+      // Calculate Real Consistency from Logs (Last 7 Days)
+      const logsRef = collection(userRef, 'logs');
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const q = query(logsRef, where('timestamp', '>=', sevenDaysAgo), orderBy('timestamp', 'desc'));
+      const logsSnap = await getDocs(q);
+      
+      const activeDays = new Set();
+      logsSnap.forEach(doc => {
+        const ts = doc.data().timestamp;
+        if (ts) activeDays.add(new Date(ts.seconds * 1000).toDateString());
+      });
+
+      const consistency = Math.round((activeDays.size / 7) * 100);
+      const bioScore = Math.min(100, Math.round((hrv * 0.6) + (consistency * 0.4)));
       
       return {
-        userName: data.userName || 'Bio-Explorer',
-        bioScore: data.bioScore || 0,
-        metabolicAge: data.metabolicAge || (data.age || 30),
-        totalNtk: data.ntkBalance || 0,
+        userName: userData.userName || 'Bio-Explorer',
+        bioScore: bioScore,
+        metabolicAge: userData.metabolicAge || (userData.age || 30),
+        totalNtk: userData.ntkBalance || 0,
         resilienceLevel: hrv > 70 ? 'Alfa' : (hrv > 50 ? 'Beta' : 'Estable'),
-        activityConsistency: data.steps > 8000 ? 95 : 70,
+        activityConsistency: consistency,
         certDate: new Date().toLocaleDateString('es-ES', { 
           year: 'numeric', 
           month: 'long', 
@@ -38,7 +56,7 @@ export class ReportGenerator {
         })
       };
     } catch (e) {
-      console.error(e);
+      console.error("[ReportGenerator] Error synthesizing status:", e);
       return null;
     }
   }

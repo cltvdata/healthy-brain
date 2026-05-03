@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,7 +29,39 @@ const LONGEVITY_ROUTINES = [
   },
 ];
 
+const HYPERTROPHY_ROUTINES = [
+  { 
+    id: '3', 
+    title: 'Hipertrofia Funcional: Push/Pull', 
+    level: 'Avanzado', 
+    time: '65m', 
+    kcal: '450', 
+    video: 'https://v.ftcdn.net/02/76/06/33/700_F_276063346_4Z97I632N7wzNq3Zq42Y2x8t8Ixy9M41_ST.mp4',
+    tip: 'Rango de repeticiones de 8 a 12 con RIR 1-2 maximiza tensión mecánica.'
+  },
+  { 
+    id: '4', 
+    title: 'Volumen y Densidad: Piernas', 
+    level: 'Élite', 
+    time: '50m', 
+    kcal: '520', 
+    video: 'https://v.ftcdn.net/05/20/39/10/700_F_520391054_47QZQm8v2cZ8R91b8zM6h9C4pZ6wZ4H_ST.mp4',
+    tip: 'SNC: Fatiga central alta. Prioriza consumo de carbohidratos simples intra-entreno.'
+  },
+];
+
 export default function EjerciciosScreen() {
+  const [activeCategory, setActiveCategory] = useState<'Longevidad' | 'Hipertrofia' | 'CNS' | 'Metabolismo'>('Longevidad');
+
+  const getRoutines = () => {
+    switch(activeCategory) {
+      case 'Hipertrofia': return HYPERTROPHY_ROUTINES;
+      default: return LONGEVITY_ROUTINES; // Default to longevity for missing ones
+    }
+  };
+
+  const activeRoutines = getRoutines();
+  
   return (
     <View style={AppStyles.body}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
@@ -54,22 +87,22 @@ export default function EjerciciosScreen() {
 
         {/* Category Pills (Longevidad / Ciencia) */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 25 }}>
-          <TouchableOpacity style={styles.catPillActive}>
-            <Text style={styles.catTextActive}>Longevidad</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.catPill}>
-            <Text style={styles.catText}>Hipertrofia</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.catPill}>
-            <Text style={styles.catText}>CNS (Neuro)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.catPill}>
-            <Text style={styles.catText}>Metabolismo</Text>
-          </TouchableOpacity>
+          {['Longevidad', 'Hipertrofia', 'CNS', 'Metabolismo'].map((cat) => {
+            const isActive = activeCategory === cat;
+            return (
+              <TouchableOpacity 
+                key={cat} 
+                onPress={() => setActiveCategory(cat as any)}
+                style={isActive ? styles.catPillActive : styles.catPill}
+              >
+                <Text style={isActive ? styles.catTextActive : styles.catText}>{cat === 'CNS' ? 'CNS (Neuro)' : cat}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         {/* Premium Workout Feed */}
-        {LONGEVITY_ROUTINES.map((item) => (
+        {activeRoutines.map((item) => (
           <View key={item.id} style={styles.workoutCard}>
             <View style={{ height: 180 }}>
               <Video

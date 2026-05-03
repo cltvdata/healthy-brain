@@ -12,10 +12,12 @@ const { width, height } = Dimensions.get('window');
 
 export default function NutricionIAScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [appState, setAppState] = useState<'camera' | 'analyzing' | 'results'>('camera');
+  const [appState, setAppState] = useState<'camera' | 'analyzing' | 'results' | 'barcode'>('camera');
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisText, setAnalysisText] = useState('Identificando ingredientes...');
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedAxioms, setSelectedAxioms] = useState<string[]>([]);
+  const [scannedProduct, setScannedProduct] = useState<any>(null);
   
   const scanAnim = useRef(new Animated.Value(0)).current;
 
@@ -91,12 +93,14 @@ export default function NutricionIAScreen() {
           fats: 30
         },
         calories: 680,
+        axioms: selectedAxioms,
         timestamp: serverTimestamp()
       });
 
       // 2. Update User Totals and NTK Balance
+      const axiomBonus = selectedAxioms.length * 10;
       await updateDoc(userRef, {
-        ntkBalance: increment(50), 
+        ntkBalance: increment(50 + axiomBonus), 
         totalCalories: increment(680),
         protein: increment(42),
         carbs: increment(55),
@@ -108,6 +112,38 @@ export default function NutricionIAScreen() {
       console.error("Save Nutrition Error:", error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const lookupBarcode = async (barcode: string) => {
+    setAppState('analyzing');
+    setAnalysisText("Consultando Bio-Cloud...");
+    
+    try {
+      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const data = await response.json();
+
+      if (data.status === 1) {
+        const product = data.product;
+        const nutrients = product.nutriments;
+        
+        setScannedProduct({
+          name: product.product_name || "Bio-Producto",
+          kcal: Math.round(nutrients['energy-kcal_100g'] || (nutrients.energy_100g / 4.184) || 0),
+          protein: Math.round(nutrients.proteins_100g || 0),
+          carbs: Math.round(nutrients.carbohydrates_100g || 0),
+          fats: Math.round(nutrients.fat_100g || 0),
+          advice: product.nutriscore_grade ? `Calificación Nutri-Score: ${product.nutriscore_grade.toUpperCase()}.` : "Producto analizado via Bio-Cloud."
+        });
+        
+        setAppState('results');
+      } else {
+        alert("Producto no encontrado");
+        setAppState('camera');
+      }
+    } catch (e) {
+      alert("Error de red");
+      setAppState('camera');
     }
   };
 
@@ -146,7 +182,16 @@ export default function NutricionIAScreen() {
       {appState === 'camera' && (
         <View style={{ flex: 1, padding: 20 }}>
           <View style={styles.cameraContainer}>
-             <CameraView style={StyleSheet.absoluteFill} facing="back" />
+             <CameraView 
+              style={StyleSheet.absoluteFill} 
+              facing="back" 
+              barcodeScannerSettings={{
+                barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"],
+              }}
+              onBarcodeScanned={appState === 'barcode' ? ({ data }) => {
+                lookupBarcode(data);
+              } : undefined}
+             />
              <LinearGradient 
               colors={['transparent', 'rgba(19, 236, 91, 0.1)', 'transparent']} 
               style={StyleSheet.absoluteFill} 
@@ -168,16 +213,16 @@ export default function NutricionIAScreen() {
                 </View>
              </View>
 
-             <View style={styles.cameraActions}>
-                <TouchableOpacity style={styles.scanBtn} onPress={startAnalysis}>
-                  <Ionicons name="barcode-outline" size={24} color="white" />
-                  <Text style={styles.btnSubText}>ESCANEAR</Text>
+               <View style={styles.cameraActions}>
+                <TouchableOpacity style={[styles.scanBtn, AppStyles.glassCardInteractive]} onPress={() => setAppState('barcode')}>
+                  <Ionicons name={appState === 'barcode' ? "barcode" : "barcode-outline"} size={24} color={appState === 'barcode' ? AppColors.primaryBioGreen : "white"} />
+                  <Text style={[styles.btnSubText, appState === 'barcode' && { color: AppColors.primaryBioGreen }]}>BARRAS</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.captureBtn} onPress={startAnalysis}>
+                <TouchableOpacity style={[styles.captureBtn, AppStyles.glassCardInteractive]} onPress={startAnalysis}>
                   <Ionicons name="camera" size={32} color={AppColors.backgroundDark} />
                   <Text style={[styles.btnSubText, { color: AppColors.backgroundDark }]}>CAPTURAR</Text>
                 </TouchableOpacity>
-             </View>
+              </View>
           </View>
         </View>
       )}
@@ -206,7 +251,7 @@ export default function NutricionIAScreen() {
              </View>
              <View>
                 <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Análisis Completado</Text>
-                <Text style={[AppStyles.textGray, { fontSize: 11 }]}>Detectado: <Text style={{ color: AppColors.primaryBioGreen }}>Bowl de Salmón y Quinoa</Text></Text>
+                <Text style={[AppStyles.textGray, { fontSize: 11 }]}>Detectado: <Text style={{ color: AppColors.primaryBioGreen }}>{scannedProduct?.name || "Bowl de Salmón y Quinoa"}</Text></Text>
              </View>
           </View>
 
@@ -214,7 +259,7 @@ export default function NutricionIAScreen() {
           <View style={[AppStyles.glassCard, { padding: 25, alignItems: 'center', marginBottom: 20 }]}>
               <Text style={styles.sectionLabel}>ESTIMACIÓN CALÓRICA Y MACROS</Text>
               <View style={styles.donutContainer}>
-                <View style={[styles.donutInner, { borderColor: AppColors.primaryBioGreen, borderWidth: 8 }]}>
+                <View style={[styles.donutInner, { borderColor: AppColors.primaryBioGreen, borderWidth: 8, shadowColor: AppColors.primaryBioGreen }]}>
                    <Text style={styles.calText}>680</Text>
                    <Text style={styles.calSubText}>KCAL TOTALES</Text>
                 </View>
@@ -246,7 +291,7 @@ export default function NutricionIAScreen() {
                <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Veredicto IA - <Text style={AppStyles.textGray}>Meta: Recomposición</Text></Text>
              </View>
              
-             <View style={styles.verdictCard}>
+             <View style={[styles.verdictCard, AppStyles.glassCardInteractive]}>
                 <Ionicons name="add-circle" size={20} color={AppColors.primaryBioGreen} />
                 <View style={{ flex: 1 }}>
                    <Text style={styles.verdictTitle}>Excelente bloque de proteínas y Omega-3.</Text>
@@ -254,7 +299,7 @@ export default function NutricionIAScreen() {
                 </View>
              </View>
 
-             <View style={styles.verdictCard}>
+             <View style={[styles.verdictCard, AppStyles.glassCardInteractive]}>
                 <Ionicons name="alert-circle" size={20} color={AppColors.primaryOrange} />
                 <View style={{ flex: 1 }}>
                    <Text style={styles.verdictTitle}>Carbohidratos altos para la noche.</Text>
@@ -280,6 +325,42 @@ export default function NutricionIAScreen() {
              </View>
           </View>
 
+          {/* Bio-Axioms (Inchauspé Protocol) */}
+          <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20, backgroundColor: 'rgba(19, 236, 91, 0.05)', borderColor: 'rgba(19, 236, 91, 0.2)' }]}>
+             <Text style={[AppStyles.textWhite, { fontSize: 14, fontWeight: 'bold', marginBottom: 15 }]}>Bio-Axiomas (Control Glucémico)</Text>
+             
+             {[
+               { id: 'veggies', text: 'Vegetales primero (Fibra protectora)' },
+               { id: 'vinegar', text: 'Vinagre antes de comer (Buffer de glucosa)' },
+               { id: 'walk', text: 'Caminata de 10 min post-comida' }
+             ].map((axiom) => (
+               <TouchableOpacity 
+                 key={axiom.id} 
+                 style={[
+                   AppStyles.glassCardInteractive, 
+                   { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, padding: 10, borderColor: AppColors.borderGlass }
+                 ]}
+                 onPress={() => {
+                   // Tracking-only state (Informational as requested)
+                   // @ts-ignore
+                   setSelectedAxioms(prev => prev.includes(axiom.id) ? prev.filter(a => a !== axiom.id) : [...prev, axiom.id]);
+                 }}
+               >
+                 <Ionicons 
+                   // @ts-ignore
+                   name={selectedAxioms.includes(axiom.id) ? "checkbox" : "square-outline"} 
+                   size={22} 
+                   // @ts-ignore
+                   color={selectedAxioms.includes(axiom.id) ? AppColors.primaryBioGreen : AppColors.textGray} 
+                 />
+                 <Text style={[AppStyles.textWhite, { fontSize: 12 }]}>{axiom.text}</Text>
+               </TouchableOpacity>
+             ))}
+              <Text style={{ color: AppColors.textGray, fontSize: 10, fontStyle: 'italic', marginTop: 5 }}>
+                * Protocolos basados en Glucose Revolution (+10 NTK c/u).
+              </Text>
+          </View>
+
           <TouchableOpacity 
             style={[AppStyles.glowBtnBlue, { marginTop: 10, opacity: isSaving ? 0.6 : 1 }]} 
             onPress={saveToDiary}
@@ -288,7 +369,9 @@ export default function NutricionIAScreen() {
              {isSaving ? (
                <ActivityIndicator color="white" size="small" />
              ) : (
-               <Text style={AppStyles.glowBtnBlueText}>AÑADIR AL DIARIO (+50 NTK)</Text>
+               <Text style={AppStyles.glowBtnBlueText}>
+                 AÑADIR AL DIARIO (+{50 + selectedAxioms.length * 10} NTK)
+               </Text>
              )}
           </TouchableOpacity>
           

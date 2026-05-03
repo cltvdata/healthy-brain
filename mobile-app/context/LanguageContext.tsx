@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Translations, Language } from '@/constants/Translations';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type LanguageContextType = {
   locale: Language;
@@ -13,6 +14,23 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocaleState] = useState<Language>('es');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadLocalLanguage = async () => {
+      try {
+        const savedLang = await AsyncStorage.getItem('user_language');
+        if (savedLang && ['es', 'en', 'pt', 'fr', 'ko', 'ru', 'ar'].includes(savedLang)) {
+          setLocaleState(savedLang as Language);
+        }
+      } catch (e) {
+        console.error("Error loading local lang", e);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    loadLocalLanguage();
+  }, []);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -20,13 +38,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const userRef = doc(db, 'users', user.uid);
     
-    // Listen for remote changes (e.g. from profile setup)
-    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+    // Solo permitimos que Firebase actualice el idioma si no hay uno local o si viene del perfil web
+    const unsubscribe = onSnapshot(userRef, async (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        const validLangs: Language[] = ['es', 'en', 'pt', 'fr'];
+        const validLangs: Language[] = ['es', 'en', 'pt', 'fr', 'ko', 'ru', 'ar'];
+        
+        // Verificamos si en la base de datos es distinto a local,
+        // pero AsyncStorage tiene prioridad en móviles.
         if (data.language && validLangs.includes(data.language)) {
-          setLocaleState(data.language);
+          const localLang = await AsyncStorage.getItem('user_language');
+          if (!localLang) {
+            setLocaleState(data.language);
+            AsyncStorage.setItem('user_language', data.language);
+          }
         }
       }
     });
@@ -36,10 +61,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setLocale = async (lang: Language) => {
     setLocaleState(lang);
-    const user = auth.currentUser;
-    if (user) {
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, { language: lang }, { merge: true });
+    try {
+      await AsyncStorage.setItem('user_language', lang);
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, { language: lang }, { merge: true });
+      }
+    } catch (e) {
+       console.error("Error setting language", e);
     }
   };
 
@@ -66,6 +96,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     return result as string;
   };
+
+  if (!isLoaded) return null;
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale, t }}>

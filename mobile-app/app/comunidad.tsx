@@ -29,7 +29,7 @@ const FeedItem = ({ id, userId, name, action, time, type, xp, glowCount, t }: an
   };
 
   return (
-    <View style={styles.feedCard}>
+    <View style={[styles.feedCard, AppStyles.glassCardInteractive]}>
        <View style={AppStyles.rowBetween}>
           <View style={AppStyles.rowCentered}>
              <View style={[styles.avatar, { borderColor: getColor() }]}>
@@ -141,7 +141,7 @@ export default function ComunidadScreen() {
 
       {/* Social Shortcut Overlay */}
       <View style={styles.fab}>
-          <TouchableOpacity style={styles.fabBtn}>
+          <TouchableOpacity style={[styles.fabBtn, AppStyles.glassCardInteractive]}>
              <Ionicons name="share-social" size={24} color="black" />
           </TouchableOpacity>
       </View>
