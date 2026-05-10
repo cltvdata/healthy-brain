@@ -1,5 +1,5 @@
-- [ ] Update `BioEconomy.ts` with `REWARD_SUN_SYNC` and limits.
-- [ ] Refactor `SynergyService.ts` (Anti-fraud & unique glowers).
-- [ ] Implement Automatic Sunlight Sync in `sueno-profundo.tsx`.
-- [ ] Integrate Bio-Axiom checklist in `nutricion-ia.tsx`.
-- [ ] Verify social limits and token awarding.
+- [x] Update `BioEconomy.ts` with `REWARD_SUN_SYNC` and limits.
+- [x] Refactor `SynergyService.ts` (Anti-fraud & unique glowers).
+- [x] Implement Automatic Sunlight Sync in `sueno-profundo.tsx`.
+- [x] Integrate Bio-Axiom checklist in `nutricion-ia.tsx`.
+- [x] Verify social limits and token awarding.

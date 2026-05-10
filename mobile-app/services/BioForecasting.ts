@@ -1,3 +1,6 @@
+import { db } from '@/constants/FirebaseConfig';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+
 export interface BioProjection {
   currentAge: number;
   metabolicAge: number;
@@ -8,8 +11,7 @@ export interface BioProjection {
   trend: 'OPTIMAL' | 'RECOVERY' | 'STRESS';
 }
 
-import { db, auth } from '@/constants/FirebaseConfig';
-import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase/firestore';
+export class BioForecasting {
   /**
    * Complex trend analysis based on log history.
    */
@@ -49,13 +51,13 @@ import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase
 
   static estimateMetabolicAge(currentAge: number, hrv: number, avgSteps: number, hrvTrend: number = 0): number {
     let reduction = 0;
-    
+
     // Weighted variables
     if (hrv > 50) reduction += (hrv - 50) / 8; // Improved sensitivity
     if (avgSteps > 7000) reduction += (avgSteps - 7000) / 3000;
     if (hrvTrend > 5) reduction += 1.5; // Bonus for positive recovery trend
     if (hrvTrend < -5) reduction -= 1.0; // Penalty for chronic stress
-    
+
     const metabolicAge = currentAge - reduction;
     return Math.max(currentAge * 0.7, parseFloat(metabolicAge.toFixed(1)));
   }
@@ -78,10 +80,10 @@ import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase
   static project2050(currentAge: number, bioScore: number, hrv: number) {
     const yearsUntil2050 = 2050 - new Date().getFullYear();
     const ageIn2050 = currentAge + yearsUntil2050;
-    
+
     // Probability of "Sovereign Longevity"
     const probability = Math.min(95, Math.round((bioScore * 0.6) + (hrv * 0.4)));
-    
+
     // Narrative generation
     let narrative = "";
     if (probability > 80) narrative = `En 2050, a tus ${ageIn2050} años, proyectamos que conservarás una plasticidad neuronal del 90%. Tu "Digital Twin" muestra una integridad celular superior.`;

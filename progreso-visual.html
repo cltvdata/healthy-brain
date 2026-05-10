@@ -17,6 +17,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/i18n-global.js"></script>
+    <script src="js/nano-banana.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         tailwind.config = {
@@ -148,9 +150,12 @@
     </style>
 </head>
 
-<body class="bg-dark text-white min-h-screen bg-mesh">
+<body class="bg-dark text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
     <div
-        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl">
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl z-10">
 
         <!-- Header -->
         <header class="flex items-center gap-4 p-6 sticky top-0 bg-dark/80 backdrop-blur-xl z-50">
@@ -610,6 +615,12 @@
         renderHotspots();
         renderMeasureForm();
         loadSavedPhotos();
+
+        // Initialize Nano-Banana & i18n
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.NanoBanana) new NanoBanana('neural-bg');
+            if (window.i18n) window.i18n.init();
+        });
     </script>
 </body>
 

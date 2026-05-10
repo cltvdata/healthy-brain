@@ -146,4 +146,24 @@ export const AppStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
+
+  // NEW: Bio-Green Interactive System
+  glowBtnBioGreen: {
+    backgroundColor: AppColors.primaryBioGreen,
+    shadowColor: AppColors.primaryBioGreen,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 10,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glowBtnBioGreenText: {
+    color: AppColors.textBlack,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
 });

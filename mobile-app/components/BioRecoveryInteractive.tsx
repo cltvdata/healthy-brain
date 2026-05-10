@@ -64,7 +64,7 @@ export default function BioRecoveryInteractive({ muscleStates, size = 300 }: Pro
       {/* Rotating Wireframe Avatar */}
       <Animated.View style={{ transform: [{ rotateY: spin }] }}>
          <Image 
-           source={require('../../bio_avatar_wireframe_3d_1776564940890.png')} 
+           source={require('../assets/anatomy/torso.jpg')} 
            style={{ width: size, height: size, resizeMode: 'contain', opacity: 0.8 }}
          />
       </Animated.View>

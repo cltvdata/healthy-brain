@@ -12,6 +12,7 @@ import { BioEconomy } from '@/constants/BioEconomy';
 import { BioInteractiveBackground } from '@/components/BioInteractiveBackground';
 import { ExercisesDB } from '@/constants/ExercisesDB';
 import ExerciseCoach from '@/components/ExerciseCoach';
+import { BioIntelligenceService } from '@/services/BioIntelligenceService';
 
 const { width } = Dimensions.get('window');
 
@@ -100,19 +101,20 @@ export default function EntrenarScreen() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         const sleepHours = data.lastSleepHours || 7.5;
-        if (sleepHours < 6) {
-          setBioInsights({
-            vfc: 'Crítica 42ms',
-            load: 'DANGER',
-            msg: 'Catabolismo detectado por sueño insuficiente. Sugerimos calistenia ligera.'
-          });
-        } else {
-          setBioInsights({
-            vfc: 'Óptima 115ms',
-            load: 'LOW',
-            msg: 'Soberanía hormonal confirmada. Protocolo de alta intensidad autorizado.'
-          });
-        }
+        
+        // Fetch full bio-recommendation
+        const rec = await BioIntelligenceService.getDailyRecommendation();
+        
+        // Auto-set malla based on status
+        if (rec.status === 'OPTIMAL') setMalla('FUERZA');
+        else if (rec.status === 'REST_ADVISED') setMalla('DESCARGA');
+        else setMalla('HIPERTROFIA');
+
+        setBioInsights({
+          vfc: `${rec.readinessScore > 80 ? 'Óptima' : rec.readinessScore > 50 ? 'Estable' : 'Crítica'} ${rec.readinessScore} pts`,
+          load: rec.status === 'OPTIMAL' ? 'LOW' : rec.status === 'REST_ADVISED' ? 'DANGER' : 'MODERATE',
+          msg: rec.primaryAdvise
+        });
       }
     };
     fetchBioData();
@@ -190,7 +192,10 @@ export default function EntrenarScreen() {
     try {
       let reward = BioEconomy.REWARD_WORKOUT_FIXED;
       if (cardio.active && cardio.minutes) {
-        reward += Math.floor(parseInt(cardio.minutes) / 2) * BioEconomy.REWARD_WORKOUT_CARDIO_PER_2MIN;
+        const parsedMins = parseInt(cardio.minutes, 10);
+        if (!isNaN(parsedMins) && parsedMins > 0) {
+          reward += Math.floor(parsedMins / 2) * (BioEconomy.REWARD_WORKOUT_CARDIO_PER_2MIN || 0);
+        }
       }
       await SynergyService.rewardUser(userId, reward, `Sesión de Entrenamiento: ${malla} (S${microciclo})`);
       const logsRef = collection(db, 'users', userId, 'logs');

@@ -1,11 +1,10 @@
 import { db, auth } from '@/constants/FirebaseConfig';
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, onSnapshot, doc, getDoc, updateDoc, increment, arrayUnion, runTransaction } from 'firebase/firestore';
 import { BioNotificationService } from './NotificationService';
 import { BioEconomy } from '@/constants/BioEconomy';
-import { runTransaction } from 'firebase/firestore';
 import { SquadMiningService } from './SquadMiningService';
 
-export type SynergyType = 'workout' | 'steps' | 'focus' | 'nutrition' | 'challenge';
+export type SynergyType = 'workout' | 'steps' | 'focus' | 'nutrition' | 'challenge' | 'evidence';
 
 export interface Synergy {
   id?: string;
@@ -31,6 +30,11 @@ export interface BioUser {
   ntkBalance?: number;
   photoPrivacy?: 'public' | 'private';
   statsPrivacy?: 'public' | 'private';
+  activeBoost?: {
+    expiresAt: number;
+    title: string;
+    multiplier: number;
+  };
 }
 
 export class SynergyService {
@@ -153,57 +157,62 @@ export class SynergyService {
     }
 
     try {
-      const sinergiaRef = doc(db, 'sinergias', sinergiaId);
-      const sinergiaSnap = await getDoc(sinergiaRef);
-      
-      if (!sinergiaSnap.exists()) return;
-      const data = sinergiaSnap.data();
-      const glowers: string[] = data.glowers || [];
+      await runTransaction(db, async (transaction) => {
+        const sinergiaRef = doc(db, 'sinergias', sinergiaId);
+        const userRef = doc(db, 'users', currentUserId);
+        
+        const [sinergiaSnap, userSnap] = await Promise.all([
+          transaction.get(sinergiaRef),
+          transaction.get(userRef)
+        ]);
 
-      // 2. Prevent Duplicate Glows (Unique Glower Policy)
-      if (glowers.includes(currentUserId)) {
-        console.warn("[SynergyService] User already glowed this post.");
-        return;
-      }
+        if (!sinergiaSnap.exists() || !userSnap.exists()) return;
 
-      // 3. Daily Limit Check (Gov Governance)
-      const userRef = doc(db, 'users', currentUserId);
-      const userSnap = await getDoc(userRef);
-      const today = new Date().toISOString().split('T')[0];
-      const stats = userSnap.data()?.glowStats || {};
-      
-      if (stats.lastDate === today && stats.count >= BioEconomy.MAX_DAILY_GLOWS_GIVEN) {
-        console.warn("[SynergyService] Daily limit reached.");
-        return;
-      }
+        const data = sinergiaSnap.data();
+        const glowers: string[] = data.glowers || [];
+        const today = new Date().toISOString().split('T')[0];
+        const stats = userSnap.data()?.glowStats || {};
 
-      // Execute Update (The Post itself)
-      await updateDoc(sinergiaRef, {
-        glows: increment(1),
-        glowers: arrayUnion(currentUserId)
+        // 2. Prevent Duplicate Glows (Unique Glower Policy)
+        if (glowers.includes(currentUserId)) {
+          throw new Error("User already glowed this post.");
+        }
+
+        // 3. Daily Limit Check (Gov Governance)
+        if (stats.lastDate === today && stats.count >= BioEconomy.MAX_DAILY_GLOWS_GIVEN) {
+          throw new Error("Daily limit reached.");
+        }
+
+        // Execute Updates
+        transaction.update(sinergiaRef, {
+          glows: increment(1),
+          glowers: arrayUnion(currentUserId)
+        });
+
+        transaction.update(userRef, {
+          'glowStats.lastDate': today,
+          'glowStats.count': stats.lastDate === today ? increment(1) : 1
+        });
       });
 
-      // Update Giver Stats (Limits)
-      await updateDoc(userRef, {
-        'glowStats.lastDate': today,
-        'glowStats.count': stats.lastDate === today ? increment(1) : 1
-      });
+      // REWARDS: Give NTK to both participants and Queue Notification robustly
+      try {
+        await Promise.allSettled([
+          this.rewardUser(currentUserId, BioEconomy.REWARD_LIKE_GIVEN, "Diste un Glow en la comunidad"),
+          this.rewardUser(targetUserId, BioEconomy.REWARD_LIKE_RECEIVED, "Recibiste un Glow por tu actividad"),
+          BioNotificationService.queueInAppMessage(
+            targetUserId, 
+            'glow', 
+            `Tu comunidad te ha dado un Glow (+1). ¡Has ganado ${BioEconomy.REWARD_LIKE_RECEIVED} NTK!`
+          )
+        ]);
+      } catch (err) {
+        console.error("[SynergyService] Non-critical error after glow transaction:", err);
+      }
 
-      // REWARDS: Give NTK to both participants
-      await this.rewardUser(currentUserId, BioEconomy.REWARD_LIKE_GIVEN, "Diste un Glow en la comunidad");
-      await this.rewardUser(targetUserId, BioEconomy.REWARD_LIKE_RECEIVED, "Recibiste un Glow por tu actividad");
-
-      // Queue In-App Notification
-      await BioNotificationService.queueInAppMessage(
-        targetUserId, 
-        'glow', 
-        `Tu comunidad te ha dado un Glow (+1). ¡Has ganado ${BioEconomy.REWARD_LIKE_RECEIVED} NTK!`
-      );
-
-      // Notify of interaction sync
       await this.broadcastSynergyUpdate();
     } catch (e) {
-      console.error("[SynergyService] Error toggling glow:", e);
+      console.warn("[SynergyService] ToggleGlow stopped:", e);
     }
   }
 }

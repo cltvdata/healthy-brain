@@ -24,9 +24,9 @@ export const BioPassportCard: React.FC<BioPassportProps> = ({
   bioScore, 
   streak, 
   referralCode, 
-  memberSince?: string,
-  isPremium?: boolean,
-  isFounder?: boolean
+  memberSince,
+  isPremium,
+  isFounder
 }) => {
   const shimmerValue = useRef(new Animated.Value(0)).current;
 

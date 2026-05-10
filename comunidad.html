@@ -17,6 +17,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/i18n-global.js"></script>
+    <script src="js/nano-banana.js"></script>
+    <script src="js/economy-config.js"></script>
+    <script src="js/social-synergy.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -42,7 +46,10 @@
         .bio-radar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent, rgba(10,10,10,0.8)); pointer-events: none; }
     </style>
 </head>
-<body class="bg-mesh min-h-screen">
+<body class="bg-dark text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
     <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col pb-32">
         
         <!-- Header -->
@@ -450,6 +457,7 @@
 
         // --- Firebase Cloud Community ---
         async function initFirebaseCommunity() {
+            SocialSynergy.init();
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
                     await auth.signInAnonymously();
@@ -669,10 +677,17 @@
         let currentGiftTargetName = '';
         let currentGiftAmount = 0;
 
-        function openGiftModal(id, name) {
+        async function openGiftModal(id, name) {
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
             if (id === currentUid) {
                 showToast("Bio-Denegado: No puedes enviarte recompensas a ti mismo.");
+                return;
+            }
+
+            // Check uniqueness/cooldown
+            const canInt = await SocialSynergy.canInteract(id);
+            if (!canInt) {
+                showToast("Sinergia en enfriamiento. Vuelve en 24h.");
                 return;
             }
             currentGiftTargetId = id;
@@ -725,48 +740,12 @@
         }
 
         async function confirmGift() {
-            const currentUid = auth.currentUser.uid;
-            if (!currentUid) return;
-
-            const senderRef = db.collection('users').doc(currentUid);
-            const receiverRef = db.collection('users').doc(currentGiftTargetId);
-
             try {
-                await db.runTransaction(async (transaction) => {
-                    const senderDoc = await transaction.get(senderRef);
-                    const receiverDoc = await transaction.get(receiverRef);
+                const btn = document.getElementById('confirm-gift-btn');
+                btn.disabled = true;
+                btn.innerText = "Sincronizando...";
 
-                    if (!senderDoc.exists) throw "Usuario no encontrado";
-                    
-                    const senderData = senderDoc.data();
-                    const senderBalance = senderData.ntkBalance || 0;
-                    if (senderBalance < currentGiftAmount) {
-                        throw "NTK Insuficiente";
-                    }
-
-                    // --- ANTI-FRAUD: Límite Diario ---
-                    const MAX_DAILY_GIFT = 500;
-                    const today = new Date().toISOString().split('T')[0];
-                    const dailyRecord = senderData.dailyGiftRecord || { date: today, totalAmount: 0 };
-                    
-                    if (dailyRecord.date !== today) {
-                        dailyRecord.date = today;
-                        dailyRecord.totalAmount = 0;
-                    }
-                    
-                    if (dailyRecord.totalAmount + currentGiftAmount > MAX_DAILY_GIFT) {
-                        throw "Límite Diario Alcanzado";
-                    }
-                    
-                    dailyRecord.totalAmount += currentGiftAmount;
-                    // ---------------------------------
-
-                    transaction.update(senderRef, { 
-                        ntkBalance: senderBalance - currentGiftAmount,
-                        dailyGiftRecord: dailyRecord
-                    });
-                    transaction.update(receiverRef, { ntkBalance: (receiverDoc.data().ntkBalance || 0) + currentGiftAmount });
-                });
+                await SocialSynergy.sendGift(currentGiftTargetId, currentGiftTargetName, currentGiftAmount);
 
                 showToast(`${currentGiftAmount} NTK ENVIADOS A ${currentGiftTargetName}`);
                 closeGiftModal();
@@ -780,14 +759,7 @@
 
             } catch (error) {
                 console.error("Gifting error:", error);
-                if (error === "NTK Insuficiente") {
-                   alert("NTK Insuficiente. ¡Adquiere más en el Bio-Market!");
-                   window.location.href = 'recompensas.html';
-                } else if (error === "Límite Diario Alcanzado") {
-                   alert("Has alcanzado el límite diario de generosidad (500 NTK). ¡Vuelve mañana!");
-                } else {
-                    alert("Error en la sinergia: " + error);
-                }
+                alert(error);
                 closeGiftModal();
             }
         }
@@ -1070,6 +1042,36 @@
                 if (data.glowedBy && data.glowedBy.includes(user.uid)) return;
 
                 await db.runTransaction(async (transaction) => {
+                    const activityDoc = await transaction.get(activityRef);
+                    const receiverRef = db.collection('users').doc(receiverUid);
+                    const giverRef = db.collection('users').doc(user.uid);
+                    const giverDoc = await transaction.get(giverRef);
+
+                    if (!activityDoc.exists || !giverDoc.exists) throw "Nodo no encontrado";
+                    
+                    const aData = activityDoc.data();
+                    const gData = giverDoc.data();
+                    
+                    // --- ANTI-FRAUD ENGINE ---
+                    const today = new Date().toISOString().split('T')[0];
+                    const daily = gData.dailySynergyLimit || { date: today, count: 0 };
+                    
+                    if (daily.date !== today) {
+                        daily.date = today;
+                        daily.count = 0;
+                    }
+                    
+                    if (daily.count >= 20) throw "LIMIT_REACHED";
+                    
+                    // Unique Interaction Cooldown (12h)
+                    const interactions = gData.nodeInteractions || {};
+                    const lastTime = interactions[receiverUid] || 0;
+                    const now = Date.now();
+                    if (now - lastTime < 12 * 60 * 60 * 1000) throw "COOLDOWN_ACTIVE";
+                    
+                    if (aData.glowedBy && aData.glowedBy.includes(user.uid)) throw "ALREADY_GLOWED";
+                    // -------------------------
+
                     // Update Activity
                     transaction.update(activityRef, {
                         glows: firebase.firestore.FieldValue.increment(1),
@@ -1077,21 +1079,32 @@
                     });
 
                     // Reward Receiver (+2 NTK)
-                    const receiverRef = db.collection('users').doc(receiverUid);
                     transaction.update(receiverRef, {
                         ntkBalance: firebase.firestore.FieldValue.increment(2)
                     });
 
-                    // Reward Giver (+1 NTK - Social Mining Incentive)
-                    const giverRef = db.collection('users').doc(user.uid);
+                    // Reward Giver (+1 NTK - Social Mining)
+                    daily.count++;
+                    interactions[receiverUid] = now;
                     transaction.update(giverRef, {
-                        ntkBalance: firebase.firestore.FieldValue.increment(1)
+                        ntkBalance: firebase.firestore.FieldValue.increment(1),
+                        dailySynergyLimit: daily,
+                        nodeInteractions: interactions
                     });
                 });
 
                 showToast("¡Sinergia Brillada! +1 NTK");
             } catch (e) {
                 console.error("Glow error:", e);
+                if (e === "LIMIT_REACHED") {
+                    showToast("Límite diario de 20 sinergias alcanzado.");
+                } else if (e === "COOLDOWN_ACTIVE") {
+                    showToast("Espera 12h para volver a brillar a este BioHacker.");
+                } else if (e === "ALREADY_GLOWED") {
+                    showToast("Ya has brillado esta actividad.");
+                } else {
+                    showToast("Error en la conexión neuronal.");
+                }
                 btn.disabled = false;
                 btn.classList.remove('animate-pulse');
             }
@@ -1158,11 +1171,15 @@
         }
 
         // Initialize
-        window.onload = () => {
+        window.addEventListener('DOMContentLoaded', () => {
             initNetwork();
             initTournamentTimer();
             renderActivityFeed(null); // Seed demo data initially
-        };
+            
+            // Initialize Nano-Banana & i18n
+            if (window.NanoBanana) new NanoBanana('neural-bg');
+            if (window.i18n) window.i18n.init();
+        });
     </script>
 </body>
 </html>

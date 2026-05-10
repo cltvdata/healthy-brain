@@ -10,8 +10,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/i18n-global.js"></script>
+    <script src="js/economy-config.js"></script>
+    <script src="js/nutrition-axioms.js"></script>
+    <script src="js/nano-banana.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
@@ -21,12 +25,11 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#13ec5b',
-                        'primary-dark': '#0dbd47',
-                        'background-dark': '#102216',
-                        'surface-dark': '#1a3324',
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
                     },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out forwards',
                         'slide-up': 'slideUp 0.4s ease-out forwards',
@@ -85,12 +88,23 @@
         .stroke-dasharray-anim {
             animation: drawCurve 2.5s ease-out forwards;
         }
+
+        .axiom-checkbox:checked + .check-mark {
+            background-color: rgba(255, 138, 0, 0.2);
+            border-color: #ff8a00;
+        }
+        .axiom-checkbox:checked + .check-mark span {
+            display: block;
+        }
     </style>
 </head>
 
-<body class="bg-background-dark text-white min-h-screen flex justify-center">
+<body class="bg-dark text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
     <div
-        class="relative w-full max-w-md bg-background-dark min-h-screen flex flex-col overflow-x-hidden shadow-2xl border-x border-white/5 pb-6">
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl z-10">
 
         <!-- Header -->
         <header class="flex flex-col p-6 pb-2 z-20">
@@ -366,6 +380,41 @@
                 </div>
             </div>
 
+            <!-- Protocolos Bio-Axiom (Fase 42) -->
+            <div class="bg-surface-dark border border-white/5 rounded-[24px] p-6 mb-6 shadow-lg opacity-0 animate-slide-up" style="animation-delay: 0.35s;">
+                <h3 class="text-[10px] font-extrabold text-gray-500 uppercase tracking-[0.2em] mb-4 w-full">Protocolos Bio-Axiom Aplicados</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center gap-3 bg-background-dark/50 p-3 rounded-xl border border-white/5 cursor-pointer active:scale-95 transition-all">
+                        <input type="checkbox" class="axiom-checkbox hidden" data-axiom="VINEGAR_HACK">
+                        <div class="w-5 h-5 rounded border border-primary/30 flex items-center justify-center bg-primary/10 check-mark">
+                            <span class="material-symbols-outlined text-[14px] text-primary hidden">check</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-300">Vinagre (Hack)</span>
+                    </label>
+                    <label class="flex items-center gap-3 bg-background-dark/50 p-3 rounded-xl border border-white/5 cursor-pointer active:scale-95 transition-all">
+                        <input type="checkbox" class="axiom-checkbox hidden" data-axiom="FIBER_FIRST">
+                        <div class="w-5 h-5 rounded border border-primary/30 flex items-center justify-center bg-primary/10 check-mark">
+                            <span class="material-symbols-outlined text-[14px] text-primary hidden">check</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-300">Fibra Primero</span>
+                    </label>
+                    <label id="caffeine-axiom-row" class="flex items-center gap-3 bg-background-dark/50 p-3 rounded-xl border border-white/5 cursor-pointer active:scale-95 transition-all">
+                        <input type="checkbox" class="axiom-checkbox hidden" data-axiom="CAFFEINE_DELAY">
+                        <div class="w-5 h-5 rounded border border-primary/30 flex items-center justify-center bg-primary/10 check-mark">
+                            <span class="material-symbols-outlined text-[14px] text-primary hidden">check</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-300">Espera Cafeína</span>
+                    </label>
+                    <label class="flex items-center gap-3 bg-background-dark/50 p-3 rounded-xl border border-white/5 cursor-pointer active:scale-95 transition-all">
+                        <input type="checkbox" class="axiom-checkbox hidden" data-axiom="POST_MEAL_WALK">
+                        <div class="w-5 h-5 rounded border border-primary/30 flex items-center justify-center bg-primary/10 check-mark">
+                            <span class="material-symbols-outlined text-[14px] text-primary hidden">check</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-300">Caminata 10m</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="flex flex-col gap-3 opacity-0 animate-slide-up" style="animation-delay: 0.4s;">
                 <button onclick="addToLog(event)"
@@ -394,6 +443,13 @@
 
     <!-- UI Logic -->
     <script>
+        // --- DOM Elements ---
+        const vCamera = document.getElementById('view-camera');
+        const vAnalyzing = document.getElementById('view-analyzing');
+        const vResults = document.getElementById('view-results');
+        const progress = document.getElementById('progress-bar');
+        const analyzingText = document.getElementById('analyzing-text');
+
         // --- Bio-Cloud & IA Global State ---
         let userData = null;
         let setupData = {
@@ -534,6 +590,9 @@
             document.getElementById('metabolic-score').innerText = `${score} / 10`;
             document.getElementById('metabolic-bar').style.width = `${score * 10}%`;
 
+            // Reset Axioms
+            document.querySelectorAll('.axiom-checkbox').forEach(cb => cb.checked = false);
+
             // Trigger animations
             const elements = vResults.querySelectorAll('.animate-slide-up');
             elements.forEach(el => {
@@ -544,28 +603,15 @@
             window.scrollTo(0, 0);
         }
 
-        function resetCamera() {
-            // Reset state
-            progress.style.transition = 'none';
-            progress.style.width = '0%';
-
-            setTimeout(() => {
-                progress.style.transition = 'all 2500ms ease-out';
-            }, 50);
-
-            analyzingText.innerText = "Identificando ingredientes...";
-
-            vResults.classList.remove('block');
-            vResults.classList.add('hidden');
-
-            vCamera.classList.remove('hidden');
-            vCamera.classList.add('flex');
-            window.scrollTo(0, 0);
-        }
-
         async function addToLog(event) {
             const btn = event.currentTarget;
             const originalContent = btn.innerHTML;
+            
+            // Collect Axioms
+            const activeAxioms = [];
+            document.querySelectorAll('.axiom-checkbox:checked').forEach(cb => {
+                activeAxioms.push(cb.getAttribute('data-axiom'));
+            });
             
             try {
                 btn.disabled = true;
@@ -578,31 +624,49 @@
                 const userId = window.hb_auth.currentUser.uid;
                 const db = window.hb_db;
 
-                // 1. Save to Unified Log (for Timeline)
                 const userRef = db.collection('users').doc(userId);
                 const userDoc = await userRef.get();
                 const userData = userDoc.data() || {};
 
+                // 1. Calculate Base Reward from EconomyConfig
+                const baseReward = EconomyConfig.REWARDS.NUTRITION.MEAL_SCAN;
+                let totalAxiomReward = 0;
+                const validatedAxioms = [];
+
+                // 2. Process Axioms
+                for (const axiomKey of activeAxioms) {
+                    let result;
+                    if (axiomKey === 'CAFFEINE_DELAY') {
+                        result = await BioAxioms.checkCaffeineDelay();
+                    } else {
+                        // For other axioms (VINEGAR_HACK, FIBER_FIRST, etc)
+                        result = await BioAxioms.validateAxiom(axiomKey);
+                    }
+
+                    if (result.success) {
+                        totalAxiomReward += result.reward;
+                        validatedAxioms.push(result.name);
+                    }
+                }
+
+                const finalNtkEarned = baseReward; // Axioms are handled by their own transactions now
+                
+                // 3. Save to Unified Log (for Timeline)
                 await userRef.collection('logs').add({
                     type: 'diet',
                     category: 'diet',
                     title: `Nutrición: ${currentScanResult.name}`,
-                    reward: 15,
+                    reward: baseReward + totalAxiomReward,
                     foodName: currentScanResult.name,
                     protein: currentScanResult.protein,
                     carbs: currentScanResult.carbs,
                     fats: currentScanResult.fats,
                     kcal: currentScanResult.kcal,
+                    axioms: activeAxioms,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // 2. Also keep in detailed diet logs (legacy support)
-                await userRef.collection('diet_logs').add({
-                    ...currentScanResult,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // 3. Create Social Synergy Record
+                // 4. Update Social Synergy Record
                 const metabolicScore = ((currentScanResult.protein / 5) - (currentScanResult.carbs / 20) + 7).toFixed(1);
                 await db.collection('sinergias').add({
                     userId: userId,
@@ -616,12 +680,12 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // 4. Update Core Biometrics & NTK Rewards
+                // 5. Update Core Biometrics (Base Meal Reward)
                 await db.runTransaction(async (transaction) => {
                     const doc = await transaction.get(userRef);
                     const data = doc.data() || {};
                     
-                    const newNtk = (parseInt(data.ntkBalance || '450')) + 15;
+                    const newNtk = (parseInt(data.ntkBalance || '0')) + baseReward;
                     // Slightly nudge bioScore towards optimization
                     const newBioScore = Math.min(9.9, (parseFloat(data.bioScore || '9.2') + 0.05));
 
@@ -634,7 +698,8 @@
                 });
 
                 // Success Feedback
-                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> +15 NTK GUARDADOS`;
+                const totalText = totalAxiomReward > 0 ? `+${baseReward + totalAxiomReward} NTK (Base + Axiomas)` : `+${baseReward} NTK GUARDADOS`;
+                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> ${totalText}`;
                 btn.classList.replace('bg-primary', 'bg-white');
                 btn.classList.add('text-dark');
 
@@ -769,6 +834,14 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+
+        function resetCamera() {
+            vResults.classList.add('hidden');
+            vAnalyzing.classList.add('hidden');
+            vAnalyzing.classList.remove('flex');
+            vCamera.classList.remove('hidden');
+            progress.style.width = '0%';
+        }
     </script>
     <!-- Fixed Bottom Nav -->
     <nav
@@ -801,6 +874,12 @@
             </a>
         </div>
     </nav>
+    <script>
+        // Initialize Nano-Banana & i18n
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.NanoBanana) new NanoBanana('neural-bg');
+            if (window.i18n) window.i18n.init();
+        });
+    </script>
 </body>
-
 </html>

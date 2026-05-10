@@ -98,9 +98,8 @@ export default function NutricionIAScreen() {
       });
 
       // 2. Update User Totals and NTK Balance
-      const axiomBonus = selectedAxioms.length * 10;
       await updateDoc(userRef, {
-        ntkBalance: increment(50 + axiomBonus), 
+        ntkBalance: increment(50), 
         totalCalories: increment(680),
         protein: increment(42),
         carbs: increment(55),
@@ -357,7 +356,7 @@ export default function NutricionIAScreen() {
                </TouchableOpacity>
              ))}
               <Text style={{ color: AppColors.textGray, fontSize: 10, fontStyle: 'italic', marginTop: 5 }}>
-                * Protocolos basados en Glucose Revolution (+10 NTK c/u).
+                * Protocolos basados en Glucose Revolution para optimización metabólica.
               </Text>
           </View>
 
@@ -370,7 +369,7 @@ export default function NutricionIAScreen() {
                <ActivityIndicator color="white" size="small" />
              ) : (
                <Text style={AppStyles.glowBtnBlueText}>
-                 AÑADIR AL DIARIO (+{50 + selectedAxioms.length * 10} NTK)
+                 AÑADIR AL DIARIO (+50 NTK)
                </Text>
              )}
           </TouchableOpacity>

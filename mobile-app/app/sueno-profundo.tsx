@@ -29,21 +29,41 @@ export default function SuenoProfundoScreen() {
   useEffect(() => {
     const checkSunlightWindow = () => {
       const hour = new Date().getHours();
-      if (hour >= 5 && hour < 11) setSunlightDetected('morning');
-      else if (hour >= 17 && hour < 20) setSunlightDetected('evening');
-      else setSunlightDetected(null);
+      if (hour >= 5 && hour < 11) return 'morning';
+      if (hour >= 17 && hour < 20) return 'evening';
+      return null;
     };
 
-    const loadStreak = async () => {
+    const loadStateAndSync = async () => {
       const user = auth.currentUser;
-      if (user) {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists()) setStreak(snap.data().sleepStreak || 0);
+      if (!user) return;
+
+      const userRef = doc(db, 'users', user.uid);
+      const snap = await getDoc(userRef);
+      
+      if (snap.exists()) {
+        const data = snap.data();
+        setStreak(data.sleepStreak || 0);
+        
+        // Check if already synced today
+        const today = new Date().toISOString().split('T')[0];
+        const lastSunSync = data.lastSunSyncDate;
+        
+        if (lastSunSync === today) {
+          setHasSyncedSun(true);
+        } else {
+          // Automatic Sync if in window
+          const window = checkSunlightWindow();
+          setSunlightDetected(window);
+          if (window) {
+            console.log(`[SuenoProfundo] Automatic Sunlight Sync Triggered: ${window}`);
+            handleSunlightSync();
+          }
+        }
       }
     };
 
-    checkSunlightWindow();
-    loadStreak();
+    loadStateAndSync();
   }, []);
 
   const handleSunlightSync = async () => {
@@ -73,8 +93,10 @@ export default function SuenoProfundoScreen() {
             category: 'circadian'
         });
         
+        const today = new Date().toISOString().split('T')[0];
         transaction.update(userRef, {
-            ntkBalance: increment(BioEconomy.REWARD_SUN_SYNC || 50)
+            ntkBalance: increment(BioEconomy.REWARD_SUN_SYNC || 50),
+            lastSunSyncDate: today
         });
       });
       setHasSyncedSun(true);
@@ -98,7 +120,7 @@ export default function SuenoProfundoScreen() {
         const userRef = doc(db, 'users', auth.currentUser!.uid);
         const userSnap = await transaction.get(userRef);
         
-        if (!userSnap.exists()) throw "User error";
+        if (!userSnap.exists()) throw new Error("User error");
 
         // Log to unified logs
         const logRef = doc(collection(db, 'users', auth.currentUser!.uid, 'logs'));

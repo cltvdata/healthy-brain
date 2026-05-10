@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 // 3D Assets generated in Phase 12
 const ASSETS = {
-  brain: require('../assets/anatomy/brain.png'),
-  respiratory: require('../assets/anatomy/respiratory.png'),
-  torso: require('../assets/anatomy/torso.png'),
+  brain: require('../assets/anatomy/brain.jpg'),
+  respiratory: require('../assets/anatomy/respiratory.jpg'),
+  torso: require('../assets/anatomy/torso.jpg'),
 };
 
 type Layer = 'skeletal' | 'muscular' | 'organs' | 'brain' | 'respiratory';
@@ -91,16 +91,34 @@ export default function AtlasOrganico({ score = 85, hrv = 60 }: AtlasOrganicoPro
             {/* Anatomy Layers Simulation */}
             <Animated.View style={[styles.anatomyFrame, { transform: [{ scale: pulseAnim }] }]}>
                {activeLayer === 'skeletal' && (
-                  <Image source={ASSETS.torso} style={[styles.image, { tintColor: statusColor, opacity: 0.4 }]} />
+                  <View style={StyleSheet.absoluteFill}>
+                    <Image 
+                      source={ASSETS.torso} 
+                      style={[styles.image, { opacity: 0.3 }]} 
+                    />
+                    <View style={styles.skeletalOverlay}>
+                      <Ionicons name="skull" size={140} color={statusColor} style={{ opacity: 0.7 }} />
+                      <Text style={styles.layerOverlayText}>ESTRUCTURA ÓSEA</Text>
+                    </View>
+                  </View>
                )}
                {activeLayer === 'muscular' && (
                   <Image source={ASSETS.torso} style={[styles.image, { opacity: 0.9 }]} />
                )}
                {activeLayer === 'organs' && (
-                  <Image source={ASSETS.respiratory} style={[styles.image, { tintColor: statusColor, opacity: 0.8 }]} />
+                  <View style={StyleSheet.absoluteFill}>
+                    <Image 
+                      source={ASSETS.respiratory} 
+                      style={[styles.image, { opacity: 0.85 }]} 
+                    />
+                    <View style={styles.organOverlay}>
+                       <Ionicons name="medical" size={100} color={statusColor} style={{ opacity: 0.5 }} />
+                       <Text style={styles.layerOverlayText}>SISTEMA VITAL</Text>
+                    </View>
+                  </View>
                )}
                {activeLayer === 'brain' && (
-                  <Image source={ASSETS.brain} style={[styles.image, { tintColor: statusColor, opacity: 0.9 }]} />
+                  <Image source={ASSETS.brain} style={[styles.image, { opacity: 0.9 }]} />
                )}
 
                {/* Scanning Line Overlay */}
@@ -108,7 +126,6 @@ export default function AtlasOrganico({ score = 85, hrv = 60 }: AtlasOrganicoPro
                   <View style={[styles.scanGlow, { backgroundColor: statusColor + '20' }]} />
                </Animated.View>
             </Animated.View>
-         </View>
 
          {/* Layer Controls */}
          <View style={styles.controls}>
@@ -204,5 +221,28 @@ const styles = StyleSheet.create({
   controlText: {
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  skeletalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5
+  },
+  organOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5
+  },
+  layerOverlayText: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginTop: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 5
   }
 });

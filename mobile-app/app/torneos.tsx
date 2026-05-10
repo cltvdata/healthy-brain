@@ -45,14 +45,14 @@ export default function TorneosScreen() {
 
   const handleEnroll = async () => {
     if (!auth.currentUser || !tournament) return;
-    if (tournament.participants.includes(auth.currentUser.uid)) {
+    if (tournament.participants?.includes(auth.currentUser.uid)) {
       return Alert.alert("Inscrito", "Ya estás esperando en los boxes.");
     }
 
     setProcessing(true);
     try {
       await TorneoService.enrollUser(auth.currentUser.uid, tournament.id, tournament.entryFee);
-      Alert.alert("🏁 ¡INSCRITO!", "Has entrado al Bio-Grand Prix. Prepárate para el Viernes.");
+      Alert.alert("🏁 ¡INSCRITO!", "Has entrado al Bio-Grand Prix. Prepárate para el combate.");
     } catch (e: any) {
       Alert.alert("Error", e.message || e.toString());
     } finally {
@@ -60,10 +60,36 @@ export default function TorneosScreen() {
     }
   };
 
-  const renderBracketNode = (player: any, score?: number) => (
-    <View style={{ width: 100, padding: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, borderWidth: 1, borderColor: player ? AppColors.primaryOrange : 'rgba(255,255,255,0.1)', marginBottom: 10 }}>
-        <Text numberOfLines={1} style={{ color: player ? 'white' : 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }}>{player ? player.userName || 'Guerrero' : 'VACANTE'}</Text>
-        {player && <Text style={{ color: AppColors.primaryOrange, fontSize: 8 }}>{score || '--'} HRV</Text>}
+  const handleSimulateAdvance = async () => {
+    if (!tournament) return;
+    setProcessing(true);
+    try {
+      // First refresh scores to have winners
+      await TorneoService.refreshScores(tournament.id);
+      // Then advance
+      await TorneoService.advanceTournament(tournament.id);
+      Alert.alert("Éxito", "Ronda avanzada correctamente.");
+    } catch (e: any) {
+      Alert.alert("Error", e.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const renderBracketNode = (player: any, score?: number, isCurrentUser?: boolean) => (
+    <View style={{ 
+        width: 100, 
+        padding: 8, 
+        backgroundColor: isCurrentUser ? 'rgba(0, 209, 255, 0.1)' : 'rgba(255,255,255,0.05)', 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: isCurrentUser ? AppColors.primaryNeonBlue : player ? AppColors.primaryOrange : 'rgba(255,255,255,0.1)', 
+        marginBottom: 10 
+    }}>
+        <Text numberOfLines={1} style={{ color: player ? 'white' : 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }}>
+            {player ? (player.id === auth.currentUser?.uid ? 'TÚ' : player.id.substring(0, 10)) : 'VACANTE'}
+        </Text>
+        {player && <Text style={{ color: isCurrentUser ? AppColors.primaryNeonBlue : AppColors.primaryOrange, fontSize: 8 }}>{score || '--'} HRV</Text>}
     </View>
   );
 
@@ -84,15 +110,35 @@ export default function TorneosScreen() {
             {/* Tournament Info */}
             <View style={[AppStyles.glassCard, { padding: 20, borderColor: AppColors.primaryOrange, borderStyle: 'dashed' }]}>
                 <Text style={{ color: 'white', fontSize: 20, fontWeight: 'black', fontStyle: 'italic', marginBottom: 5 }}>{tournament?.name}</Text>
-                <Text style={{ color: AppColors.textGray, fontSize: 11, marginBottom: 20 }}>CUPO: {tournament?.participants?.length}/8 GUERREROS</Text>
+                <Text style={{ color: AppColors.textGray, fontSize: 11, marginBottom: 20 }}>
+                    ESTADO: {tournament?.status?.toUpperCase()} | CUPO: {tournament?.participants?.length}/8
+                </Text>
                 
-                <TouchableOpacity 
-                    onPress={handleEnroll}
-                    disabled={processing || tournament?.status !== 'enrollment'}
-                    style={{ backgroundColor: AppColors.primaryOrange, padding: 18, borderRadius: 15, alignItems: 'center' }}
-                >
-                    <Text style={{ color: 'black', fontWeight: 'bold' }}>{processing ? 'INSCRIBIENDO...' : 'INSCRIBIRSE (200 NTK)'}</Text>
-                </TouchableOpacity>
+                {tournament?.status === 'enrollment' ? (
+                    <TouchableOpacity 
+                        onPress={handleEnroll}
+                        disabled={processing}
+                        style={{ backgroundColor: AppColors.primaryOrange, padding: 18, borderRadius: 15, alignItems: 'center' }}
+                    >
+                        <Text style={{ color: 'black', fontWeight: 'bold' }}>{processing ? 'INSCRIBIENDO...' : 'INSCRIBIRSE (200 NTK)'}</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TouchableOpacity 
+                            onPress={handleSimulateAdvance}
+                            disabled={processing || tournament?.status === 'completed'}
+                            style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}
+                        >
+                            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>AVANZAR RONDA</Text>
+                        </TouchableOpacity>
+                        
+                        {tournament?.status === 'completed' && (
+                            <View style={{ flex: 1, backgroundColor: 'rgba(19, 236, 91, 0.1)', padding: 15, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: AppColors.primaryBioGreen }}>
+                                <Text style={{ color: AppColors.primaryBioGreen, fontSize: 12, fontWeight: 'bold' }}>FINALIZADO</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             {/* Brackets Visualization */}
@@ -101,30 +147,57 @@ export default function TorneosScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 {/* Cuartos */}
                 <View>
-                    <Text style={{ color: AppColors.textGray, fontSize: 8, marginBottom: 10 }}>CUARTOS (Viernes)</Text>
-                    {tournament?.brackets?.round1?.slice(0, 4).map((p: any, i: number) => (
+                    <Text style={{ color: AppColors.textGray, fontSize: 8, marginBottom: 10 }}>CUARTOS</Text>
+                    {tournament?.brackets?.round1?.length > 0 ? tournament.brackets.round1.map((p: any, i: number) => (
                       <View key={i}>
-                        {renderBracketNode(p.id === auth.currentUser?.uid ? { userName: 'TÚ' } : { userName: p.id }, p.score)}
-                        {i % 2 === 1 && <View style={{ height: 20 }} />}
+                        {renderBracketNode(p, p.score, p.id === auth.currentUser?.uid)}
+                        {i % 2 === 1 && i < 7 && <View style={{ height: 20 }} />}
                       </View>
+                    )) : [1,2,3,4,5,6,7,8].map((_, i) => (
+                        <View key={i}>
+                            {renderBracketNode(null)}
+                            {i % 2 === 1 && i < 7 && <View style={{ height: 20 }} />}
+                        </View>
                     ))}
                 </View>
 
                 {/* Semis */}
                 <View style={{ justifyContent: 'center' }}>
-                    <Text style={{ color: AppColors.textGray, fontSize: 8, marginBottom: 10 }}>SEMIS (Sábado)</Text>
-                    {renderBracketNode(tournament?.status === 'active' ? null : null)}
-                    <View style={{ height: 60 }} />
-                    {renderBracketNode(null)}
+                    <Text style={{ color: AppColors.textGray, fontSize: 8, marginBottom: 10 }}>SEMIS</Text>
+                    {[0,1,2,3].map((idx) => {
+                        const p = tournament?.brackets?.round2?.[idx];
+                        return (
+                            <View key={idx}>
+                                {renderBracketNode(p, p?.score, p?.id === auth.currentUser?.uid)}
+                                {idx % 2 === 1 && idx < 3 && <View style={{ height: 80 }} />}
+                            </View>
+                        );
+                    })}
                 </View>
 
                 {/* Final */}
                 <View style={{ justifyContent: 'center' }}>
-                    <Text style={{ color: AppColors.primaryOrange, fontSize: 8, marginBottom: 10, fontWeight: 'bold' }}>GRAN FINAL (Domingo)</Text>
-                    <Ionicons name="trophy" size={32} color={AppColors.primaryOrange} style={{ alignSelf: 'center', marginBottom: 15 }} />
-                    {renderBracketNode(null)}
+                    <Text style={{ color: AppColors.primaryOrange, fontSize: 8, marginBottom: 10, fontWeight: 'bold' }}>GRAN FINAL</Text>
+                    <Ionicons name="trophy" size={32} color={tournament?.status === 'completed' ? AppColors.primaryBioGreen : AppColors.primaryOrange} style={{ alignSelf: 'center', marginBottom: 15 }} />
+                    {[0,1].map((idx) => {
+                        const p = tournament?.brackets?.final?.[idx];
+                        return (
+                            <View key={idx}>
+                                {renderBracketNode(p, p?.score, p?.id === auth.currentUser?.uid)}
+                                {idx === 0 && <View style={{ height: 120 }} />}
+                            </View>
+                        );
+                    })}
                 </View>
             </View>
+
+            {tournament?.winnerId && (
+                <View style={[AppStyles.glassCard, { marginTop: 30, padding: 20, alignItems: 'center', borderColor: AppColors.primaryBioGreen }]}>
+                    <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 12, letterSpacing: 2 }}>CAMPEÓN BIO-GP</Text>
+                    <Text style={{ color: 'white', fontSize: 24, fontWeight: '900', marginTop: 10 }}>{tournament.winnerId === auth.currentUser?.uid ? '¡TÚ ERES EL CAMPEÓN!' : tournament.winnerId}</Text>
+                    <Text style={{ color: AppColors.textGray, fontSize: 11, marginTop: 5 }}>Premio: 1,280 NTK depositados.</Text>
+                </View>
+            )}
 
             {/* Sponsorship Integration */}
             <TouchableOpacity 

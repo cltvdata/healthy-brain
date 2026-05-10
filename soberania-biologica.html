@@ -15,6 +15,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
+    <script src="js/i18n-global.js"></script>
+    <script src="js/nano-banana.js"></script>
+    <script src="js/economy-config.js"></script>
+    <script src="js/circadian-service.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
@@ -74,15 +78,18 @@
     </style>
 </head>
 
-<body class="text-white min-h-screen antialiased">
-
-    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 shadow-2xl border-x border-white/5">
+<body class="bg-dark text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl z-10">
 
         <!-- Header -->
         <header class="flex items-center justify-between px-6 pt-6 pb-3 sticky top-0 bg-dark/80 backdrop-blur-xl z-50 border-b border-white/5">
             <div class="flex flex-col">
-                <h1 class="text-xl font-extrabold tracking-tight">SOBERANÍA <span class="text-neon text-2xl italic">BIOLÓGICA</span></h1>
-                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em]">Biofeedback Engine v2.0</p>
+                <h1 class="text-xl font-extrabold tracking-tight"><span data-i18n="sovereignty_title">SOBERANÍA</span> <span class="text-neon text-2xl italic" data-i18n="biological_title">BIOLÓGICA</span></h1>
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em]" data-i18n="biofeedback_engine">Biofeedback Engine v2.0</p>
             </div>
             <!-- Token Display -->
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
@@ -109,13 +116,13 @@
                     
                     <div class="absolute flex flex-col items-center">
                         <span id="bio-score" class="text-7xl font-black tracking-tighter text-gradient-blue italic">92%</span>
-                        <span class="text-[10px] uppercase font-black text-neon tracking-widest mt-1">Bio-Estado</span>
+                        <span class="text-[10px] uppercase font-black text-neon tracking-widest mt-1" data-i18n="bio_status">Bio-Estado</span>
                     </div>
                 </div>
 
                 <div class="mt-8 flex gap-2">
-                    <span class="px-3 py-1 bg-bio-green/20 text-bio-green border border-bio-green/30 rounded-full text-[9px] font-black uppercase tracking-widest">En Zona de Flujo</span>
-                    <span class="px-3 py-1 bg-white/5 text-gray-400 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest">Top 3% Global</span>
+                    <span class="px-3 py-1 bg-bio-green/20 text-bio-green border border-bio-green/30 rounded-full text-[9px] font-black uppercase tracking-widest" data-i18n="in_flow_zone">En Zona de Flujo</span>
+                    <span class="px-3 py-1 bg-white/5 text-gray-400 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest" data-i18n="top_global">Top 3% Global</span>
                 </div>
             </div>
 
@@ -126,18 +133,55 @@
                         <span class="material-symbols-outlined text-neon text-xl">monitor_heart</span>
                         <span class="text-[8px] font-bold text-bio-green uppercase">+4%</span>
                     </div>
-                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">HRV Promedio</span>
+                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest" data-i18n="hrv_avg">HRV Promedio</span>
                     <p class="text-2xl font-black"><span id="hrv-val">74</span> <span class="text-xs text-gray-600 font-medium italic">ms</span></p>
                 </div>
                 <div class="glass-card p-5 border-white/5 flex flex-col gap-1">
                     <div class="flex justify-between items-start mb-2">
                         <span class="material-symbols-outlined text-bio-orange text-xl">bolt</span>
-                        <span class="text-[8px] font-bold text-bio-orange uppercase">Estable</span>
+                        <span class="text-[8px] font-bold text-bio-orange uppercase" data-i18n="stable">Estable</span>
                     </div>
-                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Glicación</span>
-                    <p id="glucose-label" class="text-2xl font-black italic">Baja</p>
+                    <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest" data-i18n="glycation">Glicación</span>
+                    <p id="glucose-label" class="text-2xl font-black italic" data-i18n="low">Baja</p>
                 </div>
             </div>
+
+            <!-- Circadian Window (Fase 42) -->
+            <section class="mb-8">
+                <div class="glass-card p-6 border-bio-orange/30 bg-bio-orange/5 relative overflow-hidden group">
+                    <div class="absolute -left-8 -bottom-8 w-24 h-24 bg-bio-orange/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="flex items-center justify-between mb-4 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-bio-orange text-dark flex items-center justify-center">
+                                <span class="material-symbols-outlined font-black">light_mode</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black uppercase tracking-tight" data-i18n="circadian_sync">Sincronía Circadiana</h3>
+                                <p id="sun-status-label" class="text-[9px] text-bio-orange font-bold uppercase tracking-widest">Calculando ciclo solar...</p>
+                            </div>
+                        </div>
+                        <div id="sun-window-tag" class="hidden px-2 py-1 rounded-md bg-bio-orange text-dark text-[8px] font-black uppercase tracking-tighter">Ventana Activa</div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4 mb-4 relative z-10">
+                        <div class="flex-1">
+                            <div class="flex justify-between text-[8px] font-bold text-gray-500 uppercase mb-1">
+                                <span>Amanecer</span>
+                                <span>Zenit</span>
+                                <span>Ocaso</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden relative">
+                                <div id="sun-progress-bar" class="h-full bg-gradient-to-r from-bio-orange to-neon transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="claim-sunlight-btn" disabled class="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 font-black text-[10px] uppercase tracking-widest transition-all">
+                        Esperando Ventana de Luz
+                    </button>
+                </div>
+            </section>
 
             <!-- AI Bio-Prescription Card -->
             <section class="mb-10">
@@ -149,8 +193,8 @@
                             <span class="material-symbols-outlined font-black">smart_toy</span>
                         </div>
                         <div>
-                            <h3 class="text-sm font-black uppercase tracking-tight">Prescripción Bio-IA</h3>
-                            <p class="text-[9px] text-neon font-bold uppercase tracking-widest">Actualizado hace 2m</p>
+                            <h3 class="text-sm font-black uppercase tracking-tight" data-i18n="ai_prescription">Prescripción Bio-IA</h3>
+                            <p class="text-[9px] text-neon font-bold uppercase tracking-widest" data-i18n="updated_ago">Actualizado hace 2m</p>
                         </div>
                     </div>
 
@@ -158,7 +202,7 @@
                         "Tus niveles de glucosa son estables, pero tu HRV matinal sugiere una carga del CNS moderada. <span class="text-white font-bold">Optimiza:</span> Sesión de Movilidad Zona 2 hoy, evita cafeína post 14:00."
                     </p>
 
-                    <button class="w-full py-3 rounded-xl bg-neon/10 border border-neon/30 text-neon font-black text-[10px] uppercase tracking-widest hover:bg-neon hover:text-dark transition-all">
+                    <button class="w-full py-3 rounded-xl bg-neon/10 border border-neon/30 text-neon font-black text-[10px] uppercase tracking-widest hover:bg-neon hover:text-dark transition-all" data-i18n="apply_protocol">
                         Aplicar Protocolo de Hoy
                     </button>
                 </div>
@@ -167,8 +211,8 @@
             <!-- Bio-Radar Comparison (Dynamic Chart.js) -->
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-6 px-1">
-                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Benchmarks de Rendimiento</h3>
-                    <span class="text-[9px] text-neon font-bold uppercase">vs Optimal Man</span>
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]" data-i18n="benchmarks">Benchmarks de Rendimiento</h3>
+                    <span class="text-[9px] text-neon font-bold uppercase" data-i18n="vs_optimal">vs Optimal Man</span>
                 </div>
                 
                 <div class="glass-card p-4 relative bg-dark/40 overflow-hidden" style="aspect-ratio:1/1">
@@ -182,11 +226,11 @@
                 <div class="flex gap-4 mt-3 justify-center">
                     <div class="flex items-center gap-1.5">
                         <div class="w-3 h-1.5 rounded-full bg-neon"></div>
-                        <span class="text-[9px] text-white/40 font-bold uppercase">Tú</span>
+                        <span class="text-[9px] text-white/40 font-bold uppercase" data-i18n="you">Tú</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <div class="w-3 h-1.5 rounded-full bg-white/20"></div>
-                        <span class="text-[9px] text-white/40 font-bold uppercase">Promedio Global</span>
+                        <span class="text-[9px] text-white/40 font-bold uppercase" data-i18n="global_avg">Promedio Global</span>
                     </div>
                 </div>
             </section>
@@ -199,12 +243,12 @@
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-4 px-1">
                     <div>
-                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Tendencia 7 Días</h3>
-                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">HRV · Bio-Score · Glucosa</p>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]" data-i18n="seven_day_trend">Tendencia 7 Días</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5" data-i18n="trend_subtitle">HRV · Bio-Score · Glucosa</p>
                     </div>
                     <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bio-green/10 border border-bio-green/20">
                         <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_6px_#13ec5b]"></div>
-                        <span class="text-[8px] font-black text-bio-green uppercase">Live Sync</span>
+                        <span class="text-[8px] font-black text-bio-green uppercase" data-i18n="live_sync">Live Sync</span>
                     </div>
                 </div>
 
@@ -247,8 +291,8 @@
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-4 px-1">
                     <div>
-                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Arquitectura del Sueño</h3>
-                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Deep · REM · Light · Awake</p>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]" data-i18n="sleep_architecture">Arquitectura del Sueño</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5" data-i18n="sleep_subtitle">Deep · REM · Light · Awake</p>
                     </div>
                     <span class="material-symbols-outlined text-neon/40 text-base">bedtime</span>
                 </div>
@@ -281,8 +325,8 @@
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-4 px-1">
                     <div>
-                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Composición Metabólica</h3>
-                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Distribución Macro · Hoy</p>
+                        <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]" data-i18n="metabolic_comp">Composición Metabólica</h3>
+                        <p class="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5" data-i18n="macro_dist">Distribución Macro · Hoy</p>
                     </div>
                     <span class="material-symbols-outlined text-bio-orange/40 text-base">donut_large</span>
                 </div>
@@ -341,7 +385,7 @@
             <!-- Protocol Intelligence Hub -->
             <section class="mb-10">
                 <div class="flex justify-between items-center mb-6 px-1">
-                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Protocolos Activos</h3>
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]" data-i18n="active_protocols">Protocolos Activos</h3>
                 </div>
                 
                 <div class="space-y-3">
@@ -350,8 +394,8 @@
                             <span class="material-symbols-outlined font-black">nutrition</span>
                         </div>
                         <div>
-                            <h4 class="text-[11px] font-black uppercase">Protocolo Inchauspé</h4>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">Glucosa Estable (Fibra &gt; Pro &gt; Carb)</p>
+                            <h4 class="text-[11px] font-black uppercase" data-i18n="inchauspe_title">Protocolo Inchauspé</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase" data-i18n="glucose_stable_hint">Glucosa Estable (Fibra &gt; Pro &gt; Carb)</p>
                         </div>
                         <div class="ml-auto flex gap-1">
                             <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
@@ -366,8 +410,8 @@
                             <span class="material-symbols-outlined font-black">flask</span>
                         </div>
                         <div>
-                            <h4 class="text-[11px] font-black uppercase">Reparación NAD+</h4>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">Pila: NMN + Ca-AKG · Bio-Score &gt; 85</p>
+                            <h4 class="text-[11px] font-black uppercase" data-i18n="nad_repair">Reparación NAD+</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase" data-i18n="nad_hint">Pila: NMN + Ca-AKG · Bio-Score &gt; 85</p>
                         </div>
                         <div id="nad-lock" class="ml-auto w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-600">
                             <span class="material-symbols-outlined text-xs">lock</span>
@@ -380,8 +424,8 @@
                             <span class="material-symbols-outlined font-black">wb_sunny</span>
                         </div>
                         <div>
-                            <h4 class="text-[11px] font-black uppercase">Protocolo Huberman AM</h4>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">Sol matinal · Sin cafeína 90 min</p>
+                            <h4 class="text-[11px] font-black uppercase" data-i18n="huberman_title">Protocolo Huberman AM</h4>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase" data-i18n="huberman_hint">Sol matinal · Sin cafeína 90 min</p>
                         </div>
                         <div class="ml-auto flex gap-1">
                             <div class="w-1.5 h-1.5 rounded-full bg-bio-green shadow-[0_0_8px_#13ec5b]"></div>
@@ -410,7 +454,7 @@
                 <a href="soberania-biologica.html" class="flex flex-col items-center gap-1 text-neon scale-110">
                     <div class="w-1 h-1 rounded-full bg-neon mb-1"></div>
                     <span class="material-symbols-outlined filled" style="font-variation-settings: 'FILL' 1;">analytics</span>
-                    <span class="text-[8px] font-black uppercase">Bio-Score</span>
+                    <span class="text-[8px] font-black uppercase" data-i18n="progress">Bio-Score</span>
                 </a>
                 <a href="recompensas.html" class="flex flex-col items-center gap-1 text-gray-500">
                     <span class="material-symbols-outlined">redeem</span>
@@ -496,28 +540,29 @@
             // Glucose Context
             const gLabel = document.getElementById('glucose-label');
             if (glucose > 105) {
-                gLabel.textContent = 'Moderada';
+                gLabel.textContent = window.i18n.t('glucose_mod'); // Moderada
                 gLabel.className = 'text-2xl font-black italic text-bio-orange';
             } else {
-                gLabel.textContent = 'Baja';
+                gLabel.textContent = window.i18n.t('glucose_low'); // Baja
                 gLabel.className = 'text-2xl font-black italic text-bio-green';
             }
 
             // AI Advice — 6-branch engine driven by live biometrics
             const advice = document.getElementById('ai-advice');
             const hour = new Date().getHours();
+            
             if (score >= 90 && glucose < 100 && hrv > 70) {
-                advice.innerHTML = `"Tus sistemas están en <span class='text-neon'>sincronía total</span>. Hoy es el día ideal para entrenamiento de alta intensidad en ventana de ayuno — picos máximos de BDNF garantizados."`;
+                advice.innerHTML = `"${window.i18n.t('advice_total_sync')}"`;
             } else if (hrv < 55) {
-                advice.innerHTML = `"<span class='text-bio-orange'>CNS sobrecargado</span>. Prioriza movilidad Zona 2 (&lt;130 bpm) y suplementa Mg-Glicinato nocturno para restaurar variabilidad cardiíaca."`;
+                advice.innerHTML = `"${window.i18n.t('advice_cns_overload')}"`;
             } else if (glucose > 105) {
-                advice.innerHTML = `"Glucemia elevada detectada. Activa el <span class='text-bio-orange'>Protocolo Vinagre</span> (15 ml ACV antes de comer) y añade 10 min de caminata post-comida para curva plana."`;
+                advice.innerHTML = `"${window.i18n.t('advice_glucose_spike')}"`;
             } else if (hour >= 6 && hour <= 10) {
-                advice.innerHTML = `"Ventana circadiana óptima. <span class='text-neon'>Luz solar directa</span> 10-30 min ahora + retrasa café 90 min para máximo pico de cortisol natural (Huberman AM)."`;
+                advice.innerHTML = `"${window.i18n.t('advice_circadian')}"`;
             } else if (score < 75) {
-                advice.innerHTML = `"Bio-estado en recuperación. Prioriza <span class='text-bio-orange'>síntesis protéica</span>: 2g prot/kg + creatina 5g. Evita ayuno prolongado hoy."`;
+                advice.innerHTML = `"${window.i18n.t('advice_recovery')}"`;
             } else {
-                advice.innerHTML = `"Bio-estado óptimo. Mantiene tu <span class='text-neon'>racha metabólica</span>: secuencia Fibra-Protéina-Carbohidrato en cada comida para glucosa sub-100."`;
+                advice.innerHTML = `"${window.i18n.t('advice_baseline')}"`;
             }
 
             // NAD+ unlock (score > 85)
@@ -541,39 +586,67 @@
             const ctx = document.getElementById('bioRadar');
             if (!ctx) return;
             if (window._bioRadarChart) { window._bioRadarChart.destroy(); }
+            
+            // i18n support for chart labels
+            const labels = [
+                window.i18n.t('hrv_avg').split(' ')[0], 
+                window.i18n.t('progress'), 
+                window.i18n.t('metabolic_comp').split(' ')[0], 
+                window.i18n.t('dopamine'), 
+                window.i18n.t('rest')
+            ];
+
             window._bioRadarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['HRV', 'Bio-Score', 'Metabolismo', 'Dopamina', 'Sueño'],
+                    labels: labels,
                     datasets: [{
-                        label: 'Tú',
+                        label: window.i18n.t('you'),
                         data: [...userStats, Math.round((userStats[0] + userStats[1]) / 2)],
                         fill: true,
-                        backgroundColor: 'rgba(0, 209, 255, 0.15)',
+                        backgroundColor: 'rgba(0, 209, 255, 0.2)',
                         borderColor: '#00d1ff',
                         pointBackgroundColor: '#00d1ff',
                         pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#00d1ff',
                         pointRadius: 4,
+                        borderWidth: 3,
                         tension: 0.3
                     }, {
-                        label: 'Promedio Global',
+                        label: window.i18n.t('global_avg'),
                         data: [68, 72, 65, 70, 68],
                         fill: true,
-                        backgroundColor: 'rgba(255,255,255,0.04)',
-                        borderColor: 'rgba(255,255,255,0.15)',
-                        pointBackgroundColor: 'rgba(255,255,255,0.2)',
+                        backgroundColor: 'rgba(255,255,255,0.05)',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        pointBackgroundColor: 'rgba(255,255,255,0.3)',
                         pointBorderColor: '#fff',
                         pointRadius: 3,
                     }]
                 },
                 options: {
-                    animation: { duration: 1000 },
-                    plugins: { legend: { display: false } },
+                    animation: { duration: 1500, easing: 'easeOutQuart' },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10,10,10,0.9)',
+                            titleFont: { family: 'Outfit', size: 12, weight: '800' },
+                            bodyFont: { family: 'Outfit', size: 11 },
+                            padding: 12,
+                            cornerRadius: 12,
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
                     scales: {
                         r: {
-                            grid: { color: 'rgba(255,255,255,0.07)' },
-                            angleLines: { color: 'rgba(255,255,255,0.07)' },
-                            pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 9, family: 'Outfit', weight: '700' } },
+                            grid: { color: 'rgba(255,255,255,0.08)', circular: true },
+                            angleLines: { color: 'rgba(255,255,255,0.08)' },
+                            pointLabels: { 
+                                color: 'rgba(255,255,255,0.6)', 
+                                font: { size: 10, family: 'Outfit', weight: '700' },
+                                backdropColor: 'transparent'
+                            },
                             ticks: { display: false },
                             suggestedMin: 0, suggestedMax: 100
                         }
@@ -591,22 +664,40 @@
             const hrvData = [68, 70, 72, 71, 74, 76, 74];
             const scoreData = [85, 87, 88, 90, 89, 91, 92];
             const glucData = [102, 99, 97, 95, 98, 93, 94];
+            
             const c = ctx.getContext('2d');
             const gNeon = c.createLinearGradient(0, 0, 0, 200);
-            gNeon.addColorStop(0, 'rgba(0,209,255,0.25)'); gNeon.addColorStop(1, 'rgba(0,209,255,0)');
+            gNeon.addColorStop(0, 'rgba(0,209,255,0.3)'); gNeon.addColorStop(1, 'rgba(0,209,255,0)');
+            
             const gOrange = c.createLinearGradient(0, 0, 0, 200);
-            gOrange.addColorStop(0, 'rgba(255,138,0,0.2)'); gOrange.addColorStop(1, 'rgba(255,138,0,0)');
+            gOrange.addColorStop(0, 'rgba(255,138,0,0.25)'); gOrange.addColorStop(1, 'rgba(255,138,0,0)');
+
             window._trendChart = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets: [
-                    { label:'HRV', data:hrvData, borderColor:'#00d1ff', backgroundColor:gNeon, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#00d1ff', borderWidth:2 },
-                    { label:'Bio-Score', data:scoreData, borderColor:'#ff8a00', backgroundColor:gOrange, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#ff8a00', borderWidth:2 },
-                    { label:'Glucosa', data:glucData, borderColor:'#a78bfa', backgroundColor:'transparent', fill:false, tension:0.4, pointRadius:2, pointBackgroundColor:'#a78bfa', borderWidth:1.5, borderDash:[4,3] }
+                    { label:'HRV', data:hrvData, borderColor:'#00d1ff', backgroundColor:gNeon, fill:true, tension:0.45, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#00d1ff', borderWidth:3, shadowBlur: 10, shadowColor: 'rgba(0,209,255,0.5)' },
+                    { label:'Bio-Score', data:scoreData, borderColor:'#ff8a00', backgroundColor:gOrange, fill:true, tension:0.45, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#ff8a00', borderWidth:3 },
+                    { label:'Glucosa', data:glucData, borderColor:'#a78bfa', backgroundColor:'transparent', fill:false, tension:0.45, pointRadius:2, pointBackgroundColor:'#a78bfa', borderWidth:2, borderDash:[5,5] }
                 ]},
-                options: { animation:{duration:800}, plugins:{legend:{display:false}}, scales:{
-                    x:{grid:{color:'rgba(255,255,255,0.03)'}, ticks:{color:'rgba(255,255,255,0.3)', font:{size:8, family:'Outfit', weight:'700'}}},
-                    y:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'rgba(255,255,255,0.2)', font:{size:8}, stepSize:10}, min:50, max:110}
-                }}
+                options: { 
+                    animation:{ duration:1200, easing: 'easeInOutQuart' }, 
+                    plugins:{ 
+                        legend:{ display:false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(10,10,10,0.9)',
+                            padding: 12,
+                            cornerRadius: 12,
+                            titleFont: { family: 'Outfit', size: 12 },
+                            bodyFont: { family: 'Outfit', size: 11 }
+                        }
+                    }, 
+                    scales:{
+                        x:{ grid:{ display:false }, ticks:{ color:'rgba(255,255,255,0.4)', font:{ size:9, family:'Outfit', weight:'600' }}},
+                        y:{ grid:{ color:'rgba(255,255,255,0.05)', drawBorder: false }, ticks:{ color:'rgba(255,255,255,0.25)', font:{ size:9 }, stepSize:15 }, min:50, max:115 }
+                    }
+                }
             });
         }
 
@@ -648,7 +739,14 @@
         }
 
         function getLast7DayLabels() {
-            const d=[]; for(let i=6;i>=0;i--){ const t=new Date(); t.setDate(t.getDate()-i); d.push(t.toLocaleDateString('es',{weekday:'short'}).substring(0,3).toUpperCase()); } return d;
+            const d = [];
+            const lang = window.i18n ? window.i18n.currentLang : 'es';
+            for (let i = 6; i >= 0; i--) {
+                const t = new Date();
+                t.setDate(t.getDate() - i);
+                d.push(t.toLocaleDateString(lang, { weekday: 'short' }).substring(0, 3).toUpperCase());
+            }
+            return d;
         }
 
         function applyUserBg() {
@@ -664,7 +762,73 @@
 
         applyUserBg();
         syncBioData();
+        
+        // Initialize Nano-Banana & i18n
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.NanoBanana) new NanoBanana('neural-bg');
+            if (window.i18n) window.i18n.init();
+        });
+        
         window.addEventListener('focus', syncBioData);
+    </script>
+    <script>
+        // Circadian Integration (Fase 42)
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusLabel = document.getElementById('sun-status-label');
+            const progressBar = document.getElementById('sun-progress-bar');
+            const claimBtn = document.getElementById('claim-sunlight-btn');
+            const windowTag = document.getElementById('sun-window-tag');
+
+            try {
+                await CircadianService.init((state) => {
+                    // Update Progress Bar
+                    const totalDayMinutes = 24 * 60;
+                    const now = new Date();
+                    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                    const progress = (currentMinutes / totalDayMinutes) * 100;
+                    progressBar.style.width = `${progress}%`;
+
+                    // Update Status Label and Button
+                    if (state.currentWindow) {
+                        const win = state.currentWindow;
+                        statusLabel.innerText = `Ventana Optima: ${win.name}`;
+                        statusLabel.classList.replace('text-bio-orange', 'text-neon');
+                        windowTag.classList.remove('hidden');
+                        
+                        if (state.rewardsClaimed[win.id]) {
+                            claimBtn.innerText = 'Recompensa Reclamada';
+                            claimBtn.disabled = true;
+                            claimBtn.className = 'w-full py-3 rounded-xl bg-neon/10 border border-neon/30 text-neon font-black text-[10px] uppercase tracking-widest cursor-default';
+                        } else {
+                            claimBtn.innerText = `Reclamar ${win.reward} NTK`;
+                            claimBtn.disabled = false;
+                            claimBtn.className = 'w-full py-3 rounded-xl bg-neon text-dark font-black text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_20px_rgba(0,255,163,0.3)]';
+                        }
+                    } else {
+                        statusLabel.innerText = 'Buscando próxima ventana solar...';
+                        statusLabel.classList.replace('text-neon', 'text-bio-orange');
+                        windowTag.classList.add('hidden');
+                        claimBtn.innerText = 'Esperando Ventana de Luz';
+                        claimBtn.disabled = true;
+                        claimBtn.className = 'w-full py-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 font-black text-[10px] uppercase tracking-widest transition-all';
+                    }
+                });
+
+                claimBtn.addEventListener('click', async () => {
+                    const result = await CircadianService.claimReward();
+                    if (result.success) {
+                        // Visual feedback already handled by callback
+                        NanoBanana.showNotification(`+${result.reward} NTK: Sincronía ${result.windowName}`, 'success');
+                    } else {
+                        NanoBanana.showNotification(result.error || 'Error al reclamar', 'error');
+                    }
+                });
+
+            } catch (err) {
+                console.error("Circadian Error:", err);
+                statusLabel.innerText = "Error de Geocalización";
+            }
+        });
     </script>
 </body>
 

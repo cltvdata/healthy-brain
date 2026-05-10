@@ -177,8 +177,50 @@ export default function PerfilSetupScreen() {
 
       {/* Identity Core */}
       <View style={[AppStyles.glassCard, { padding: 25, marginBottom: 25, borderColor: AppColors.primaryBioGreen + '40', borderWidth: 1, borderRadius: 30 }]}>
-          <Text style={styles.sectionTitle}>Identidad Biográfica</Text>
+          <View style={AppStyles.rowBetween}>
+            <Text style={styles.sectionTitle}>Identidad Biográfica</Text>
+            <TouchableOpacity onPress={() => router.push('/bio-vault' as any)} style={styles.vaultLink}>
+              <Ionicons name="folder-open" size={18} color={AppColors.primaryNeonBlue} />
+              <Text style={styles.vaultLinkText}>BIO-VAULT</Text>
+            </TouchableOpacity>
+          </View>
           
+          <Text style={styles.sectionDesc}>Define los parámetros base de tu existencia digital.</Text>
+
+          {/* GÉNERO SELECTOR (Prioritized) */}
+          <View style={{ marginBottom: 25 }}>
+              <Text style={styles.inputLabel}>GÉNERO BIOLÓGICO (OBLIGATORIO)</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                {[
+                  { id: 'Hombre', icon: 'male' },
+                  { id: 'Mujer', icon: 'female' },
+                  { id: 'Otro', icon: 'male-female' }
+                ].map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.generoBtn,
+                      genero === item.id && { 
+                        backgroundColor: 'rgba(0, 209, 255, 0.2)', 
+                        borderColor: AppColors.primaryNeonBlue,
+                        borderWidth: 2 
+                      }
+                    ]}
+                    onPress={() => setGenero(item.id)}
+                  >
+                    <Ionicons
+                      name={item.icon as any}
+                      size={24}
+                      color={genero === item.id ? AppColors.primaryNeonBlue : 'rgba(255,255,255,0.4)'}
+                    />
+                    <Text style={[styles.generoText, genero === item.id && { color: AppColors.primaryNeonBlue, fontWeight: '900' }]}>
+                      {item.id.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+          </View>
+
           <View style={{ marginBottom: 25 }}>
               <Text style={styles.inputLabel}>¿CÓMO TE LLAMAS?</Text>
               <TextInput 
@@ -261,7 +303,52 @@ export default function PerfilSetupScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity 
                 disabled={parsingTwin}
-                onPress={() => {/* Image Picker Logic preserved */}}
+                onPress={async () => {
+                  try {
+                    const cameraAvailable = await ImagePicker.isCameraAvailableAsync();
+                    if (!cameraAvailable) {
+                      Alert.alert('Cámara no detectada', 'Tu dispositivo no tiene una cámara disponible.');
+                      return;
+                    }
+
+                    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu cámara para instanciar tu gemelo cinético. Ve a Ajustes > Healthy+Brain > Cámara.');
+                      return;
+                    }
+                    
+                    const result = await ImagePicker.launchCameraAsync({
+                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                      allowsEditing: true,
+                      aspect: [1, 1],
+                      quality: 0.8,
+                    });
+                    
+                    if (!result.canceled && result.assets && result.assets.length > 0) {
+                      const uri = result.assets[0].uri;
+                      setParsingTwin(true);
+                      // Simulación de carga (mismo código)
+                      let progress = 0;
+                      const interval = setInterval(() => {
+                        progress += 0.1;
+                        setUploadProgress(Math.min(progress, 1));
+                        if (progress >= 1) {
+                          clearInterval(interval);
+                          setParsingTwin(false);
+                          setTwinGenerated(true);
+                          if (auth.currentUser) {
+                            updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                              avatarUri: uri
+                            }).catch(console.error);
+                          }
+                        }
+                      }, 200);
+                    }
+                  } catch (error) {
+                    console.error("Camera Error:", error);
+                    Alert.alert('Error de Cámara', 'Hubo un problema al intentar abrir la cámara. Intenta usar la Galería.');
+                  }
+                }}
                 style={[styles.uploadBtn, { borderColor: AppColors.primaryNeonBlue + '60' }]}
               >
                 {parsingTwin ? (
@@ -276,7 +363,37 @@ export default function PerfilSetupScreen() {
               
               <TouchableOpacity 
                 disabled={parsingTwin}
-                onPress={() => {/* Gallery Logic preserved */}}
+                onPress={async () => {
+                  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  if (status !== 'granted') {
+                    Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería.');
+                    return;
+                  }
+                  const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 0.8,
+                  });
+                  if (!result.canceled && result.assets[0]) {
+                    setParsingTwin(true);
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                      progress += 0.15;
+                      setUploadProgress(Math.min(progress, 1));
+                      if (progress >= 1) {
+                        clearInterval(interval);
+                        setParsingTwin(false);
+                        setTwinGenerated(true);
+                        if (auth.currentUser) {
+                          updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                            avatarUri: result.assets[0].uri
+                          }).catch(console.error);
+                        }
+                      }
+                    }, 150);
+                  }
+                }}
                 style={[styles.uploadBtn, { borderColor: AppColors.primaryOrange + '60' }]}
               >
                  <Ionicons name="image" size={26} color={AppColors.primaryOrange} />
@@ -290,6 +407,9 @@ export default function PerfilSetupScreen() {
                   <Ionicons name="checkmark-seal" size={20} color={AppColors.primaryBioGreen} />
                   <Text style={styles.syncStatusText}>GEMELO INSTANCIADO</Text>
                </View>
+               <TouchableOpacity onPress={() => { setTwinGenerated(false); setUploadProgress(0); }} style={{ marginTop: 10 }}>
+                 <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>Cambiar imagen</Text>
+               </TouchableOpacity>
             </View>
           )}
       </View>
@@ -309,10 +429,34 @@ export default function PerfilSetupScreen() {
         style={[AppStyles.glowBtnOrange, { marginBottom: 60 }]}
         disabled={syncing}
         onPress={async () => {
+           if (!auth.currentUser) return;
            setSyncing(true);
-           // ... logic update doc preserved ...
-           setSyncing(false);
-           router.push('/' as any);
+           try {
+             await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+               userName,
+               genero,
+               edad,
+               peso,
+               altura,
+               objetivo,
+               unitSystem,
+               photoPrivacy: isPublic ? 'public' : 'private',
+               statsPrivacy: shareStats ? 'public' : 'private',
+               showInRanking,
+               shareBioScore,
+               shareNTK,
+               useAnonymousAlias,
+               enableCycleTracking,
+               lastPeriodDate: enableCycleTracking ? lastPeriodDate : '',
+               cycleLength: enableCycleTracking ? parseInt(cycleLength) || 28 : 28,
+             });
+             router.push('/(tabs)' as any);
+           } catch (e) {
+             Alert.alert('Error', 'No se pudo guardar el perfil.');
+             console.error(e);
+           } finally {
+             setSyncing(false);
+           }
         }}
       >
         <Text style={AppStyles.glowBtnOrangeText}>{syncing ? 'SINCRONIZANDO...' : 'Sincronizar Identidad'}</Text>
@@ -446,6 +590,22 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginBottom: 6
   },
+  generoBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    gap: 6,
+  },
+  generoText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
   goalBtn: {
     width: '48%',
     padding: 18,
@@ -521,5 +681,22 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     backgroundColor: 'white'
+  },
+  vaultLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(0, 209, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: AppColors.primaryNeonBlue + '30'
+  },
+  vaultLinkText: {
+    color: AppColors.primaryNeonBlue,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1
   }
 });

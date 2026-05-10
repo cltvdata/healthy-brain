@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 5.9.3",
+    "version": ">= 18.9.1",
     "appVersionSource": "remote"
   },
   "build": {
@@ -9,13 +9,11 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
-      }
+      "distribution": "internal"
     },
-    "production": {}
+    "production": {
+      "autoIncrement": true
+    }
   },
   "submit": {
     "production": {}

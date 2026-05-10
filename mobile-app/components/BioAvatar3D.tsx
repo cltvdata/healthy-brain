@@ -61,7 +61,7 @@ export default function BioAvatar3D({ size = 200, glowColor = AppColors.primaryN
       {/* Hero Image (The 3D Wireframe) */}
       <Animated.View style={{ transform: [{ rotateY: spin }] }}>
          <Image 
-           source={require('../../bio_avatar_wireframe_3d_1776564940890.png')} 
+           source={require('../assets/anatomy/torso.jpg')} 
            style={{ width: size, height: size, resizeMode: 'contain' }}
          />
       </Animated.View>

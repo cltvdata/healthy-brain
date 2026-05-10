@@ -40,20 +40,15 @@ export const BioInteractiveBackground: React.FC<BioInteractiveBackgroundProps> =
   }, [isAnimating, type]);
 
   const getSource = () => {
-    try {
-      switch (type) {
-        case 'brain':
-          return require('../assets/images/placeholder_brain.png'); // Default if not found
-        case 'lungs':
-          return require('../assets/images/placeholder_lungs.png');
-        case 'muscles':
-          return require('../assets/images/placeholder_muscles.png');
-        default:
-          return null;
-      }
-    } catch (e) {
-      console.warn("Bio-Atlas Assets not found. Falling back to symbols.");
-      return null;
+    switch (type) {
+      case 'brain':
+        return require('../assets/anatomy/brain.jpg');
+      case 'lungs':
+        return require('../assets/anatomy/respiratory.jpg');
+      case 'muscles':
+        return require('../assets/anatomy/torso.jpg');
+      default:
+        return require('../assets/anatomy/brain.jpg');
     }
   };
 
