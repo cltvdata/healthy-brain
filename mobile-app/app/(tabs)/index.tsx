@@ -61,11 +61,10 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [shields, setShields] = useState(0);
   const [showProtection, setShowProtection] = useState(false);
-  const [activeTournament, setActiveTournament] = useState<any>(null);
   const bannerRef = React.useRef<BioBannerRef>(null);
 
-  // Animations
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  // Ticker Animation
+  const [tickerIndex, setTickerIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -81,26 +80,7 @@ export default function HomeScreen() {
     
     cycleTicker();
     const interval = setInterval(cycleTicker, 6500);
-
-    // Pulse Animation for AtlasOrganico
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.03, duration: 2000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Tournament Listener
-    const unsubTournament = onSnapshot(doc(db, 'tournaments', 'grand_prix_current'), (snap) => {
-      if (snap.exists()) {
-        setActiveTournament(snap.data());
-      }
-    });
-
-    return () => {
-      clearInterval(interval);
-      unsubTournament();
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const handleSync = async () => {
@@ -385,15 +365,6 @@ export default function HomeScreen() {
               <Ionicons name="shield-half" size={14} color={AppColors.primaryNeonBlue} />
               <Text style={{ color: AppColors.primaryNeonBlue, fontWeight: 'bold', fontSize: 11 }}>{shields} ESCUDOS</Text>
            </View>
-           {activeTournament && (
-             <TouchableOpacity 
-               onPress={() => router.push('/torneos')}
-               style={[styles.statusBadge, { backgroundColor: 'rgba(255, 138, 0, 0.05)', borderColor: 'rgba(255, 138, 0, 0.3)' }]}
-             >
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: AppColors.primaryOrange }} />
-                <Text style={{ color: AppColors.primaryOrange, fontWeight: '900', fontSize: 10 }}>BIO-GP: {activeTournament.status === 'enrollment' ? 'INSCRIPCIÓN' : 'EN CURSO'}</Text>
-             </TouchableOpacity>
-           )}
         </View>
       </View>
 
@@ -482,9 +453,7 @@ export default function HomeScreen() {
          </TouchableOpacity>
       </View>
 
-      <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-        <AtlasOrganico hrv={hrv} score={score} />
-      </Animated.View>
+      <AtlasOrganico hrv={hrv} score={score} />
 
       {/* Navigation Cluster */}
       <View style={styles.navCluster}>

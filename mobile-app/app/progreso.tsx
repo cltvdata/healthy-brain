@@ -7,6 +7,7 @@ import Svg, { Polygon, Line, Circle, Polyline } from 'react-native-svg';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { router } from 'expo-router';
 import { collection, query, orderBy, limit, onSnapshot, doc, getDocs, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, doc, getDocs, where, Timestamp } from 'firebase/firestore';
 import { BioHeatmap } from '@/components/HistoryCharts';
 import { NativeHealthService, BioMetrics } from '@/services/NativeHealthService';
 import { BioScoreService } from '@/services/BioScoreService';

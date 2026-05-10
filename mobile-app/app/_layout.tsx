@@ -1,38 +1,18 @@
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import * as Sentry from '@sentry/react-native';
 import { LanguageProvider } from '@/context/LanguageContext';
-import { useEffect } from 'react';
-import { auth } from '@/constants/FirebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
-
-Sentry.init({
-  dsn: '', // Reemplaza con tu DSN real de sentry.io cuando tengas una cuenta
-  debug: false,
-  enabled: false, // Deshabilitar hasta configurar DSN real
-});
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default Sentry.wrap(function RootLayout() {
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.replace('/login' as any);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
+export default function RootLayout() {
   return (
     <LanguageProvider>
       <ThemeProvider value={DarkTheme}>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="login" options={{ headerShown: false, animation: 'fade' }} />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="progreso" />
           <Stack.Screen name="pagos" />
@@ -63,5 +43,5 @@ export default Sentry.wrap(function RootLayout() {
       </ThemeProvider>
     </LanguageProvider>
   );
-});
+}
 

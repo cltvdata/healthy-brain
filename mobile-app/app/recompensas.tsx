@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, onSnapshot, runTransaction } from 'firebase/firestore';
 import { Share, Clipboard } from 'react-native';
-import { BioEconomy, NTK_PACKS } from '@/constants/BioEconomy';
+import { BioEconomy } from '@/constants/BioEconomy';
 
 const { width } = Dimensions.get('window');
 
@@ -45,10 +45,10 @@ export default function RecompensasScreen() {
       const userRef = doc(db, 'users', auth.currentUser.uid);
       await runTransaction(db, async (transaction) => {
         const userDoc = await transaction.get(userRef);
-        if (!userDoc.exists()) throw new Error("User doc missing");
+        if (!userDoc.exists()) throw "User doc missing";
         
         const currentBalance = userDoc.data().ntkBalance || 0;
-        if (currentBalance < price) throw new Error("Saldo insuficiente");
+        if (currentBalance < price) throw "Saldo insuficiente";
 
         const updateData: any = { ntkBalance: currentBalance - price };
 
@@ -139,7 +139,7 @@ export default function RecompensasScreen() {
         
         <TouchableOpacity 
           style={[AppStyles.glassCard, { padding: 15, marginBottom: 10, flexDirection: 'row', alignItems: 'center' }]}
-          onPress={() => require('react-native').Linking.openURL(NTK_PACKS[0].squareUrl!)}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/p1C6yuV3')}
         >
           <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: 'rgba(255, 138, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
              <Ionicons name="battery-charging" size={24} color={AppColors.primaryOrange} />
@@ -153,7 +153,7 @@ export default function RecompensasScreen() {
 
         <TouchableOpacity 
           style={[AppStyles.glassCard, { padding: 15, marginBottom: 10, flexDirection: 'row', alignItems: 'center', borderColor: AppColors.primaryBioGreen, borderWidth: 1 }]}
-          onPress={() => require('react-native').Linking.openURL(NTK_PACKS[1].squareUrl!)}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/GIHh27Y0')}
         >
           <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: 'rgba(0, 209, 255, 0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
              <Ionicons name="battery-full" size={24} color={AppColors.primaryBioGreen} />
@@ -168,7 +168,7 @@ export default function RecompensasScreen() {
 
         <TouchableOpacity 
           style={[AppStyles.glassCard, { padding: 15, marginBottom: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 138, 0, 0.1)' }]}
-          onPress={() => require('react-native').Linking.openURL(NTK_PACKS[2].squareUrl!)}
+          onPress={() => require('react-native').Linking.openURL('https://square.link/u/vx2qZn8R')}
         >
           <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: AppColors.primaryOrange, alignItems: 'center', justifyContent: 'center', marginRight: 15 }}>
              <Ionicons name="trophy" size={24} color="black" />

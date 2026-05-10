@@ -9,7 +9,6 @@ import {
   setDoc, updateDoc, arrayUnion, serverTimestamp, 
   onSnapshot, limit, orderBy
 } from 'firebase/firestore';
-import { SynergyService } from '@/services/SynergyService';
 
 const { width } = Dimensions.get('window');
 
@@ -168,31 +167,16 @@ export default function EscuadronesScreen() {
               <TouchableOpacity 
                 style={[AppStyles.glowBtnBioGreen, uploadingEvidence && { opacity: 0.7 }]}
                 disabled={uploadingEvidence}
-                onPress={async () => {
+                onPress={() => {
                   setUploadingEvidence(true);
-                  try {
-                    // Simulate processing
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    if (auth.currentUser) {
-                      // postAchievement internally calls rewardUser
-                      await SynergyService.postAchievement(
-                        'evidence',
-                        `Ha validado un hito biográfico mediante bio-evidencia ${isPublic ? 'pública' : 'de escuadrón'}.`,
-                        25
-                      );
-                    }
-
-                    Alert.alert("¡Evidencia Subida!", `Tu logro ha sido compartido con el alcance: ${isPublic ? 'Público' : 'Escuadrón'}. Has ganado 25 NTK.`);
-                  } catch (e) {
-                    Alert.alert("Error", "No se pudo procesar la evidencia.");
-                  } finally {
+                  setTimeout(() => {
                     setUploadingEvidence(false);
-                  }
+                    Alert.alert("¡Evidencia Subida!", `Tu logro ha sido compartido con el alcance: ${isPublic ? 'Público' : 'Escuadrón'}.`);
+                  }, 2000);
                 }}
               >
                 <Text style={AppStyles.glowBtnBioGreenText}>
-                  {uploadingEvidence ? 'VALIDANDO...' : 'SUBIR BIO-EVIDENCIA'}
+                  {uploadingEvidence ? 'SUBIENDO...' : 'SUBIR BIO-EVIDENCIA'}
                 </Text>
               </TouchableOpacity>
             </View>

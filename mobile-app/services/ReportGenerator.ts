@@ -1,4 +1,5 @@
 import { auth, db } from '@/constants/FirebaseConfig';
+import { auth, db } from '@/constants/FirebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 export interface BioReport {
