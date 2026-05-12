@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "categories": {
+    "respiracion": {
+      "name": "Respiración",
+      "icon": "air",
+      "exercises": [
+        { "id": "box-4-4-4-4", "name": "Box Breathing 4-4-4-4", "duration": "4 min", "file": "respiracion/box-breathing-4-4-4-4.svg", "benefits": "Reduce estrés, mejora enfoque" },
+        { "id": "respiracion-4-7-8", "name": "Respiración 4-7-8", "duration": "5 min", "file": "respiracion/respiracion-4-7-8.svg", "benefits": "Ansiolítico natural, mejor sueño" }
+      ]
+    },
+    "fuerza": {
+      "name": "Fuerza",
+      "icon": "fitness_center",
+      "exercises": [
+        { "id": "sentadilla", "name": "Sentadilla", "sets": 3, "reps": 12, "file": "fuerza/sentadilla.svg", "muscles": "Cuádriceps, Glúteos" },
+        { "id": "flexiones", "name": "Flexiones", "sets": 3, "reps": 10, "file": "fuerza/flexiones.svg", "muscles": "Pectorales, Tríceps" },
+        { "id": "plancha", "name": "Plancha", "sets": 3, "reps": "30-60s", "file": "fuerza/plancha.svg", "muscles": "Core, Abdominales" },
+        { "id": "peso-muerto", "name": "Peso Muerto", "sets": 4, "reps": 8, "file": "fuerza/peso-muerto.svg", "muscles": "Espalda, Piernas" }
+      ]
+    },
+    "estiramiento": {
+      "name": "Estiramiento",
+      "icon": "self_improvement",
+      "exercises": []
+    }
+  }
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <g>
+    <animateTransform attributeName="transform" type="rotate" values="0 100 140; -20 100 140; 0 100 140" dur="2s" repeatCount="indefinite"/>
+    <rect x="40" y="130" width="120" height="20" rx="10" fill="#00d1ff"/>
+    <circle cx="60" cy="120" r="10" fill="#00d1ff"/>
+    <rect x="55" y="90" width="10" height="35" rx="3" fill="#00d1ff"/>
+    <circle cx="140" cy="120" r="10" fill="#00d1ff"/>
+    <rect x="135" y="85" width="10" height="40" rx="3" fill="#00d1ff"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" fill="#00d1ff" font-family="Outfit" font-size="11">PUSH-UP</text>
+  <text x="100" y="195" text-anchor="middle" fill="#666" font-family="Outfit" font-size="9">3x10 repeticiones</text>
+</svg>

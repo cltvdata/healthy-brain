@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="glow2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#13ec5b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00d1ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <circle cx="100" cy="100" r="30" fill="none" stroke="url(#glow2)" stroke-width="4">
+    <animate attributeName="r" values="25;60;25;60;25" dur="19s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="1;0.5;1;0.5;1" dur="19s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="100" r="50" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="5,5">
+    <animate attributeName="stroke-dashoffset" values="0;-100" dur="10s" repeatCount="indefinite"/>
+  </circle>
+  <text x="100" y="180" text-anchor="middle" fill="#13ec5b" font-family="Outfit" font-size="12">4-7-8 BREATHING</text>
+  <text x="100" y="195" text-anchor="middle" fill="#666" font-family="Outfit" font-size="10">Inhale 4s • Hold 7s • Exhale 8s</text>
+</svg>

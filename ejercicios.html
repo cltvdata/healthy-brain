@@ -210,13 +210,15 @@
                         class="material-symbols-outlined font-black">close</span></button>
             </div>
 
-            <!-- Video Player Placeholder -->
+            <!-- Exercise Animation -->
             <div
-                class="w-full aspect-video bg-white/2 rounded-3xl mb-8 relative overflow-hidden group border border-white/10 flex items-center justify-center">
-                <div class="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent"></div>
-                <div
-                    class="w-16 h-16 rounded-full bg-primary text-dark flex items-center justify-center relative z-10 hover:scale-110 transition-all cursor-pointer shadow-xl">
-                    <span class="material-symbols-outlined text-[32px] font-black ml-1">play_arrow</span>
+                class="w-full aspect-video bg-white/2 rounded-3xl mb-8 relative overflow-hidden group border border-white/10 flex items-center justify-center overflow-hidden">
+                <img id="modal-exercise-gif" src="" alt="Exercise Animation" class="w-full h-full object-contain p-4 hidden">
+                <div id="exercise-placeholder" class="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-6xl text-primary/30">fitness_center</span>
+                        <p class="text-white/30 text-xs mt-2 font-medium">Animación del ejercicio</p>
+                    </div>
                 </div>
             </div>
 
@@ -382,6 +384,28 @@
             document.getElementById('modal-muscles').innerText = ex.muscles;
             document.getElementById('modal-level').innerText = ex.level;
             document.getElementById('modal-benefits').innerText = `"${ex.benefits}"`;
+
+            // Load Exercise GIF
+            const exerciseGif = document.getElementById('modal-exercise-gif');
+            const placeholder = document.getElementById('exercise-placeholder');
+            const exerciseMap = {
+                'Sentadilla': 'assets/ejercicios/fuerza/sentadilla.svg',
+                'Flexiones': 'assets/ejercicios/fuerza/flexiones.svg',
+                'Plancha': 'assets/ejercicios/fuerza/plancha.svg',
+                'Peso Muerto': 'assets/ejercicios/fuerza/peso-muerto.svg',
+                'Box Breathing': 'assets/ejercicios/respiracion/box-breathing-4-4-4-4.svg',
+                '4-7-8': 'assets/ejercicios/respiracion/respiracion-4-7-8.svg',
+                'Respiración': 'assets/ejercicios/respiracion/box-breathing-4-4-4-4.svg'
+            };
+            const gifSrc = Object.keys(exerciseMap).find(k => ex.name.includes(k));
+            if (gifSrc) {
+                exerciseGif.src = exerciseMap[gifSrc];
+                exerciseGif.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                exerciseGif.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
 
             // Anatomical Mapping
             const anatomyImg = document.getElementById('modal-anatomy-img');

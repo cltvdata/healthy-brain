@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <g>
+    <animateTransform attributeName="transform" type="rotate" values="0 100 130; 15 100 130; 0 100 130" dur="3s" repeatCount="indefinite"/>
+    <line x1="70" y1="130" x2="130" y2="130" stroke="#ff3366" stroke-width="6" stroke-linecap="round"/>
+    <rect x="95" y="120" width="10" height="20" rx="2" fill="#666"/>
+    <circle cx="65" cy="125" r="6" fill="#ff3366"/>
+    <circle cx="135" cy="125" r="6" fill="#ff3366"/>
+    <rect x="90" y="70" width="20" height="55" rx="4" fill="#ff3366"/>
+    <circle cx="100" cy="55" r="12" fill="#ff3366"/>
+    <line x1="75" y1="110" x2="60" y2="70" stroke="#ff3366" stroke-width="4" stroke-linecap="round"/>
+    <line x1="125" y1="110" x2="140" y2="70" stroke="#ff3366" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" fill="#ff3366" font-family="Outfit" font-size="11">DEADLIFT</text>
+  <text x="100" y="195" text-anchor="middle" fill="#666" font-family="Outfit" font-size="9">4x8 repeticiones</text>
+</svg>

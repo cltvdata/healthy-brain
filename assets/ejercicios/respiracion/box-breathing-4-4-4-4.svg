@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d1ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8a00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="#0a0a0a"/>
+  <rect x="40" y="40" width="120" height="120" fill="none" stroke="url(#glow)" stroke-width="3" rx="10">
+    <animate attributeName="width" values="40;120;40;120;40" dur="16s" repeatCount="indefinite"/>
+    <animate attributeName="height" values="40;120;40;120;40" dur="16s" repeatCount="indefinite"/>
+    <animate attributeName="x" values="80;40;80;40;80" dur="16s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="80;40;80;40;80" dur="16s" repeatCount="indefinite"/>
+  </rect>
+  <text x="100" y="180" text-anchor="middle" fill="#00d1ff" font-family="Outfit" font-size="12">BOX BREATHING 4-4-4-4</text>
+  <text x="100" y="195" text-anchor="middle" fill="#666" font-family="Outfit" font-size="10">Inhale • Hold • Exhale • Hold</text>
+</svg>
