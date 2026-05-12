@@ -14,6 +14,13 @@
     <link rel="stylesheet" href="assets/css/haptic-debug.css">
     <link rel="stylesheet" href="assets/css/master-control.css">
     <link rel="stylesheet" href="assets/css/bio-dashboard.css">
+    <style>
+      #bio-age-badge { animation: pulse-glow 2s infinite; }
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(255, 138, 0, 0.3); }
+        50% { box-shadow: 0 0 15px rgba(255, 138, 0, 0.6); }
+      }
+    </style>
     
     <!-- Firebase Cloud Infrastructure (Fase 20) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -92,10 +99,17 @@
                 <p id="greeting" class="text-xs text-text-gray font-medium mb-1" data-i18n="greeting">Buenos días, Guerrero</p>
                 <h1 class="text-xl font-extrabold tracking-tight">H + B <span class="text-primary">PREMIUM</span></h1>
             </div>
-            <a href="perfil-setup.html"
-                class="h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg">
-                <span class="material-symbols-outlined text-text-gray">person</span>
-            </a>
+            <div class="flex gap-2">
+                <button onclick="window.dataSourceManager.showModal()"
+                    class="h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-neon transition-all shadow-lg"
+                    title="Fuentes de Datos">
+                    <span class="material-symbols-outlined text-neon">sync</span>
+                </button>
+                <a href="perfil-setup.html"
+                    class="h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg">
+                    <span class="material-symbols-outlined text-text-gray">person</span>
+                </a>
+            </div>
         </header>
 
         <!-- Profile / Gamification Section -->
@@ -106,6 +120,9 @@
                         class="px-2 py-0.5 bg-neon/20 text-neon rounded-md text-[10px] font-bold uppercase tracking-widest border border-neon/30">LVL
                         1</span>
                     <span id="user-xp-text" class="text-[10px] text-text-gray font-bold uppercase">450 / 1000 XP</span>
+                    <span id="bio-age-badge" class="px-2 py-0.5 bg-primary/20 text-primary rounded-md text-[10px] font-bold uppercase tracking-widest border border-primary/30 hidden">
+                        Bio: --
+                    </span>
                 </div>
                 <div class="flex items-center gap-2">
                     <div id="streak-container" class="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
@@ -1474,6 +1491,23 @@
         </div>
     </div>
 
+<script>
+        // Initialize Bio-Age display
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.healthIntegrator) {
+                    var profile = window.healthIntegrator.userProfile;
+                    var badge = document.getElementById('bio-age-badge');
+                    if (badge && profile.biologicalAge) {
+                        badge.classList.remove('hidden');
+                        var diff = profile.biologicalAge - profile.age;
+                        var diffText = diff > 0 ? '+' + diff : diff;
+                        badge.innerHTML = 'Bio: ' + profile.biologicalAge + ' <span class="text-[8px]">(' + diffText + ')</span>';
+                    }
+                }
+            }, 3000);
+        });
+    </script>
 </body>
 
 </html>
