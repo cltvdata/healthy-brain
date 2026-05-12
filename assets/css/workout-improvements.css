@@ -1,0 +1,286 @@
+/* Workout Improvements - Based on Jefit Reviews */
+
+.quick-input-container {
+  background: rgba(18, 18, 18, 0.95);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(255, 138, 0, 0.2);
+}
+
+.quick-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.quick-input-group {
+  flex: 1;
+}
+
+.quick-input-label {
+  display: block;
+  font-size: 9px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.quick-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.quick-input:focus {
+  border-color: #ff8a00;
+  outline: none;
+  box-shadow: 0 0 10px rgba(255, 138, 0, 0.3);
+}
+
+.quick-complete-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #13ec5b, #00d1ff);
+  border: none;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.quick-complete-btn:active {
+  transform: scale(0.95);
+}
+
+/* Rest Timer Display */
+#rest-timer-display {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 138, 0, 0.9);
+  color: #000;
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 32px;
+  font-weight: 800;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(255, 138, 0, 0.5);
+}
+
+#rest-timer-display.hidden {
+  display: none;
+}
+
+/* History Quick Button */
+.history-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 209, 255, 0.1);
+  border: 1px solid rgba(0, 209, 255, 0.3);
+  border-radius: 8px;
+  color: #00d1ff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.history-quick-btn:hover {
+  background: rgba(0, 209, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.history-quick-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* 1RM Display */
+.one-rm-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 138, 0, 0.1);
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.one-rm-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.one-rm-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ff8a00;
+}
+
+/* History Modal */
+.history-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.history-modal-content {
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 350px;
+  overflow: hidden;
+}
+
+.history-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff8a00, #ff3366);
+}
+
+.history-modal-header h3 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.history-modal-header button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.history-modal-body {
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.history-date {
+  color: #666;
+  font-size: 12px;
+}
+
+.history-data {
+  color: #00d1ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Workout Summary Bar */
+.workout-summary-bar {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #0a0a0a;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  justify-content: space-around;
+}
+
+.summary-item {
+  text-align: center;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ff8a00;
+}
+
+.summary-label {
+  font-size: 9px;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Floating Weight Display */
+.floating-weight {
+  position: fixed;
+  top: 100px;
+  right: 16px;
+  background: rgba(255, 138, 0, 0.9);
+  color: #000;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(255, 138, 0, 0.4);
+  z-index: 100;
+  display: none;
+}
+
+.floating-weight.visible {
+  display: block;
+}
+
+.floating-weight .weight-value {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Auto-save indicator */
+.auto-save-indicator {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  padding: 6px 12px;
+  background: rgba(19, 236, 91, 0.2);
+  border: 1px solid #13ec5b;
+  border-radius: 20px;
+  color: #13ec5b;
+  font-size: 10px;
+  font-weight: 600;
+  display: none;
+  z-index: 100;
+}
+
+.auto-save-indicator.visible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: fadeInOut 2s;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  20%, 80% { opacity: 1; }
+}

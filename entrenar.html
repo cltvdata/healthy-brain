@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    <link rel="stylesheet" href="assets/css/workout-improvements.css">
     
     <!-- Cloud & 3D Infrastructure -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -18,6 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/jefit-engine.js"></script>
+    <script src="js/workout-improvements.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -80,6 +82,16 @@
 </head>
 
 <body class="bg-dark text-white min-h-screen">
+    <!-- Workout Improvement UI Elements -->
+    <div id="rest-timer-display" class="hidden">0</div>
+    <div id="auto-save-indicator" class="auto-save-indicator">
+        <span class="material-symbols-outlined" style="font-size:12px">check_circle</span>
+        Auto-guardado
+    </div>
+    <div id="floating-weight" class="floating-weight">
+        <div class="weight-value">0 kg</div>
+        <div style="font-size:10px">Peso actual</div>
+    </div>
     <div
         class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-24 shadow-2xl border-x border-white/5">
 
