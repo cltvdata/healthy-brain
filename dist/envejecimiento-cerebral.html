@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Envejecimiento Cerebral · HEALTHY + BRAIN</title>
+    <meta name="description" content="Comprende y revierte el envejecimiento celular con protocolos de longevidad basados en ciencia.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        'bio-green': '#13ec5b',
+                        'bio-orange': '#ff8a00',
+                        dark: '#0a0a0a',
+                        surface: '#121212',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .age-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1);
+        }
+        .protocol-pill {
+            background: rgba(255,138,0,0.08);
+            border: 1px solid rgba(255,138,0,0.2);
+            border-radius: 100px;
+            transition: all 0.25s;
+        }
+        .protocol-pill:hover {
+            background: rgba(255,138,0,0.15);
+            border-color: rgba(255,138,0,0.5);
+        }
+        .glow-orange { box-shadow: 0 0 20px rgba(255,138,0,0.3); }
+        .glow-neon   { box-shadow: 0 0 20px rgba(0,209,255,0.3); }
+        .stat-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+        .stat-fill { height: 100%; border-radius: 10px; transition: width 1.4s ease-out; }
+
+        @keyframes float-slow {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .float-anim { animation: float-slow 5s ease-in-out infinite; }
+
+        @keyframes tick { 0%,100% { opacity:1; } 50% { opacity:0; } }
+        .blink { animation: tick 1s infinite; }
+    </style>
+</head>
+
+<body class="text-white min-h-screen">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col pb-28 border-x border-white/5 shadow-2xl overflow-x-hidden"
+         style="background: radial-gradient(circle at 10% 20%, rgba(255,138,0,0.07) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0,209,255,0.05) 0%, transparent 40%), #0a0a0a;">
+
+        <!-- Header -->
+        <header class="flex items-center gap-4 p-6 sticky top-0 bg-dark/80 backdrop-blur-xl z-50 border-b border-white/5">
+            <a href="soberania-biologica.html"
+               class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all shrink-0">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div>
+                <h1 class="text-xl font-black uppercase italic tracking-tighter leading-tight">
+                    Longevidad <span class="text-primary italic">Cerebral</span>
+                </h1>
+                <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mt-0.5">Glicación · Senescencia · NAD+</p>
+            </div>
+            <div class="ml-auto flex items-center gap-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-bio-green animate-pulse"></div>
+                <span class="text-[8px] font-black text-bio-green uppercase">Live</span>
+            </div>
+        </header>
+
+        <main class="flex-1 px-5 pt-4 no-scrollbar overflow-y-auto">
+
+            <!-- Bio-Age Clock -->
+            <section class="mb-8">
+                <div class="glass-card p-6 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden relative">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="flex items-center gap-5">
+                        <!-- Circular gauge -->
+                        <div class="relative shrink-0 float-anim">
+                            <svg width="90" height="90" viewBox="0 0 90 90">
+                                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>
+                                <circle id="age-ring" cx="45" cy="45" r="38" fill="none"
+                                        stroke="#ff8a00" stroke-width="6" stroke-linecap="round"
+                                        stroke-dasharray="239" stroke-dashoffset="60"
+                                        class="age-ring" style="filter:drop-shadow(0 0 8px rgba(255,138,0,0.6))"/>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <p id="bio-age-num" class="text-2xl font-black text-primary leading-none">32</p>
+                                <p class="text-[7px] font-black text-white/30 uppercase">Bio-Edad</p>
+                            </div>
+                        </div>
+                        <!-- Copy -->
+                        <div class="flex-1">
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Edad Cronológica vs. Biológica</p>
+                            <p class="text-3xl font-black text-white italic leading-none mb-2">-3 <span class="text-[13px] text-white/40 not-italic font-bold">años ↓</span></p>
+                            <p class="text-[10px] text-white/50 leading-relaxed">Tu cerebro funciona <span class="text-bio-green font-bold">3 años más joven</span> que tu edad cronológica.</p>
+                            <div class="mt-3 flex gap-2">
+                                <span class="protocol-pill px-3 py-1 text-[9px] font-black text-primary uppercase">NMN ✓</span>
+                                <span class="protocol-pill px-3 py-1 text-[9px] font-black text-primary uppercase">Ayuno ✓</span>
+                                <span class="protocol-pill px-3 py-1 text-[9px] font-black text-primary uppercase">HRV ✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Glycation Meter -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Índice de Glicación</h3>
+                    <span class="text-[9px] font-black text-bio-green uppercase">Óptimo</span>
+                </div>
+                <div class="glass-card p-5">
+                    <div class="flex items-end gap-4 mb-4">
+                        <div>
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">HbA1c Estimado</p>
+                            <p class="text-4xl font-black text-white italic leading-none">5.2 <span class="text-[14px] text-white/40 font-bold not-italic">%</span></p>
+                        </div>
+                        <div class="flex-1 pb-1">
+                            <div class="flex justify-between text-[8px] text-white/30 font-bold mb-1">
+                                <span>Óptimo &lt;5.7</span><span>Riesgo &gt;6.5</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div class="stat-fill bg-gradient-to-r from-bio-green to-neon" style="width:52%" id="glyc-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mechanisms -->
+                    <div class="space-y-3 mt-5 pt-5 border-t border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings:'FILL' 1">warn</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-black uppercase">AGEs (Productos de glicación avanzada)</p>
+                                <p class="text-[9px] text-white/40">Se acumulan en colágeno, neuronas y vasos sanguíneos</p>
+                            </div>
+                            <span class="text-[9px] font-black text-bio-green">BAJO</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-neon/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-neon text-[16px]" style="font-variation-settings:'FILL' 1">science</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-black uppercase">Inflamación Sistémica (IL-6)</p>
+                                <p class="text-[9px] text-white/40">Marcador de estrés oxidativo crónico</p>
+                            </div>
+                            <span class="text-[9px] font-black text-bio-green">CTRL</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hallmarks of Brain Aging -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Vectores de Declive Neural</h3>
+                </div>
+                <div class="space-y-3">
+
+                    <!-- NAD+ Decline -->
+                    <div class="glass-card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1">battery_low</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1.5">
+                                <p class="text-[10px] font-black uppercase">Reserva NAD+</p>
+                                <span class="text-[9px] font-black text-primary">-50% a los 50</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div class="stat-fill bg-primary" style="width:70%"></div>
+                            </div>
+                            <p class="text-[8px] text-white/30 mt-1.5 uppercase tracking-wider">Stack: NMN 500mg + Resveratrol 500mg</p>
+                        </div>
+                    </div>
+
+                    <!-- Telomere Length -->
+                    <div class="glass-card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-neon/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-neon text-[18px]" style="font-variation-settings:'FILL' 1">dna</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1.5">
+                                <p class="text-[10px] font-black uppercase">Longitud Telomérica</p>
+                                <span class="text-[9px] font-black text-neon">ÓPTIMA</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div class="stat-fill bg-neon" style="width:82%"></div>
+                            </div>
+                            <p class="text-[8px] text-white/30 mt-1.5 uppercase tracking-wider">Favorecido por: Ayuno + Ejercicio</p>
+                        </div>
+                    </div>
+
+                    <!-- Mitophaghy -->
+                    <div class="glass-card p-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-bio-green/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-bio-green text-[18px]" style="font-variation-settings:'FILL' 1">recycle</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1.5">
+                                <p class="text-[10px] font-black uppercase">Autofagia / Mitofagia</p>
+                                <span class="text-[9px] font-black text-bio-green">ACTIVA</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div class="stat-fill bg-bio-green" style="width:65%"></div>
+                            </div>
+                            <p class="text-[8px] text-white/30 mt-1.5 uppercase tracking-wider">Activada por: Ayuno IF 18:6</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Anti-Aging Protocol Stack -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Stack de Longevidad</h3>
+                    <span class="text-[9px] text-primary font-black uppercase">Sinclair · Rhonda Patrick</span>
+                </div>
+                <div class="glass-card p-5 space-y-4">
+
+                    <div id="stack-list" class="space-y-3">
+                        <!-- Items rendered by JS -->
+                    </div>
+
+                    <button onclick="toggleAllStack()" class="w-full mt-2 py-3 bg-primary/10 border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all text-primary hover:bg-primary/20">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        Marcar Todo Como Tomado
+                    </button>
+                </div>
+            </section>
+
+            <!-- Danger Accelerators -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Aceleradores de Edad</h3>
+                    <span class="text-[9px] text-red-400 font-black uppercase blink">⚠ Evitar</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="glass-card p-4 border-red-500/10 bg-red-500/3">
+                        <span class="material-symbols-outlined text-red-400 text-[22px]" style="font-variation-settings:'FILL' 1">water_drop</span>
+                        <p class="text-[11px] font-black uppercase mt-2">Azúcar Libre</p>
+                        <p class="text-[9px] text-white/40 mt-1">AGE + Glicación directa</p>
+                    </div>
+                    <div class="glass-card p-4 border-red-500/10 bg-red-500/3">
+                        <span class="material-symbols-outlined text-red-400 text-[22px]" style="font-variation-settings:'FILL' 1">bedtime</span>
+                        <p class="text-[11px] font-black uppercase mt-2">Sueño &lt;7h</p>
+                        <p class="text-[9px] text-white/40 mt-1">Limpieza glinfática fallida</p>
+                    </div>
+                    <div class="glass-card p-4 border-orange-500/10 bg-orange-500/3">
+                        <span class="material-symbols-outlined text-primary text-[22px]" style="font-variation-settings:'FILL' 1">smoking_rooms</span>
+                        <p class="text-[11px] font-black uppercase mt-2">Estrés Crónico</p>
+                        <p class="text-[9px] text-white/40 mt-1">Cortisol → Hipocampo</p>
+                    </div>
+                    <div class="glass-card p-4 border-orange-500/10 bg-orange-500/3">
+                        <span class="material-symbols-outlined text-primary text-[22px]" style="font-variation-settings:'FILL' 1">no_food</span>
+                        <p class="text-[11px] font-black uppercase mt-2">Ultra-procesados</p>
+                        <p class="text-[9px] text-white/40 mt-1">Inflamación neuro-vascular</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Nav -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-dark/60 backdrop-blur-xl border-t border-white/5 z-50 pt-3 pb-8 px-8">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="text-[8px] font-bold uppercase">Lobby</span>
+                </a>
+                <a href="entrenar.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                    <span class="text-[8px] font-bold uppercase">Gimnasio</span>
+                </a>
+                <a href="soberania-biologica.html" class="flex flex-col items-center gap-1 text-primary scale-110">
+                    <div class="w-1 h-1 rounded-full bg-primary mb-1"></div>
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">analytics</span>
+                    <span class="text-[8px] font-black uppercase">Bio-Score</span>
+                </a>
+                <a href="recompensas.html" class="flex flex-col items-center gap-1 text-gray-500">
+                    <span class="material-symbols-outlined">redeem</span>
+                    <span class="text-[8px] font-bold uppercase">Market</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // ─── Longevity Stack Engine ───────────────────────────────────────────
+        const STACK = [
+            { id: 'nmn',    name: 'NMN',           dose: '500 mg · AM · Ayunas', icon: 'flask',     color: '#ff8a00' },
+            { id: 'resv',   name: 'Resveratrol',    dose: '500 mg · AM · Grasa',  icon: 'eco',       color: '#13ec5b' },
+            { id: 'caakg',  name: 'Ca-AKG',         dose: '1g · PM',              icon: 'science',   color: '#00d1ff' },
+            { id: 'omega',  name: 'Omega-3 DHA',    dose: '2g · Comida',          icon: 'water',     color: '#00d1ff' },
+            { id: 'vitamd', name: 'Vitamina D3/K2', dose: '5000 UI · Mañana',     icon: 'wb_sunny',  color: '#ff8a00' },
+        ];
+
+        const takenKey = 'hb_longev_taken_' + new Date().toDateString();
+        let taken = JSON.parse(localStorage.getItem(takenKey) || '[]');
+
+        function renderStack() {
+            const list = document.getElementById('stack-list');
+            list.innerHTML = STACK.map(s => {
+                const isDone = taken.includes(s.id);
+                return `
+                <div onclick="toggleItem('${s.id}')" id="si-${s.id}"
+                     class="flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all ${isDone ? 'bg-bio-green/8 border border-bio-green/20' : 'bg-white/3 border border-white/5 hover:border-white/10'}">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:${s.color}18">
+                        <span class="material-symbols-outlined text-[15px]" style="color:${s.color};font-variation-settings:'FILL' 1">${s.icon}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-[10px] font-black uppercase">${s.name}</p>
+                        <p class="text-[8px] text-white/40 uppercase tracking-wider">${s.dose}</p>
+                    </div>
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center ${isDone ? 'bg-bio-green text-dark' : 'bg-white/5 text-white/20'}">
+                        <span class="material-symbols-outlined text-[14px]">${isDone ? 'check' : 'add'}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleItem(id) {
+            if (taken.includes(id)) {
+                taken = taken.filter(x => x !== id);
+            } else {
+                taken.push(id);
+            }
+            localStorage.setItem(takenKey, JSON.stringify(taken));
+            renderStack();
+
+            // NTK reward on first supplement of day
+            if (taken.length === 1 && window.hb_auth?.currentUser) {
+                window.hb_db?.collection('users').doc(window.hb_auth.currentUser.uid)
+                    .update({ ntkBalance: firebase.firestore.FieldValue.increment(10) })
+                    .catch(() => {});
+            }
+        }
+
+        function toggleAllStack() {
+            if (taken.length === STACK.length) {
+                taken = [];
+            } else {
+                taken = STACK.map(s => s.id);
+            }
+            localStorage.setItem(takenKey, JSON.stringify(taken));
+            renderStack();
+        }
+
+        // ─── Bio-Age Clock ───────────────────────────────────────────────────
+        function updateAgeClock(chronoAge, bioAge) {
+            const diff = chronoAge - bioAge;
+            const pct = Math.min(100, Math.max(0, (bioAge / (chronoAge + 20)) * 100));
+            const circumference = 239;
+            const offset = circumference * (1 - pct / 100);
+            document.getElementById('age-ring').style.strokeDashoffset = offset;
+            document.getElementById('bio-age-num').textContent = bioAge;
+        }
+
+        // ─── Init ─────────────────────────────────────────────────────────────
+        renderStack();
+        updateAgeClock(35, 32);
+    </script>
+</body>
+</html>

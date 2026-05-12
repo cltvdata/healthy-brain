@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visual Progress - HEALTHY + BRAIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    
+    <!-- Cloud & 3D Infrastructure (Fase 20 & 21) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                        surface: '#121212',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-mesh {
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 138, 0, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 209, 255, 0.05) 0%, transparent 40%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .stat-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+        }
+
+        .goal-mirror {
+            perspective: 1000px;
+        }
+
+        .mirror-content {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .overlay-animated {
+            animation: pulse-overlay 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-overlay {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .hotspot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 209, 255, 0.4);
+            border: 2px solid #00d1ff;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 30;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulse-hotspot 2s infinite;
+        }
+
+        .hotspot::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 1px solid #00d1ff;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .hotspot:hover {
+            transform: scale(1.4);
+            background: #00d1ff;
+            box-shadow: 0 0 15px #00d1ff;
+        }
+
+        .hotspot:hover::after {
+            inset: -8px;
+            opacity: 1;
+        }
+
+        .hotspot.active {
+            background: #ff8a00;
+            border-color: #ff8a00;
+            box-shadow: 0 0 20px #ff8a00;
+        }
+
+        @keyframes pulse-hotspot {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 209, 255, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(0, 209, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 209, 255, 0); }
+        }
+
+        .measurement-input:focus {
+            border-color: #ff8a00;
+            background: rgba(255, 138, 0, 0.05);
+            box-shadow: 0 0 15px rgba(255, 138, 0, 0.1);
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="bg-dark text-white min-h-screen bg-mesh">
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-10 border-x border-white/5 shadow-2xl">
+
+        <!-- Header -->
+        <header class="flex items-center gap-4 p-6 sticky top-0 bg-dark/80 backdrop-blur-xl z-50">
+            <a href="index.html"
+                class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all shrink-0">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div>
+                <h1 class="text-xl font-black uppercase italic tracking-tighter leading-tight">Evolución <span
+                        class="text-primary italic">Visual</span></h1>
+                <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mt-0.5">Bio-Meta 3D & Tracking
+                </p>
+            </div>
+        </header>
+
+        <main class="flex-1 px-6 pt-2 overflow-y-auto no-scrollbar">
+
+            <!-- 3D Goal Mirror Section -->
+            <section class="mb-8 relative">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Bio-Espejo Meta</h3>
+                    <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                        <button onclick="setGender('male')" id="btn-male" class="px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark">MALE</button>
+                        <button onclick="setGender('female')" id="id-female" class="px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40">FEMALE</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 relative overflow-hidden group">
+                    <!-- Background Glow -->
+                    <div class="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+                    
+                    <!-- 3D Main Render (Fase 21) -->
+                    <div id="3d-container" class="relative w-full aspect-[4/5] rounded-[20px] overflow-hidden bg-black/40 border border-white/5 cursor-grab active:cursor-grabbing">
+                        <canvas id="longevity-canvas" class="w-full h-full"></canvas>
+                        
+                        <!-- HUD Labels (Dynamic) -->
+                        <div class="absolute top-4 left-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 pointer-events-none">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div id="cloud-indicator" class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse"></div>
+                                <p class="text-[8px] font-black text-white/40 uppercase tracking-widest">Bio-Cloud Live</p>
+                            </div>
+                            <p id="hud-status" class="text-lg font-black text-primary leading-none uppercase italic">Optimizando...</p>
+                        </div>
+                        
+                        <div class="absolute bottom-4 right-4 p-3 bg-dark/60 backdrop-blur-md rounded-xl border border-white/10 text-right pointer-events-none">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Neuro-Tokens</p>
+                            <p id="hud-ntk" class="text-2xl font-black text-neon leading-none italic">---</p>
+                        </div>
+
+                        <!-- Interaction Hint -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div class="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full border border-white/5 text-[8px] font-black uppercase tracking-widest">Rotar / Zoom</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Biometric Measurements Form -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Métricas de Escala</h3>
+                    <div class="flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        <span class="text-[9px] font-black text-primary uppercase">Calculando Bio-IA</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 border-white/10">
+                    <div id="measure-form" class="grid grid-cols-2 gap-x-4 gap-y-6">
+                        <!-- Dynamically populated based on gender -->
+                    </div>
+                    <button onclick="saveMeasurements()" class="w-full mt-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                        Actualizar Biometría
+                        <span class="material-symbols-outlined text-[18px]">sync_saved_locally</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Impact Metrics -->
+            <section class="mb-8 grid grid-cols-2 gap-3">
+                <div class="glass-card p-5 border-neon/20 bg-neon/5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-neon text-[18px]">show_chart</span>
+                        <span class="text-[9px] font-black text-neon uppercase tracking-widest">Diferencial</span>
+                    </div>
+                    <p class="text-2xl font-black text-white italic">-12% <span class="text-[10px] text-white/40 not-italic uppercase tracking-normal">Grasa</span></p>
+                    <div class="stat-bar mt-3">
+                        <div class="stat-fill bg-neon w-[70%]"></div>
+                    </div>
+                </div>
+                <div class="glass-card p-5 border-primary/20 bg-primary/5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-primary text-[18px]">fitness_center</span>
+                        <span class="text-[9px] font-black text-primary uppercase tracking-widest">Músculo</span>
+                    </div>
+                    <p class="text-2xl font-black text-white italic">+4.5 <span class="text-[10px] text-white/40 not-italic uppercase tracking-normal">kg</span></p>
+                    <div class="stat-bar mt-3">
+                        <div class="stat-fill bg-primary w-[45%]"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Progress Section -->
+            <section class="mb-10">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Cargas de Evolución</h3>
+                    <span class="text-[10px] font-black text-primary uppercase">Última: Ayer</span>
+                </div>
+                
+                <div id="upload-zone" onclick="triggerUpload()" class="glass-card p-10 flex flex-col items-center justify-center border-dashed border-white/20 hover:border-primary/40 cursor-pointer transition-all group">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                        <span class="material-symbols-outlined text-white/40 text-[32px] group-hover:text-primary">add_a_photo</span>
+                    </div>
+                    <p class="text-[11px] font-black uppercase tracking-widest text-white mb-1">Subir Foto de Perfil</p>
+                    <p class="text-[9px] text-white/30 uppercase font-bold">Frontal, Lateral o Dorsal</p>
+                    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFile(event)">
+                </div>
+
+                <!-- History Grid -->
+                <div class="grid grid-cols-4 gap-2 mt-4" id="photo-history">
+                    <div class="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                        <img src="/assets/cover-CdvNpPeJ.png" class="w-full h-full object-cover opacity-50 gray-scale" alt="Old">
+                    </div>
+                    <div class="aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/10">visibility_off</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Verdict Card -->
+            <section class="mb-10">
+                <div class="glass-card p-6 bg-gradient-to-br from-primary/10 to-neon/5 relative overflow-hidden">
+                    <div class="flex gap-4 items-start relative z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                            <span class="material-symbols-outlined text-primary">psychology</span>
+                        </div>
+                        <div>
+                            <h4 class="text-[13px] font-black uppercase italic mb-2">Predicción Bio-IA</h4>
+                            <p class="text-[11px] text-white/70 leading-relaxed font-medium">
+                                Basado en tu tasa de oxidación lipídica actual y volumen de entrenamiento, proyectamos que alcanzarás tu <span class="text-primary font-bold">Meta 3D</span> en <span class="text-neon font-bold">14 semanas</span> manteniendo el déficit actual.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals / Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 bg-primary text-dark font-black rounded-full shadow-2xl transition-all scale-0 opacity-0 z-[100] uppercase italic text-xs">
+        Foto subida con éxito
+    </div>
+
+    <script>
+        // ─── 3D Longevity Engine (Fase 21) ──────────────────────────────────
+        let scene, camera, renderer, particles, clock;
+        let targetPulse = 1.0;
+        let currentColor = new THREE.Color(0x00d1ff);
+
+        function init3D() {
+            const container = document.getElementById('3d-container');
+            const canvas = document.getElementById('longevity-canvas');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Particle Man (Cyborg/Bio Aesthetic)
+            const geometry = new THREE.BufferGeometry();
+            const count = 3000;
+            const positions = new Float32Array(count * 3);
+            
+            for(let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                // Abstract humanoid shape (ellipsoids)
+                const phi = Math.random() * Math.PI * 2;
+                const costheta = Math.random() * 2 - 1;
+                const u = Math.random();
+                const theta = Math.acos(costheta);
+                const r = Math.cbrt(u);
+
+                // Morph shape into a torso/head profile
+                positions[i3] = r * Math.sin(theta) * Math.cos(phi) * 1.5; // Width
+                positions[i3 + 1] = r * costheta * 4.0; // Height
+                positions[i3 + 2] = r * Math.sin(theta) * Math.sin(phi) * 1.0; // Depth
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.04,
+                color: 0x00d1ff,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            camera.position.z = 8;
+            clock = new THREE.Clock();
+
+            // Simple Interactivity (Rotation)
+            let isDragging = false;
+            let reqX = 0, reqY = 0;
+            container.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if(isDragging) {
+                    particles.rotation.y += e.movementX * 0.01;
+                    particles.rotation.x += e.movementY * 0.01;
+                }
+            });
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+            
+            // Pulse logic (Hacked into size and opacity)
+            const pulse = 1.0 + Math.sin(time * targetPulse * 2.5) * 0.1;
+            particles.scale.set(pulse, pulse, pulse);
+            particles.material.opacity = 0.5 + Math.sin(time * 3) * 0.2;
+            
+            // Slow auto-rotation
+            particles.rotation.y += 0.005;
+            
+            // Smooth Color Transition
+            particles.material.color.lerp(currentColor, 0.05);
+
+            renderer.render(scene, camera);
+        }
+
+        // ─── Bio-Cloud Sync (Fase 20) ────────────────────────────────────────
+        async function syncBioProgress() {
+            try {
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                
+                window.hb_db.collection('users').doc(userId).onSnapshot(async (doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        
+                        // Update HUD
+                        document.getElementById('hud-ntk').textContent = data.ntk || '450';
+                        const score = parseInt(data.bioScore || '92');
+                        const hrv = parseInt(data.hrv || '74');
+
+                        // Update Engine Params
+                        targetPulse = (hrv / 60); 
+                        
+                        // Map Color
+                        if (score >= 90) {
+                            currentColor.setHex(0x00d1ff);
+                            document.getElementById('hud-status').textContent = 'Estado de Flujo';
+                        } else if (score >= 75) {
+                            currentColor.setHex(0x13ec5b);
+                            document.getElementById('hud-status').textContent = 'Recuperación';
+                        } else {
+                            currentColor.setHex(0xff8a00);
+                            document.getElementById('hud-status').textContent = 'Alerta: Fatiga';
+                        }
+                    } else {
+                        // AUTO-SEED 3D Data
+                        console.log("Seeding Cloud from 3D Engine...");
+                        await window.hb_db.collection('users').doc(userId).set({
+                            ntk: '450',
+                            bioScore: '92',
+                            hrv: '74',
+                            glucosa: '98',
+                            lastUpdate: new Date().toISOString()
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Progress Sync Error:", e);
+            }
+        }
+
+        // Init
+        init3D();
+        syncBioProgress();
+
+        // ─── Hotspot Overlay Engine (Fase 21) ────────────────────────────────
+        const HOTSPOTS = {
+            male: [
+                { id: 'heart', top: '28%', left: '50%', label: 'Cardio', metric: 'hrv', unit: 'ms', icon: 'favorite' },
+                { id: 'brain', top: '8%',  left: '50%', label: 'Neuro', metric: 'bioScore', unit: '%', icon: 'neurology' },
+                { id: 'core',  top: '42%', left: '50%', label: 'Core',  metric: 'glucosa', unit: 'mg/dL', icon: 'nutrition' },
+                { id: 'legs',  top: '68%', left: '40%', label: 'Piernas', metric: 'ntk', unit: 'NTK', icon: 'directions_run' },
+            ],
+            female: [
+                { id: 'heart', top: '30%', left: '50%', label: 'Cardio', metric: 'hrv', unit: 'ms', icon: 'favorite' },
+                { id: 'brain', top: '9%',  left: '50%', label: 'Neuro', metric: 'bioScore', unit: '%', icon: 'neurology' },
+                { id: 'hips',  top: '50%', left: '50%', label: 'Núcleo', metric: 'glucosa', unit: 'mg/dL', icon: 'accessibility' },
+                { id: 'legs',  top: '72%', left: '40%', label: 'Piernas', metric: 'ntk', unit: 'NTK', icon: 'directions_run' },
+            ]
+        };
+
+        let currentGender = 'male';
+        let bioData = { hrv: 74, bioScore: 92, glucosa: 98, ntk: 450 };
+        let activeHotspot = null;
+
+        function renderHotspots() {
+            const container = document.getElementById('3d-container');
+            // Remove old hotspots
+            container.querySelectorAll('.hotspot, .hotspot-tooltip').forEach(el => el.remove());
+
+            const spots = HOTSPOTS[currentGender];
+            spots.forEach(spot => {
+                const el = document.createElement('div');
+                el.className = 'hotspot';
+                el.id = 'hs-' + spot.id;
+                el.style.cssText = `top:${spot.top}; left:${spot.left}; transform:translate(-50%,-50%);`;
+                el.title = spot.label;
+                el.addEventListener('click', () => openHotspot(spot));
+                container.appendChild(el);
+            });
+        }
+
+        function openHotspot(spot) {
+            // Remove previous tooltip
+            const old = document.getElementById('hotspot-panel');
+            if (old) old.remove();
+            if (activeHotspot === spot.id) { activeHotspot = null; return; }
+            activeHotspot = spot.id;
+
+            // Highlight active
+            document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
+            document.getElementById('hs-' + spot.id)?.classList.add('active');
+
+            const val = bioData[spot.metric] ?? '—';
+            const panel = document.createElement('div');
+            panel.id = 'hotspot-panel';
+            panel.className = 'absolute bottom-4 left-4 right-4 z-40 bg-dark/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-3';
+            panel.innerHTML = `
+                <div class="w-10 h-10 rounded-xl bg-neon/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-neon text-[18px]" style="font-variation-settings:'FILL' 1">${spot.icon}</span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">${spot.label}</p>
+                    <p class="text-xl font-black text-neon leading-none italic">${val} <span class="text-[10px] text-white/40 font-bold not-italic">${spot.unit}</span></p>
+                </div>
+                <button onclick="document.getElementById('hotspot-panel').remove();activeHotspot=null;" class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white/40 text-sm">close</span>
+                </button>`;
+            document.getElementById('3d-container').appendChild(panel);
+        }
+
+        // ─── Gender Toggle ───────────────────────────────────────────────────
+        function setGender(g) {
+            currentGender = g;
+            document.getElementById('btn-male').className = g === 'male'
+                ? 'px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark'
+                : 'px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40';
+            document.getElementById('id-female').className = g === 'female'
+                ? 'px-3 py-1.5 text-[10px] font-black rounded-lg transition-all bg-primary text-dark'
+                : 'px-3 py-1.5 text-[10px] font-black rounded-lg transition-all text-white/40';
+            renderHotspots();
+            renderMeasureForm();
+        }
+
+        // ─── Biometric Form ──────────────────────────────────────────────────
+        const FIELDS = {
+            male:   ['Peso (kg)', 'Grasa %', 'Músculo kg', 'Cuello cm', 'Hombros cm', 'Pecho cm', 'Cintura cm', 'Cadera cm'],
+            female: ['Peso (kg)', 'Grasa %', 'Músculo kg', 'Cuello cm', 'Busto cm',   'Cintura cm', 'Cadera cm', 'Muslo cm'],
+        };
+
+        function renderMeasureForm() {
+            const saved = JSON.parse(localStorage.getItem('hb_measures_' + currentGender) || '{}');
+            const form = document.getElementById('measure-form');
+            form.innerHTML = FIELDS[currentGender].map(label => {
+                const key = label.replace(/[^a-z]/gi, '_').toLowerCase();
+                const val = saved[key] || '';
+                return `<div>
+                    <label class="text-[9px] font-black text-white/40 uppercase tracking-widest block mb-2">${label}</label>
+                    <input type="number" step="0.1" id="field_${key}" value="${val}" placeholder="—"
+                        class="measurement-input w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[14px] font-black text-white outline-none transition-all text-center">
+                </div>`;
+            }).join('');
+        }
+
+        function saveMeasurements() {
+            const saved = {};
+            FIELDS[currentGender].forEach(label => {
+                const key = label.replace(/[^a-z]/gi, '_').toLowerCase();
+                const el = document.getElementById('field_' + key);
+                if (el) saved[key] = parseFloat(el.value) || null;
+            });
+            localStorage.setItem('hb_measures_' + currentGender, JSON.stringify(saved));
+
+            // Sync to Firebase
+            if (window.hb_auth?.currentUser) {
+                window.hb_db.collection('users').doc(window.hb_auth.currentUser.uid)
+                    .update({ [`measures_${currentGender}`]: saved, lastMeasurement: new Date().toISOString() })
+                    .catch(() => {});
+            }
+
+            // Feedback
+            const btn = document.querySelector('[onclick="saveMeasurements()"]');
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] text-neon">check_circle</span> Guardado en Bio-Cloud';
+            btn.className = 'w-full mt-8 py-4 bg-neon/10 border border-neon/30 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-neon';
+            setTimeout(() => {
+                btn.innerHTML = 'Actualizar Biometría <span class="material-symbols-outlined text-[18px]">sync_saved_locally</span>';
+                btn.className = 'w-full mt-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2';
+            }, 2500);
+        }
+
+        // ─── Photo Upload ────────────────────────────────────────────────────
+        function triggerUpload() { document.getElementById('file-input').click(); }
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const grid = document.getElementById('photo-history');
+                const div = document.createElement('div');
+                div.className = 'aspect-square rounded-xl overflow-hidden border border-primary/30';
+                div.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover" alt="Progress">`;
+                grid.prepend(div);
+
+                // Persist in localStorage (base64 thumbnail)
+                const photos = JSON.parse(localStorage.getItem('hb_photos') || '[]');
+                photos.unshift({ src: ev.target.result, date: new Date().toISOString() });
+                localStorage.setItem('hb_photos', JSON.stringify(photos.slice(0, 8)));
+
+                // Update AI verdict
+                const verdict = document.querySelector('#ai-verdict-text');
+                if (verdict) verdict.innerHTML = 'Nueva foto cargada. Análisis morfológico actualizado. <span class="text-neon font-bold">+25 NTK</span> crédito de progreso otorgado.';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ─── Load saved photos ───────────────────────────────────────────────
+        function loadSavedPhotos() {
+            const photos = JSON.parse(localStorage.getItem('hb_photos') || '[]');
+            const grid = document.getElementById('photo-history');
+            photos.slice(0, 6).forEach(p => {
+                if (!p.src) return;
+                const div = document.createElement('div');
+                div.className = 'aspect-square rounded-xl overflow-hidden border border-white/5';
+                div.innerHTML = `<img src="${p.src}" class="w-full h-full object-cover" alt="Progress">`;
+                grid.appendChild(div);
+            });
+        }
+
+        // ─── Init all ────────────────────────────────────────────────────────
+        renderHotspots();
+        renderMeasureForm();
+        loadSavedPhotos();
+    </script>
+</body>
+
+</html>

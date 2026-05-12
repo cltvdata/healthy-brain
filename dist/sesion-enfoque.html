@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Sesión de Enfoque</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Bio-Cloud Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#13ec5b',
+                        'primary-dark': '#0dbd47',
+                        dark: '#0a0a0a',
+                        'surface-dark': '#141414',
+                        neon: '#00d1ff',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #0a0a0a;
+            background-image:
+                radial-gradient(circle at 50% 10%, rgba(19, 236, 91, 0.04) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Dopamine peak ring */
+        @keyframes dopamine-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(19, 236, 91, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 60px 20px rgba(19, 236, 91, 0.1); transform: scale(1.02); }
+            100% { box-shadow: 0 0 0 0 rgba(19, 236, 91, 0.0); transform: scale(1); }
+        }
+
+        @keyframes breathe-in {
+            0% { transform: scale(0.85); opacity: 0.6; }
+            100% { transform: scale(1.15); opacity: 1; }
+        }
+        @keyframes breathe-out {
+            0% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.85); opacity: 0.6; }
+        }
+
+        .breathing-in { animation: breathe-in 4s ease-in-out forwards; }
+        .breathing-out { animation: breathe-out 4s ease-in-out forwards; }
+
+        .glow-green { text-shadow: 0 0 20px rgba(19, 236, 91, 0.6); }
+        .glow-ring { box-shadow: 0 0 40px rgba(19, 236, 91, 0.2); }
+
+        .phase-active { animation: dopamine-pulse 2s ease-in-out infinite; }
+
+        /* Pomodoro pill */
+        .pomo-dot { transition: all 0.3s ease; }
+        .pomo-dot.done { background-color: #13ec5b; box-shadow: 0 0 8px rgba(19,236,91,0.5); }
+        .pomo-dot.active { background-color: #ff8a00; box-shadow: 0 0 8px rgba(255,138,0,0.5); }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(30px);
+            opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none;
+            white-space: nowrap; z-index: 100;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="text-white min-h-screen antialiased">
+
+    <!-- NTK Reward Toast -->
+    <div id="toast" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface-dark border border-primary/40 shadow-2xl shadow-primary/10">
+        <span class="material-symbols-outlined text-primary text-xl">bolt</span>
+        <span id="toast-msg" class="text-sm font-bold"></span>
+    </div>
+
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden shadow-2xl border-x border-white/5">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between px-6 pt-6 pb-3 border-b border-white/5 bg-dark/80 backdrop-blur-xl sticky top-0 z-30">
+            <a href="ejercicios.html" class="flex items-center justify-center p-2 -ml-2 rounded-xl hover:bg-white/5 transition-colors text-white">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div class="flex flex-col items-center">
+                <h2 class="text-sm font-bold tracking-widest uppercase text-gray-300">Enfoque Profundo</h2>
+                <span id="session-mode-badge" class="text-[9px] font-bold px-2.5 py-0.5 rounded-full bg-primary/15 text-primary mt-1 border border-primary/20 uppercase tracking-wider">Bio-Asistido</span>
+            </div>
+            <!-- NTK Balance -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+                <span class="material-symbols-outlined text-primary text-base">bolt</span>
+                <span id="ntk-count" class="text-xs font-black text-white">450</span>
+                <span class="text-[9px] font-bold text-gray-400">NTK</span>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main class="flex-1 flex flex-col items-center px-6 gap-6 pt-6 pb-28 overflow-y-auto no-scrollbar">
+
+            <!-- Bio Tip Card -->
+            <div class="w-full p-4 rounded-2xl bg-surface-dark border border-white/5 flex items-start gap-3">
+                <div class="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                    <span class="material-symbols-outlined text-xl">nutrition</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm mb-1 text-white">Protocolo Pre-Enfoque</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Fibra primero → Proteína → Carbohidratos. Estabiliza glucosa para sesiones cognitivas de alta demanda. Ayuno de 12h = +40% BDNF.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pomodoro Progress -->
+            <div class="w-full flex flex-col gap-2">
+                <div class="flex justify-between items-center px-1">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Ciclos Pomodoro</span>
+                    <span id="pomo-label" class="text-[10px] font-bold text-primary">1 / 4</span>
+                </div>
+                <div class="flex gap-2" id="pomo-dots">
+                    <div class="pomo-dot active flex-1 h-1.5 rounded-full bg-white/10"></div>
+                    <div class="pomo-dot flex-1 h-1.5 rounded-full bg-white/10"></div>
+                    <div class="pomo-dot flex-1 h-1.5 rounded-full bg-white/10"></div>
+                    <div class="pomo-dot flex-1 h-1.5 rounded-full bg-white/10"></div>
+                </div>
+            </div>
+
+            <!-- Timer Ring -->
+            <div class="relative flex items-center justify-center py-4 w-full">
+                <!-- Glow ring -->
+                <div id="glow-ring" class="absolute w-64 h-64 rounded-full glow-ring transition-all duration-1000"></div>
+
+                <!-- SVG Progress -->
+                <div class="relative w-60 h-60">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 240 240">
+                        <circle cx="120" cy="120" fill="transparent" r="108" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
+                        <circle id="progress-ring" cx="120" cy="120" fill="transparent" r="108"
+                            stroke="#13ec5b" stroke-dasharray="679" stroke-dashoffset="0"
+                            stroke-linecap="round" stroke-width="8"
+                            style="transition: stroke-dashoffset 1s linear, stroke 0.5s ease; filter: drop-shadow(0 0 8px rgba(19,236,91,0.5));" />
+                    </svg>
+
+                    <!-- Time Display -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                        <span id="timer-display" class="text-5xl font-light tracking-tighter text-white glow-green">25:00</span>
+                        <span id="phase-label" class="text-xs font-bold uppercase tracking-widest text-primary">Listo</span>
+                        <span id="session-count" class="text-[10px] uppercase tracking-widest text-gray-600 mt-1">Sesión activa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio Stats Row -->
+            <div class="w-full flex justify-between items-center px-2">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-dark text-red-400 border border-white/5">
+                        <span class="material-symbols-outlined">favorite</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase">Ritmo Cardíaco</span>
+                        <span class="text-sm font-black text-white">72 <span class="text-gray-400 font-normal text-xs">BPM</span></span>
+                    </div>
+                </div>
+                <div id="bio-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-dark border border-white/5">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span class="text-xs font-bold text-gray-300">Bio-Estado: Óptimo</span>
+                </div>
+            </div>
+
+            <!-- Duration Selector -->
+            <div class="w-full flex flex-col gap-2">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 px-1">Duración de Sesión</p>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setDuration(15)" data-d="15" class="duration-btn py-2.5 rounded-xl bg-surface-dark border border-white/10 text-xs font-bold hover:border-primary/50 transition-all text-gray-300">15 min</button>
+                    <button onclick="setDuration(25)" data-d="25" class="duration-btn py-2.5 rounded-xl bg-primary text-dark border border-primary text-xs font-black">25 min ★</button>
+                    <button onclick="setDuration(50)" data-d="50" class="duration-btn py-2.5 rounded-xl bg-surface-dark border border-white/10 text-xs font-bold hover:border-primary/50 transition-all text-gray-300">50 min</button>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="w-full grid grid-cols-2 gap-3">
+                <button id="breath-btn" onclick="toggleBreathing()" class="flex items-center justify-center gap-2 h-14 rounded-2xl bg-surface-dark border border-white/10 text-white hover:border-neon/40 transition-all group">
+                    <span class="material-symbols-outlined group-hover:scale-110 transition-transform text-neon">self_improvement</span>
+                    <span class="font-bold text-xs">Respiración</span>
+                </button>
+                <button id="main-btn" onclick="toggleTimer()" class="flex items-center justify-center gap-2 h-14 rounded-2xl bg-primary text-dark hover:bg-primary-dark transition-all font-black">
+                    <span id="btn-icon" class="material-symbols-outlined">play_arrow</span>
+                    <span id="btn-label">Iniciar</span>
+                </button>
+            </div>
+
+            <!-- Breathing Guide (hidden) -->
+            <div id="breath-guide" class="hidden w-full flex-col items-center gap-4 py-4">
+                <div id="breath-circle" class="w-24 h-24 rounded-full bg-neon/20 border-2 border-neon flex items-center justify-center transition-all duration-4000 ease-in-out">
+                    <span id="breath-text" class="text-xs font-black text-neon uppercase tracking-wider">Inhala</span>
+                </div>
+                <p id="breath-count-label" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">4 - 7 - 8 Protocolo</p>
+            </div>
+
+            <!-- Session Complete Banner (hidden) -->
+            <div id="complete-banner" class="hidden w-full p-5 rounded-2xl bg-gradient-to-br from-primary/20 to-dark border border-primary/30 text-center">
+                <div class="text-5xl mb-3">🧠⚡</div>
+                <h3 class="text-lg font-black text-white mb-1">¡Pico de Dopamina!</h3>
+                <p class="text-xs text-gray-400">Sesión completada. <span class="text-primary font-bold">+25 NTK</span> añadidos a tu arsenal.</p>
+                <button onclick="resetSession()" class="mt-4 px-6 py-2 rounded-xl bg-primary text-dark font-black text-sm hover:bg-primary-dark transition-all">Nueva Sesión</button>
+            </div>
+
+            <p class="text-[10px] text-gray-600 text-center max-w-[280px]">
+                Modo anti-distracción activo. Notificaciones suprimidas durante la sesión.
+            </p>
+        </main>
+    </div>
+
+    <script>
+        // ─── State ───────────────────────────────────────────────────────────
+        let totalSeconds = 25 * 60;
+        let remaining = totalSeconds;
+        let running = false;
+        let interval = null;
+        let pomoCurrent = 1;
+        let pomoTotal = 4;
+        let breathPhase = 'in';
+        let breathInterval = null;
+        let breathActive = false;
+        // ─── Init & Bio-Cloud Sync ───────────────────────────────────────────
+        async function syncWithCloud() {
+            try {
+                if (!window.hb_auth.currentUser) await window.hb_auth.signInAnonymously();
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                // Sync balance
+                db.collection('users').doc(userId).onSnapshot(doc => {
+                    if (doc.exists) {
+                        ntkBalance = doc.data().ntkBalance || 0;
+                        document.getElementById('ntk-count').textContent = ntkBalance;
+                        localStorage.setItem('hb_ntk', ntkBalance);
+                    }
+                });
+            } catch (e) {
+                console.error("Bio-Cloud Sync Error:", e);
+                document.getElementById('ntk-count').textContent = ntkBalance;
+            }
+        }
+
+        syncWithCloud();
+
+        // ─── Timer ──────────────────────────────────────────────────────────
+        function toggleTimer() {
+            if (running) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            running = true;
+            document.getElementById('btn-icon').textContent = 'pause';
+            document.getElementById('btn-label').textContent = 'Pausar';
+            document.getElementById('phase-label').textContent = 'En Sesión';
+            document.getElementById('glow-ring').classList.add('phase-active');
+            interval = setInterval(tick, 1000);
+        }
+
+        function pauseTimer() {
+            running = false;
+            clearInterval(interval);
+            document.getElementById('btn-icon').textContent = 'play_arrow';
+            document.getElementById('btn-label').textContent = 'Reanudar';
+            document.getElementById('phase-label').textContent = 'Pausado';
+            document.getElementById('glow-ring').classList.remove('phase-active');
+        }
+
+        function tick() {
+            remaining--;
+            updateDisplay();
+            updateRing();
+            if (remaining <= 0) {
+                completeSession();
+            }
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            document.getElementById('timer-display').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateRing() {
+            const circumference = 679;
+            const progress = remaining / totalSeconds;
+            const offset = circumference * (1 - progress);
+            document.getElementById('progress-ring').style.strokeDashoffset = offset;
+            // Color shift as time runs out
+            const hue = progress > 0.3 ? '#13ec5b' : progress > 0.1 ? '#ff8a00' : '#ff4444';
+            document.getElementById('progress-ring').style.stroke = hue;
+        }
+
+        async function completeSession() {
+            clearInterval(interval);
+            running = false;
+            
+            const reward = 25;
+            const sessionDuration = (totalSeconds - remaining) / 60;
+
+            try {
+                // Cloud Sync
+                if (!window.hb_auth.currentUser) await window.hb_auth.signInAnonymously();
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                const earnedReward = await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(userId);
+                    const userDoc = await transaction.get(userRef);
+
+                    if (!userDoc.exists) throw "Usuario no existe";
+                    let finalReward = reward;
+                    const userData = userDoc.data();
+                    
+                    // --- ANTI-FARMING: Daily Focus Limit (Max 4 rewarded sessions) ---
+                    const MAX_FOCUS_SESSIONS = 4;
+                    const today = new Date().toISOString().split('T')[0];
+                    const focusRecord = userData.dailyFocusRecord || { date: today, count: 0 };
+                    
+                    if (focusRecord.date !== today) {
+                        focusRecord.date = today;
+                        focusRecord.count = 0;
+                    }
+                    
+                    if (focusRecord.count >= MAX_FOCUS_SESSIONS) {
+                        finalReward = 0;
+                    } else {
+                        focusRecord.count += 1;
+                    }
+
+                    // Log focus session to unified logs
+                    const logRef = userRef.collection('logs').doc();
+                    transaction.set(logRef, {
+                        type: 'focus',
+                        category: 'focus',
+                        durationMinutes: sessionDuration,
+                        value: finalReward,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    const currentVal = userData.ntkBalance || 0;
+                    transaction.update(userRef, { 
+                        ntkBalance: currentVal + finalReward,
+                        dailyFocusRecord: focusRecord,
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    return finalReward;
+                });
+
+                if (earnedReward > 0) {
+                   showToast(`🧠 ¡+${earnedReward} NTK! Pico de dopamina desbloqueado.`, '#13ec5b');
+                } else {
+                   showToast(`🧠 Sesión registrada. (Límite diario de ganancias alcanzado)`, '#13ec5b');
+                }
+            } catch (e) {
+                console.error("Focus reward error:", e);
+                // Fallback local
+                ntkBalance += reward;
+                localStorage.setItem('hb_ntk', ntkBalance);
+                document.getElementById('ntk-count').textContent = ntkBalance;
+                showToast('Sesión guardada localmente.', '#ff8a00');
+            }
+
+            updatePomo();
+            document.getElementById('complete-banner').classList.remove('hidden');
+            document.getElementById('complete-banner').classList.add('flex', 'flex-col');
+            document.getElementById('glow-ring').classList.remove('phase-active');
+        }
+
+        function resetSession() {
+            remaining = totalSeconds;
+            running = false;
+            clearInterval(interval);
+            updateDisplay();
+            updateRing();
+            document.getElementById('btn-icon').textContent = 'play_arrow';
+            document.getElementById('btn-label').textContent = 'Iniciar';
+            document.getElementById('phase-label').textContent = 'Listo';
+            document.getElementById('complete-banner').classList.add('hidden');
+            document.getElementById('complete-banner').classList.remove('flex', 'flex-col');
+        }
+
+        // ─── Duration ────────────────────────────────────────────────────────
+        function setDuration(min) {
+            if (running) return;
+            totalSeconds = min * 60;
+            remaining = totalSeconds;
+            updateDisplay();
+            updateRing();
+            document.querySelectorAll('.duration-btn').forEach(b => {
+                if (b.dataset.d == min) {
+                    b.className = 'duration-btn py-2.5 rounded-xl bg-primary text-dark border border-primary text-xs font-black';
+                } else {
+                    b.className = 'duration-btn py-2.5 rounded-xl bg-surface-dark border border-white/10 text-xs font-bold hover:border-primary/50 transition-all text-gray-300';
+                }
+            });
+        }
+
+        // ─── Pomodoro ────────────────────────────────────────────────────────
+        function updatePomo() {
+            if (pomoCurrent < pomoTotal) {
+                const dots = document.querySelectorAll('.pomo-dot');
+                dots[pomoCurrent - 1].classList.add('done');
+                dots[pomoCurrent - 1].classList.remove('active');
+                pomoCurrent++;
+                if (pomoCurrent <= pomoTotal) {
+                    dots[pomoCurrent - 1].classList.add('active');
+                }
+                document.getElementById('pomo-label').textContent = `${pomoCurrent} / ${pomoTotal}`;
+            }
+        }
+
+        // ─── Breathing ───────────────────────────────────────────────────────
+        function toggleBreathing() {
+            breathActive = !breathActive;
+            const guide = document.getElementById('breath-guide');
+            if (breathActive) {
+                guide.classList.remove('hidden');
+                guide.classList.add('flex');
+                document.getElementById('breath-btn').classList.add('border-neon/40', 'bg-neon/5');
+                runBreathCycle();
+            } else {
+                guide.classList.add('hidden');
+                guide.classList.remove('flex');
+                clearTimeout(breathInterval);
+                document.getElementById('breath-btn').classList.remove('border-neon/40', 'bg-neon/5');
+            }
+        }
+
+        function runBreathCycle() {
+            if (!breathActive) return;
+            // 4-7-8 breathing
+            const circle = document.getElementById('breath-circle');
+            const label = document.getElementById('breath-text');
+
+            label.textContent = 'Inhala'; // 4s in
+            circle.style.transform = 'scale(1.4)';
+            circle.style.backgroundColor = 'rgba(0,209,255,0.3)';
+            breathInterval = setTimeout(() => {
+                if (!breathActive) return;
+                label.textContent = 'Retén'; // 7s hold
+                circle.style.transform = 'scale(1.4)';
+                circle.style.backgroundColor = 'rgba(255,138,0,0.3)';
+                breathInterval = setTimeout(() => {
+                    if (!breathActive) return;
+                    label.textContent = 'Exhala'; // 8s out
+                    circle.style.transform = 'scale(0.85)';
+                    circle.style.backgroundColor = 'rgba(19,236,91,0.1)';
+                    breathInterval = setTimeout(() => runBreathCycle(), 8000);
+                }, 7000);
+            }, 4000);
+        }
+
+        // ─── Toast ───────────────────────────────────────────────────────────
+        function showToast(msg, color = '#13ec5b') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            document.getElementById('toast-msg').style.color = color;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // Init display
+        updateDisplay();
+        updateRing();
+    </script>
+</body>
+
+</html>

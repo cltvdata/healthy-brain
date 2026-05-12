@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEALTHY + BRAIN - Soberanía Biológica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        bio: '#13ec5b',
+                        dark: '#0a0a0a',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .gradient-glow { background: linear-gradient(135deg, rgba(255,138,0,0.15) 0%, rgba(0,209,255,0.1) 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .pulse-glow { animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(19,236,91,0.3); }
+            50% { box-shadow: 0 0 40px rgba(19,236,91,0.6); }
+        }
+    </style>
+</head>
+<body class="bg-dark text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-lg border-b border-white/5">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-neon flex items-center justify-center">
+                    <span class="text-xl font-black">H+B</span>
+                </div>
+                <span class="text-lg font-bold">HEALTHY + BRAIN</span>
+            </div>
+            <div class="flex gap-4">
+                <a href="#features" class="text-sm text-white/60 hover:text-white transition">Features</a>
+                <a href="#pricing" class="text-sm text-white/60 hover:text-white transition">Precios</a>
+                <a href="index.html" class="text-sm text-bio hover:text-bio transition">App</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 px-4 overflow-hidden">
+        <div class="absolute inset-0 gradient-glow"></div>
+        <div class="absolute inset-0 bg-[url('assets/images/bg_tech.png')] opacity-20"></div>
+        
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bio/10 border border-bio/20 mb-6">
+                <span class="w-2 h-2 rounded-full bg-bio animate-pulse"></span>
+                <span class="text-xs font-medium text-bio">Soberanía Biológica en Tiempo Real</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                Optimiza tu <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-bio">Cuerpo</span><br>
+                y <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-primary">Mente</span>
+            </h1>
+            
+            <p class="text-lg text-white/60 mb-10 max-w-2xl mx-auto">
+                La plataforma de longevidad más avanzada.Tracking biométrico con IA, 
+                tokens de dopamina retrasada y comunidad de biohackers.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                <a href="index.html" class="px-8 py-4 bg-bio text-dark font-bold rounded-2xl hover:bg-bio/90 transition pulse-glow">
+                   Comenzar Gratis
+                </a>
+                <a href="#features" class="px-8 py-4 border border-white/20 text-white font-medium rounded-2xl hover:bg-white/5 transition">
+                    Ver Features
+                </a>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-8 max-w-lg mx-auto">
+                <div class="text-center">
+                    <div class="text-3xl font-black text-primary">500+</div>
+                    <div class="text-xs text-white/40">Usuarios Activos</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-black text-neon">15K+</div>
+                    <div class="text-xs text-white/40">SesionesCompletadas</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-black text-bio">94%</div>
+                    <div class="text-xs text-white/40">Satisfacción</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-20 px-4 bg-black/50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-black mb-4">Tu<span class="text-primary"> Bio-Panel</span> de Control</h2>
+                <p class="text-white/50">Tecnología de vanguardia meets diseño premium</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-bio/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-bio" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">HRV en Tiempo Real</h3>
+                    <p class="text-sm text-white/50">Monitorea tu variabilidad de frecuencia cardíaca y optimiza tu recuperación neural.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Dopamina Retrasada</h3>
+                    <p class="text-sm text-white/50">Gana NTK tokens por hábitos saludables. Canjea por recompensas premium.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-neon/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Nutrición IA</h3>
+                    <p class="text-sm text-white/50">Escanea tus platos y obtiene análisis de macronutrientes con visión artificial.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Optimización del Sueño</h3>
+                    <p class="text-sm text-white/50">Sincronización circadiana, análisis de ondas y seguimiento de fases.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Comunidad Bio-Elite</h3>
+                    <p class="text-sm text-white/50">Competing en desafíos cardiolongitudinales con otros bio-soberanos.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="card-hover bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Mentores IA</h3>
+                    <p class="text-sm text-white/50">Coach biológico personalizado basado en tus métricas y objetivos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Preview -->
+    <section class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/2">
+                    <h2 class="text-3xl font-black mb-4">Tu<span class="text-neon"> Evolución</span> Visualizada</h2>
+                    <p class="text-white/60 mb-8">Gráficos avanzados, heatmaps de tendencias y predicciones de longevidad. Todo en una interfaz diseñada para la claridad y la acción.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-bio/20 flex items-center justify-center">
+                                <span class="text-bio text-sm">✓</span>
+                            </div>
+                            <span class="text-white/80">Dashboard en tiempo real</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-bio/20 flex items-center justify-center">
+                                <span class="text-bio text-sm">✓</span>
+                            </div>
+                            <span class="text-white/80">Predicciones de fatiga CNS</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-bio/20 flex items-center justify-center">
+                                <span class="text-bio text-sm">✓</span>
+                            </div>
+                            <span class="text-white/80">Integración con Apple Health</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-neon/20 blur-3xl"></div>
+                    <div class="relative bg-black/80 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-bio/20 flex items-center justify-center">
+                                        <span class="text-bio">❤️</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold">HRV Score</div>
+                                        <div class="text-xs text-white/40">Última sync: hace 2h</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-black text-bio">78</div>
+                                    <div class="text-xs text-white/40">Optimizado</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                                        <span class="text-primary">👟</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold">Pasos Diarios</div>
+                                        <div class="text-xs text-white/40">Meta: 8,000</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-black text-primary">7,432</div>
+                                    <div class="text-xs text-white/40">93% completado</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-neon/20 flex items-center justify-center">
+                                        <span class="text-neon">🧠</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold">Bio-Score</div>
+                                        <div class="text-xs text-white/40">Nivel 5</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-black text-neon">85</div>
+                                    <div class="text-xs text-white/40">Soberano</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 px-4 bg-black/30">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-black mb-4">Elige tu<span class="text-primary"> Nivel</span></h2>
+                <p class="text-white/50">Empieza gratis, escala cuando quieras</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Free -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="text-center mb-6">
+                        <h3 class="text-lg font-bold uppercase text-white/70">Guerrero</h3>
+                        <div class="text-3xl font-black mt-2">FREE</div>
+                    </div>
+                    <ul class="space-y-3 mb-6 text-sm">
+                        <li class="flex items-center gap-2 text-white/60"><span class="text-bio">✓</span> Dashboard básico</li>
+                        <li class="flex items-center gap-2 text-white/60"><span class="text-bio">✓</span> 3 protocolos</li>
+                        <li class="flex items-center gap-2 text-white/40"><span class="text-white/20">×</span> IA Avanzada</li>
+                    </ul>
+                    <a href="index.html" class="block text-center py-3 rounded-xl border border-white/20 font-bold hover:bg-white/5 transition">Comenzar</a>
+                </div>
+
+                <!-- Pro - Featured -->
+                <div class="bg-gradient-to-b from-primary/10 to-transparent border-2 border-primary/50 rounded-2xl p-6 relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-dark text-xs font-bold rounded-full">MÁS POPULAR</div>
+                    <div class="text-center mb-6">
+                        <h3 class="text-lg font-bold uppercase text-primary">Bio-Optimizator</h3>
+                        <div class="text-3xl font-black mt-2">$19<span class="text-sm font-normal text-white/50">/mes</span></div>
+                    </div>
+                    <ul class="space-y-3 mb-6 text-sm">
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Dashboard completo</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> IA Nutricional</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Predicciones HRV</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Comunidad Bio-Elite</li>
+                    </ul>
+                    <a href="precios.html" class="block text-center py-3 rounded-xl bg-primary text-dark font-bold hover:bg-primary/90 transition">Upgrade</a>
+                </div>
+
+                <!-- Elite -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div class="text-center mb-6">
+                        <h3 class="text-lg font-bold uppercase text-bio">Soberano Elite</h3>
+                        <div class="text-3xl font-black mt-2">$49<span class="text-sm font-normal text-white/50">/mes</span></div>
+                    </div>
+                    <ul class="space-y-3 mb-6 text-sm">
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Todo en Pro</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Coach IA Prioritario</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Análisis Genético</li>
+                        <li class="flex items-center gap-2 text-white/80"><span class="text-bio">✓</span> Mentoría 1:1</li>
+                    </ul>
+                    <a href="precios.html" class="block text-center py-3 rounded-xl border border-bio text-bio font-bold hover:bg-bio/10 transition">Contactar</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final -->
+    <section class="py-20 px-4">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-black mb-4">Comienza tu<span class="text-bio"> Revolución</span> Biológica</h2>
+            <p class="text-white/60 mb-8">Únete a la comunidad de bio-soberanos que están transformando su salud con ciencia y tecnología.</p>
+            <a href="index.html" class="inline-block px-10 py-5 bg-gradient-to-r from-bio to-neon text-dark font-bold rounded-2xl hover:opacity-90 transition pulse-glow">
+                Empezar Ahora - Es Gratis
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-white/5">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-neon flex items-center justify-center">
+                    <span class="text-sm font-black">H+B</span>
+                </div>
+                <span class="text-sm text-white/40">© 2026 Healthy + Brain</span>
+            </div>
+            <div class="flex gap-6 text-sm text-white/40">
+                <a href="terms.html" class="hover:text-white transition">Términos</a>
+                <a href="privacy-policy.html" class="hover:text-white transition">Privacidad</a>
+                <a href="comunidad.html" class="hover:text-white transition">Comunidad</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

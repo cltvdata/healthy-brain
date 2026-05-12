@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8a00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/assets/images/icon.png">
+    <style>
+      #bio-age-badge { animation: pulse-glow 2s infinite; }
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(255, 138, 0, 0.3); }
+        50% { box-shadow: 0 0 15px rgba(255, 138, 0, 0.6); }
+      }
+      .smart-notification-toast {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(18,18,18,0.98), rgba(30,30,30,0.98));
+        border: 1px solid rgba(255, 138, 0, 0.4);
+        border-radius: 16px;
+        padding: 16px;
+        max-width: 350px;
+        z-index: 9999;
+        animation: slideUpToast 0.4s ease;
+      }
+      @keyframes slideUpToast {
+        from { opacity: 0; transform: translateX(-50%) translateY(50px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      #sync-status {
+        position: fixed;
+        top: 80px;
+        right: 16px;
+        padding: 6px 12px;
+        background: rgba(0,0,0,0.8);
+        border-radius: 20px;
+        font-size: 11px;
+        z-index: 1000;
+      }
+    </style>
+    
+    <!-- Firebase Cloud Infrastructure (Fase 20) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/insights-engine.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/nano-banana.js"></script>
+    <script src="js/notebooklm-integration.js"></script>
+    <script src="js/haptic-feedback.js"></script>
+    <script src="js/stitch-adapter.js"></script>
+    <script src="js/haptic-debug.js"></script>
+    <script src="js/mock-data.js"></script>
+    <script src="js/system-tester.js"></script>
+    <script src="js/master-control.js"></script>
+    <script src="js/bio-analytics-engine.js"></script>
+    <script src="js/ai-strategy-engine.js"></script>
+    <script src="js/bio-dashboard-component.js"></script>
+    <script src="js/health-data-integrator.js"></script>
+    <script src="js/data-source-manager.js"></script>
+    <script src="js/auto-sync-engine.js"></script>
+    <script src="js/notification-engine.js"></script>
+    <script src="js/community-engine.js"></script>
+    <script src="js/payment-engine.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .bg-mesh {
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 138, 0, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 209, 255, 0.1) 0%, transparent 40%);
+        }
+
+        .hero-mask {
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/index-3BjfRawl.css">
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="bg-dark text-white min-h-screen relative">
+    <!-- Nano-Banana Interactive Canvas (Fase 42) -->
+    <canvas id="neural-bg" class="fixed inset-0 z-0 pointer-events-none opacity-40"></canvas>
+    
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-32 animate-fade-in shadow-2xl border-x border-white/5 z-10">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between p-6 pb-2 z-20">
+            <div class="flex flex-col">
+                <p id="greeting" class="text-xs text-text-gray font-medium mb-1" data-i18n="greeting">Buenos días, Guerrero</p>
+                <h1 class="text-xl font-extrabold tracking-tight">H + B <span class="text-primary">PREMIUM</span></h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.dataSourceManager.showModal()"
+                    class="h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-neon transition-all shadow-lg"
+                    title="Fuentes de Datos">
+                    <span class="material-symbols-outlined text-neon">sync</span>
+                </button>
+                <a href="perfil-setup.html"
+                    class="h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg">
+                    <span class="material-symbols-outlined text-text-gray">person</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Profile / Gamification Section -->
+        <section class="px-6 py-4 z-20">
+            <div class="flex justify-between items-end mb-3">
+                <div class="flex items-center gap-2">
+                    <span id="user-level"
+                        class="px-2 py-0.5 bg-neon/20 text-neon rounded-md text-[10px] font-bold uppercase tracking-widest border border-neon/30">LVL
+                        1</span>
+                    <span id="user-xp-text" class="text-[10px] text-text-gray font-bold uppercase">450 / 1000 XP</span>
+                    <span id="bio-age-badge" class="px-2 py-0.5 bg-primary/20 text-primary rounded-md text-[10px] font-bold uppercase tracking-widest border border-primary/30 hidden">
+                        Bio: --
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div id="streak-container" class="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                        <span class="material-symbols-outlined text-orange-500 text-[14px]">local_fire_department</span>
+                        <span id="streak-display" class="text-[11px] font-black text-orange-500 uppercase">0 <span class="text-[9px] opacity-70">Días</span></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                        <span class="material-symbols-outlined text-primary text-[14px] filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        <span class="text-[11px] font-black text-primary uppercase"><span id="ntk-balance">450</span> <span class="text-[9px] opacity-70">NTK</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="xp-bar-container h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <div id="user-xp-bar" class="xp-bar-fill h-full bg-gradient-to-r from-neon to-primary w-[30%] shadow-[0_0_10px_rgba(0,209,255,0.3)] transition-all duration-1000"></div>
+            </div>
+        </section>
+
+        <!-- Hero Section -->
+        <section class="relative h-64 mt-2 overflow-hidden px-6 rounded-[32px]">
+            <div class="absolute inset-0 bg-dark/40 z-10"></div>
+            <img src="/assets/hero-Bc0an8p3.png" alt="Fitness Hero"
+                class="absolute inset-0 w-full h-full object-cover hero-mask scale-105 hover:scale-110 transition-transform duration-700">
+            <div class="relative z-20 h-full flex flex-col justify-end pb-8">
+                <span class="text-[10px] font-black uppercase tracking-widest text-primary mb-1 inline-block bg-primary/20 px-2 py-0.5 rounded-md border border-primary/30 w-max">Ventana de Plasticidad</span>
+                <h2 class="text-3xl font-black leading-[1.1] mb-2 text-white">MAXIMIZA TU <br><span
+                        class="text-gradient-neon uppercase italic text-neon">Neuro-Química</span></h2>
+                <div class="flex gap-3">
+                    <div class="glass-card px-3 py-1.5 flex items-center gap-2 border-primary/20 bg-primary/10">
+                        <span class="material-symbols-outlined text-primary text-sm filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-white">Peak BDNF</span>
+                    </div>
+                    <div class="glass-card px-3 py-1.5 flex items-center gap-2 border-white/20">
+                        <span class="material-symbols-outlined text-neon text-sm">directions_run</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Acelerar</span>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <!-- AI Neural Scanner Panel (Fase 35) -->
+        <section class="px-6 mt-6 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="ai-scanner-panel p-5 rounded-[24px] border border-white/5 relative overflow-hidden bg-surface-glass backdrop-blur-xl">
+                <div class="flex justify-between items-center mb-4 relative z-20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-neon status-dot-pulse"></div>
+                        <h3 class="text-[11px] font-black text-white uppercase tracking-[0.2em] text-mono">Neural Scanner v3.5</h3>
+                    </div>
+                    <span class="text-[9px] font-bold text-neon/60 text-mono uppercase tracking-widest">Active Sync</span>
+                </div>
+                
+                <div id="ai-insights-container" class="relative z-20 min-h-[60px]">
+                    <!-- Contenido dinámico desde insights-engine.js -->
+                    <div class="flex items-center gap-3 text-white/20 italic text-[10px] py-2">
+                        <span class="material-symbols-outlined text-[14px] animate-spin">refresh</span>
+                        Analizando coherencia cardíaca y carga CNS...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bio-Challenge Diario (Fase 39 - Virality) -->
+        <section class="px-6 mt-6 animate-fade-in" style="animation-delay: 0.12s;">
+            <div id="daily-challenge-card" class="p-5 rounded-[24px] border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-primary/20 blur-2xl rounded-full"></div>
+                
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div>
+                        <h3 class="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Challenge Diario</h3>
+                        <h2 id="ch-title" class="text-lg font-black text-white uppercase italic">Cargando Desafío...</h2>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-primary text-black flex items-center justify-center shadow-lg shadow-primary/20">
+                        <span id="ch-icon" class="material-symbols-outlined font-black">bolt</span>
+                    </div>
+                </div>
+                
+                <p id="ch-body" class="text-[11px] text-white/70 leading-relaxed mb-6 pr-4">...</p>
+                
+                <div class="flex gap-2 relative z-10">
+                    <button onclick="completeChallenge()" id="btn-complete-ch" class="flex-1 py-3 bg-primary text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">check_circle</span> Completar (+150 NTK)
+                    </button>
+                    <button onclick="shareChallenge()" class="w-12 py-3 bg-white/5 border border-white/10 text-white rounded-xl flex items-center justify-center hover:bg-white/10 transition-all">
+                        <span class="material-symbols-outlined text-base">share</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agenda Arcoíris (Longevity Balance - Fase 36) -->
+        <section class="px-6 mt-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Agenda Arcoíris</h3>
+                <span class="text-[9px] font-bold text-primary uppercase">Bio-Balance</span>
+            </div>
+            <div class="grid grid-cols-4 gap-2">
+                <div class="flex flex-col gap-1">
+                    <div class="h-1 bg-neon rounded-full shadow-[0_0_8px_rgba(0,209,255,0.4)]"></div>
+                    <span class="text-[8px] font-bold text-center text-neon/60 uppercase">Sueño</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <div class="h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
+                    <span class="text-[8px] font-bold text-center text-orange-500/60 uppercase">Social</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <div class="h-1 bg-primary rounded-full shadow-[0_0_8px_rgba(255,138,0,0.4)]"></div>
+                    <span class="text-[8px] font-bold text-center text-primary/60 uppercase">Misión</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <div class="h-1 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.4)] w-1/2"></div>
+                    <span class="text-[8px] font-bold text-center text-purple-500/60 uppercase">Silencio</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Bio-Hacks (Actionable Interventions) -->
+        <section class="px-6 mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Bio-Hacks Rápidos</h3>
+            </div>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                <button onclick="triggerPhysiologicalSigh()" class="flex-shrink-0 w-32 glass-card p-4 flex flex-col items-center gap-2 border-neon/20 hover:bg-neon/5 transition-all">
+                    <span class="material-symbols-outlined text-neon animate-pulse">air</span>
+                    <span class="text-[9px] font-black uppercase text-center leading-tight">Suspiro<br>Fisiológico</span>
+                </button>
+                <button onclick="toggleGrayscaleTip()" class="flex-shrink-0 w-32 glass-card p-4 flex flex-col items-center gap-2 border-purple-500/20 hover:bg-purple-500/5 transition-all">
+                    <span class="material-symbols-outlined text-purple-400">contrast</span>
+                    <span class="text-[9px] font-black uppercase text-center leading-tight">Modo<br>Grayscale</span>
+                </button>
+                <button onclick="alert('Regla 3-30-300: Mira 3 árboles ahora para bajar cortisol.')" class="flex-shrink-0 w-32 glass-card p-4 flex flex-col items-center gap-2 border-green-500/20 hover:bg-green-500/5 transition-all">
+                    <span class="material-symbols-outlined text-green-400">park</span>
+                    <span class="text-[9px] font-black uppercase text-center leading-tight">Entorno<br>Biofílico</span>
+                </button>
+            </div>
+        </section>
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Control Neurometabólico</h3>
+                <div class="flex gap-3">
+                    <button onclick="shareBioScore()" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-base">share</span>
+                    </button>
+                    <span class="material-symbols-outlined text-white/30 text-lg">grid_view</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Entrenar Card -->
+                <a href="entrenar.html"
+                    class="glass-card p-6 flex flex-col gap-4 border-white/5 hover:border-primary/40 transition-all group glass-card-interactive">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                        <span class="material-symbols-outlined text-2xl">fitness_center</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg leading-tight mb-1">Entrenar</h3>
+                        <p id="sync-entrenar" class="text-[10px] text-text-gray font-medium">Pulso: <span id="hrv-value"
+                                class="text-primary font-bold">-- BPM</span></p>
+                    </div>
+                </a>
+
+                <!-- Historial Card -->
+                <a href="historial.html"
+                    class="glass-card p-6 flex flex-col gap-4 border-white/5 hover:border-black transition-all group glass-card-interactive">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-neon/10 flex items-center justify-center group-hover:bg-neon group-hover:text-black transition-all text-neon">
+                        <span class="material-symbols-outlined text-2xl">history</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg leading-tight mb-1 font-bold">Historial</h3>
+                        <p id="sync-historial" class="text-[10px] text-text-gray font-medium">Glucosa: <span id="glucosa-value"
+                                class="text-neon font-bold">-- mg/dL</span></p>
+                    </div>
+                </a>
+
+                <!-- Descanso Card -->
+                <a href="descanso.html"
+                    class="glass-card p-6 flex flex-col gap-4 border-white/5 hover:border-orange-500/40 transition-all group glass-card-interactive">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-black transition-all text-orange-400">
+                        <span class="material-symbols-outlined text-2xl">timer</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg leading-tight mb-1 font-bold">Descanso</h3>
+                        <p id="sync-descanso" class="text-[10px] text-text-gray font-medium">60s <span
+                                class="text-orange-400 font-bold">Serie 2</span></p>
+                    </div>
+                </a>
+
+                <!-- Ejercicios Card -->
+                <a href="ejercicios.html"
+                    class="glass-card p-6 flex flex-col gap-4 border-white/5 hover:border-purple-500/40 transition-all group glass-card-interactive">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-black transition-all text-purple-400">
+                        <span class="material-symbols-outlined text-2xl">library_books</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg leading-tight mb-1 font-bold">Biblioteca</h3>
+                        <p id="sync-ejercicios" class="text-[10px] text-text-gray font-medium">21 Técnicas <span
+                                class="text-purple-400 font-bold">PRO</span></p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Bio-Bridge (Automated & Manual Data Ingestion - Fase 37) -->
+            <section class="mt-8 animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]" data-i18n="bio_bridge">Bio-Bridge: Ingesta de Datos</h3>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-[8px] font-black text-green-500 uppercase tracking-tighter" data-i18n="active_sync">Native Sync</span>
+                    </div>
+                </div>
+                <div class="glass-card p-5 border-white/10 bg-surface-glass relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="grid grid-cols-3 gap-3 relative z-10">
+                        <button onclick="openBioBridge('manual')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all active:scale-95">
+                            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-1">
+                                <span class="material-symbols-outlined text-primary text-xl">edit_note</span>
+                            </div>
+                            <span class="text-[9px] font-black uppercase text-white/60 tracking-wider" data-i18n="manual">Manual</span>
+                        </button>
+                        <button onclick="openBioBridge('screenshot')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-neon/30 transition-all active:scale-95">
+                            <div class="w-10 h-10 rounded-xl bg-neon/10 flex items-center justify-center mb-1">
+                                <span class="material-symbols-outlined text-neon text-xl">add_a_photo</span>
+                            </div>
+                            <span class="text-[9px] font-black uppercase text-white/60 tracking-wider" data-i18n="capture">Captura</span>
+                        </button>
+                        <button onclick="openBioBridge('csv')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-purple-500/30 transition-all active:scale-95">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center mb-1">
+                                <span class="material-symbols-outlined text-purple-400 text-xl">upload_file</span>
+                            </div>
+                            <span class="text-[9px] font-black uppercase text-white/60 tracking-wider" data-i18n="csv_bio">CSV / Bio</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lens Nutricional Premium -->
+            <section class="mt-8 animate-fade-in" style="animation-delay: 0.1s;">
+                <a href="nutricion-ia.html"
+                    class="glass-card p-6 block overflow-hidden relative group hover:border-primary/40 transition-all">
+                    <div
+                        class="absolute -right-12 -top-12 w-48 h-48 bg-primary/5 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700">
+                    </div>
+
+                    <div class="flex justify-between items-center relative z-10 w-full">
+                        <div class="flex-1 pr-4">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-[9px] font-black uppercase tracking-widest mb-3">
+                                Motor Bio-IA 2.0
+                            </span>
+                            <h3 class="text-xl font-bold text-white leading-tight tracking-tight mb-1 uppercase">Lens
+                                <span class="text-primary">Nutricional</span>
+                            </h3>
+                            <p class="text-[11px] text-text-gray font-medium leading-[1.3] w-[90%]">Análisis molecular
+                                instantáneo. Sube tu foto y optimiza tu macro.</p>
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-black shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined filled text-[28px]"
+                                style="font-variation-settings: 'FILL' 1;">ar_camera</span>
+                        </div>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Visual Progress & Bio-Mirror -->
+            <section class="mt-8 animate-fade-in" style="animation-delay: 0.15s;">
+                <a href="progreso-visual.html"
+                    class="glass-card p-6 block overflow-hidden relative group hover:border-neon/40 transition-all border-neon/20 bg-neon/5">
+                    <div
+                        class="absolute -right-12 -top-12 w-48 h-48 bg-neon/5 blur-3xl rounded-full group-hover:bg-neon/10 transition-all duration-700">
+                    </div>
+
+                    <div class="flex justify-between items-center relative z-10 w-full">
+                        <div class="flex-1 pr-4">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-neon/10 text-neon border border-neon/20 rounded-md text-[9px] font-black uppercase tracking-widest mb-3">
+                                Meta 3D Activa
+                            </span>
+                            <h3 class="text-xl font-bold text-white leading-tight tracking-tight mb-1 uppercase">Evolución
+                                <span class="text-neon">Visual</span>
+                            </h3>
+                            <p class="text-[11px] text-text-gray font-medium leading-[1.3] w-[90%]">Visualiza tu Yo Futuro y carga tus fotos de progreso biológico.</p>
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-neon flex items-center justify-center text-black shadow-lg shadow-neon/20 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined filled text-[28px]">3d_rotation</span>
+                        </div>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Knowledge & Source Sync -->
+            <section class="mt-8">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Bio-Intelligence Hub</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <a href="https://github.com/USER/healthy-brain" target="_blank"
+                        class="glass-card p-4 flex items-center gap-3 border-white/5 hover:border-white/20 transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white text-white group-hover:text-black transition-all">
+                            <span class="material-symbols-outlined text-[24px]">code</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-black text-white uppercase tracking-tight">GitHub</span>
+                            <span class="text-[8px] text-text-gray font-bold uppercase">Repo Core</span>
+                        </div>
+                    </a>
+                    <a href="https://notebooklm.google.com/notebook/937686b0-f712-4b74-8e20-ffb342e8188c" target="_blank"
+                        class="glass-card p-4 flex items-center gap-3 border-white/5 hover:border-primary/20 transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all">
+                            <span class="material-symbols-outlined text-[24px]">description</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-black text-white uppercase tracking-tight">Bio-Report</span>
+                            <span class="text-[8px] text-text-gray font-bold uppercase">Intelligence Hub</span>
+                        </div>
+                    </a>
+                </div>
+                <a href="https://notebooklm.google.com/notebook/dc124b97-ba90-4bd4-a581-15d3025e9ee4" target="_blank"
+                    class="glass-card p-4 flex items-center gap-4 border-white/5 hover:border-neon/20 transition-all group w-full">
+                    <div class="w-10 h-10 rounded-xl bg-neon/10 flex items-center justify-center text-neon group-hover:bg-neon group-hover:text-black transition-all">
+                        <span class="material-symbols-outlined text-[24px]">clinical_notes</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-black text-white uppercase tracking-tight">Protocolos de Bio-Hacking</span>
+                        <span class="text-[8px] text-text-gray font-bold uppercase underline">NotebookLM Master Sync</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Bio-Synergy: Rewards & Community -->
+            <section class="mt-8 flex gap-3">
+                <a href="recompensas.html" class="flex-1 glass-card p-5 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all group overflow-hidden relative">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/10 rounded-full blur-xl group-hover:scale-150 transition-all"></div>
+                    <div class="relative z-10">
+                        <span class="material-symbols-outlined text-primary text-[28px] mb-3">redeem</span>
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-white">Marketplace</h4>
+                        <p class="text-[8px] text-white/40 uppercase font-bold">Canjear Tokens</p>
+                    </div>
+                </a>
+                <a href="comunidad.html" class="flex-1 glass-card p-5 border-neon/20 bg-neon/5 hover:bg-neon/10 transition-all group overflow-hidden relative">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-neon/10 rounded-full blur-xl group-hover:scale-150 transition-all"></div>
+                    <div class="relative z-10">
+                        <span class="material-symbols-outlined text-neon text-[28px] mb-3">groups</span>
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-white">Comunidad</h4>
+                        <p class="text-[8px] text-white/40 uppercase font-bold">Ranking Social</p>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Squad Global Progress (Epic Meaning) -->
+            <section class="mt-8 px-1">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Meta Global de Escuadrón</h3>
+                    <span class="text-[9px] text-neon font-bold uppercase tracking-widest animate-pulse">En Vivo</span>
+                </div>
+                <div class="glass-card p-4 border-neon/20 bg-neon/5 relative overflow-hidden cursor-pointer" onclick="window.location.href='comunidad.html'">
+                    <div class="absolute -right-4 -top-4 w-12 h-12 bg-neon/10 rounded-full blur-lg"></div>
+                    <div class="flex justify-between text-[10px] font-black uppercase mb-2">
+                        <span id="squad-active-name" class="text-white">Conectando...</span>
+                        <span id="squad-progress-pct" class="text-neon">0%</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div id="squad-progress-bar" class="h-full bg-neon w-[0%] shadow-[0_0_10px_rgba(0,209,255,0.5)] transition-all duration-1000"></div>
+                    </div>
+                    <p id="squad-status-msg" class="text-[8px] text-white/30 mt-3 font-bold uppercase tracking-tighter italic">"Sincronizando sinergias de red..."</p>
+                </div>
+            </section>
+
+            <!-- Quick Log Premium (3-Tap UX) -->
+            <section class="mt-10 mb-10">
+                <div class="flex justify-between items-center mb-5 px-1">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Bio-Logging Rápido</h3>
+                    <div class="flex gap-1">
+                        <div class="w-1 h-1 rounded-full bg-primary/40"></div>
+                        <div class="w-1 h-1 rounded-full bg-primary/40"></div>
+                        <div class="w-1 h-1 rounded-full bg-primary"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-5 gap-2">
+                    <button onclick="quickLog(this, 'agua')"
+                        class="glass-card aspect-square flex flex-col items-center justify-center gap-1 group glass-card-interactive border-neon/10">
+                        <span class="material-symbols-outlined text-neon text-xl group-hover:scale-110 transition-transform">water_drop</span>
+                        <span class="text-[8px] font-bold text-text-gray group-hover:text-neon uppercase tracking-tighter">H2O</span>
+                    </button>
+                    <button onclick="quickLog(this, 'comida')"
+                        class="glass-card aspect-square flex flex-col items-center justify-center gap-1 group glass-card-interactive border-orange-500/10">
+                        <span class="material-symbols-outlined text-orange-400 text-xl group-hover:scale-110 transition-transform">bolt</span>
+                        <span class="text-[8px] font-bold text-text-gray group-hover:text-orange-400 uppercase tracking-tighter">Fuel</span>
+                    </button>
+                    <button onclick="quickLog(this, 'estado')"
+                        class="glass-card aspect-square flex flex-col items-center justify-center gap-1 group glass-card-interactive border-purple-500/10">
+                        <span class="material-symbols-outlined text-purple-400 text-xl group-hover:scale-110 transition-transform">neurology</span>
+                        <span class="text-[8px] font-bold text-text-gray group-hover:text-purple-400 uppercase tracking-tighter">Dopa</span>
+                    </button>
+                    <button onclick="quickLog(this, 'sol')"
+                        class="glass-card aspect-square flex flex-col items-center justify-center gap-1 group glass-card-interactive border-yellow-500/10">
+                        <span class="material-symbols-outlined text-yellow-400 text-xl group-hover:scale-110 transition-transform">wb_sunny</span>
+                        <span class="text-[8px] font-bold text-text-gray group-hover:text-yellow-400 uppercase tracking-tighter">Sol</span>
+                    </button>
+                    <button onclick="quickLog(this, 'pasos')"
+                        class="glass-card aspect-square flex flex-col items-center justify-center gap-1 group glass-card-interactive border-green-500/10">
+                        <span class="material-symbols-outlined text-green-400 text-xl group-hover:scale-110 transition-transform">footprint</span>
+                        <span class="text-[8px] font-bold text-text-gray group-hover:text-green-400 uppercase tracking-tighter">Steps</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Premium Bottom Nav -->
+        <nav class="fixed bottom-0 left-0 w-full border-t border-white/5 bg-dark/80 backdrop-blur-xl pb-10 pt-4 z-50">
+            <div class="flex items-center justify-around max-w-md mx-auto px-4">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-primary relative">
+                    <div class="absolute -top-1 w-8 h-8 bg-primary/10 blur-xl rounded-full"></div>
+                    <span class="material-symbols-outlined filled text-[26px]"
+                        style="font-variation-settings: 'FILL' 1;">home</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Lobby</span>
+                </a>
+                <a href="entrenar.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[26px]">fitness_center</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Gimnasio</span>
+                </a>
+                <a href="historial.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[26px]">analytics</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Progreso</span>
+                </a>
+                <a href="descanso.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[26px]">timer</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Descanso</span>
+                </a>
+                <a href="ejercicios.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[26px]">library_books</span>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Biblioteca</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Achievement Share Modal -->
+    <div id="share-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-dark/90 backdrop-blur-md">
+        <div class="glass-card w-full max-w-sm overflow-hidden animate-scale-in">
+            <div id="bio-card-capture" class="p-8 bg-gradient-to-br from-dark to-primary/20 relative overflow-hidden">
+                <!-- Card Background Elements -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-neon/10 blur-3xl rounded-full"></div>
+                
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <div class="w-20 h-20 rounded-full border-2 border-primary/50 p-1 mb-4 shadow-[0_0_20px_rgba(255,138,0,0.3)]">
+                        <div class="w-full h-full rounded-full bg-surface-glass flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-4xl">psychology</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-1">Bio-Explorer Passport</h3>
+                    <h2 id="card-user-name" class="text-xl font-black text-white uppercase italic mb-6">GUERRERO</h2>
+                    
+                    <div class="grid grid-cols-2 gap-4 w-full mb-8">
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Racha Bio</p>
+                            <p id="card-streak" class="text-2xl font-black text-white">0d</p>
+                        </div>
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-widest mb-1">Neuro-Tokens</p>
+                            <p id="card-ntk" class="text-2xl font-black text-primary">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-8">
+                        <div class="h-[1px] w-8 bg-white/20"></div>
+                        <span class="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">Soberanía Biológica</span>
+                        <div class="h-[1px] w-8 bg-white/20"></div>
+                    </div>
+                    
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg" alt="Sponsor" class="h-6 opacity-30 grayscale invert mb-2">
+                    <p class="text-[7px] font-medium text-white/20 uppercase tracking-[0.1em]">Verified by Healthy+Brain Bio-Network</p>
+                </div>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-3">
+                <button onclick="executeShare()" class="w-full py-4 bg-primary text-black font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">Compartir en Redes</button>
+                <button onclick="closeShareModal()" class="w-full py-3 text-white/40 text-[10px] font-black uppercase tracking-widest">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global references for Bio-Cloud
+        let currentUserDoc = null;
+        let lastLogTime = 0;
+
+        // Update greeting based on time
+        const hour = new Date().getHours();
+        const greetingElement = document.getElementById('greeting');
+        let greetText = 'Buenos días';
+        if (hour >= 12 && hour < 18) greetText = 'Buenas tardes';
+        if (hour >= 18) greetText = 'Buenas noches';
+        greetingElement.innerText = `${greetText}, Guerrero`;
+
+        function syncData() {
+            try {
+                window.hb_auth.onAuthStateChanged(async (user) => {
+                    if (!user) {
+                        await window.hb_auth.signInAnonymously();
+                        return; // Omit executing further, listener fires again
+                    }
+
+                    const userId = user.uid;
+                    currentUserDoc = window.hb_db.collection('users').doc(userId);
+
+                    const ntk = localStorage.getItem('hb_ntk') || '450';
+                    const hrv = localStorage.getItem('hb_hrv') || '72';
+                    const glucose = localStorage.getItem('hb_glucose') || '98';
+
+                    // Initial UI update from Local
+                    document.getElementById('ntk-balance').innerText = ntk;
+                    document.getElementById('hrv-value').innerText = `${hrv} BPM`;
+                    document.getElementById('glucosa-value').innerText = `${glucose} mg/dL`;
+
+                    // Fetch Last Workout for BDNF Logic
+                    window.hb_db.collection('users').doc(userId).collection('logs')
+                        .where('category', '==', 'entrenar')
+                        .orderBy('timestamp', 'desc')
+                        .limit(1)
+                        .get()
+                        .then(querySnapshot => {
+                            let lastWorkoutAt = null;
+                            if (!querySnapshot.empty) {
+                                lastWorkoutAt = querySnapshot.docs[0].data().timestamp.toDate();
+                            }
+                            
+                            // Initial AI Scan
+                            updateAIInsightsPanel({ hrv: parseInt(hrv), glucosa: parseInt(glucose), lastWorkoutAt, ntk: parseInt(ntk) });
+
+                            // Update real-time listener inside onSnapshot
+                            if (window.hb_unsubscribe) window.hb_unsubscribe();
+                            window.hb_unsubscribe = currentUserDoc.onSnapshot(async (doc) => {
+                                if (!doc.exists) {
+                                    // New user onboarding bonus
+                                    try {
+                                        await currentUserDoc.set({
+                                            ntkBalance: 100,
+                                            hrv: parseInt(hrv),
+                                            glucosa: parseInt(glucose),
+                                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
+                                        localStorage.setItem('hb_ntk', 100);
+                                        showRewardPopup('Bio-Onboarding Inicial', 100);
+                                    } catch (e) {
+                                        console.error("Error creating user profile", e);
+                                    }
+                                } else {
+                                    const data = doc.data() || {};
+                                    const currentNtk = data.ntkBalance !== undefined ? data.ntkBalance : parseInt(ntk);
+                                    
+                                    // Update NTK Balance
+                                    document.getElementById('ntk-balance').innerText = currentNtk;
+                                    document.getElementById('hrv-value').innerText = `${data.hrv || hrv} BPM`;
+                                    document.getElementById('glucosa-value').innerText = `${data.glucosa || glucose} mg/dL`;
+                                    localStorage.setItem('hb_ntk', currentNtk);
+
+                                    // Gamification Logic
+                                    const level = Math.floor(currentNtk / 1000) + 1;
+                                    const xpValue = currentNtk % 1000;
+                                    const xpPercent = (xpValue / 1000) * 100;
+
+                                    document.getElementById('user-level').innerText = `LVL ${level}`;
+                                    document.getElementById('user-xp-text').innerText = `${xpValue} / 1000 NTK`;
+                                    document.getElementById('user-xp-bar').style.width = `${xpPercent}%`;
+
+                                    // 2. Sync Squad Progress
+                                    syncSquadProgress(data.squadId || 'alpha_centauri');
+
+                                    // Update AI Panel with Live Data
+                                    updateAIInsightsPanel({ 
+                                        hrv: data.hrv || parseInt(hrv), 
+                                        glucosa: data.glucosa || parseInt(glucose), 
+                                        lastWorkoutAt,
+                                        ntk: currentNtk
+                                    });
+                                }
+                            });
+                        });
+                });
+            } catch (p) { console.warn("Cloud Sync Error:", p); }
+        }
+
+        function applyUserBg() {
+            const bg = localStorage.getItem('hb_user_bg') || 'tech';
+            const bgOverlay = document.createElement('div');
+            bgOverlay.id = 'dynamic-bg';
+            bgOverlay.className = 'fixed inset-0 pointer-events-none z-[-1] opacity-[0.08] transition-opacity duration-1000';
+            bgOverlay.style.backgroundImage = `url('assets/images/bg_${bg}.png')`;
+            bgOverlay.style.backgroundSize = 'cover';
+            bgOverlay.style.backgroundPosition = 'center';
+            document.body.appendChild(bgOverlay);
+        }
+
+        async function quickLog(btnElement, type) {
+            // Anti-spam cooldown (30s)
+            const now = Date.now();
+            if (now - lastLogTime < 30000) {
+                btnElement.classList.add('border-red-500/50');
+                setTimeout(() => btnElement.classList.remove('border-red-500/50'), 500);
+                return;
+            }
+            lastLogTime = now;
+
+            const icon = btnElement.querySelector('.material-symbols-outlined');
+            const text = btnElement.querySelector('span:last-child');
+            const originalIcon = icon.innerText;
+            const originalText = text.innerText;
+
+            // UI feedback
+            icon.innerText = 'cloud_upload';
+            text.innerText = 'SYNCING...';
+            btnElement.classList.add('border-primary/50');
+
+            try {
+                if (currentUserDoc) {
+                    const logData = {
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'quick_log',
+                        category: type,
+                        value: 5,
+                        unit: 'NTK+',
+                        title: `Registro Rápido: ${type.toUpperCase()}`
+                    };
+
+                    // Guardar Log
+                    await currentUserDoc.collection('logs').add(logData);
+
+                    // --- Sinergia Cloud Feed ---
+                    const userSnap = await currentUserDoc.get();
+                    const userData = userSnap.data() || {};
+                    const iconMap = { 'agua': 'water_drop', 'comida': 'bolt', 'estado': 'neurology', 'sol': 'wb_sunny', 'pasos': 'footprint' };
+                    
+                    await window.hb_db.collection('sinergias').add({
+                        userId: auth.currentUser.uid,
+                        userName: userData.displayName || 'Guerrero_' + auth.currentUser.uid.substring(0,4),
+                        type: 'quick_log',
+                        icon: iconMap[type] || 'bolt',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        glows: 0,
+                        glowedBy: []
+                    });
+                    // --------------------------
+
+                    // Recompensa NTK
+                    await currentUserDoc.update({
+                        ntkBalance: firebase.firestore.FieldValue.increment(5)
+                    });
+
+                    icon.innerText = 'check_circle';
+                    text.innerText = '+5 NTK';
+                }
+            } catch (e) {
+                console.error("Quick Log Error:", e);
+                icon.innerText = 'error';
+                text.innerText = 'ERROR';
+            }
+
+            setTimeout(() => {
+                icon.innerText = originalIcon;
+                text.innerText = originalText;
+                btnElement.classList.remove('border-primary/50');
+            }, 3000);
+        }
+
+        // --- Bio-Challenge & Share Logic (Fase 39) ---
+        let activeChallenge = null;
+
+        async function checkSecurityStatus() {
+            if (window.hb_secure_auth) {
+                const isVerified = await window.hb_secure_auth.checkVerification();
+                if (!isVerified && auth.currentUser && !auth.currentUser.isAnonymous) {
+                    showToast("BIO-ID NO VERIFICADO. REVISA TU CORREO.");
+                    // Optional: Blur or limit UI
+                }
+            }
+        }
+
+        function loadDailyChallenge() {
+            checkSecurityStatus();
+            if (window.InsightsEngine) {
+                activeChallenge = window.InsightsEngine.getDailyChallenge();
+                document.getElementById('ch-title').innerText = activeChallenge.title;
+                document.getElementById('ch-body').innerText = activeChallenge.body;
+                document.getElementById('ch-icon').innerText = activeChallenge.icon === 'colors' ? 'palette' : activeChallenge.icon;
+                document.getElementById('btn-complete-ch').innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Completar (+${activeChallenge.reward} NTK)`;
+                
+                const today = new Date().toDateString();
+                if (localStorage.getItem(`hb_ch_done_${activeChallenge.id}_${today}`)) {
+                    const btn = document.getElementById('btn-complete-ch');
+                    btn.disabled = true;
+                    btn.innerHTML = `<span class="material-symbols-outlined text-sm">verified</span> DESAFÍO LOGRADO`;
+                    btn.className = btn.className.replace('bg-primary', 'bg-green-500/20 text-green-500 border border-green-500/30');
+                }
+            }
+        }
+
+        async function completeChallenge() {
+            if (!activeChallenge || !currentUserDoc) return;
+            
+            const btn = document.getElementById('btn-complete-ch');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> PROCESANDO...`;
+
+            try {
+                await currentUserDoc.update({
+                    ntkBalance: firebase.firestore.FieldValue.increment(activeChallenge.reward)
+                });
+                
+                await currentUserDoc.collection('logs').add({
+                    type: 'challenge',
+                    challengeId: activeChallenge.id,
+                    reward: activeChallenge.reward,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                const today = new Date().toDateString();
+                localStorage.setItem(`hb_ch_done_${activeChallenge.id}_${today}`, 'true');
+                
+                btn.innerHTML = `<span class="material-symbols-outlined text-sm">verified</span> DESAFÍO LOGRADO`;
+                btn.className = btn.className.replace('bg-primary', 'bg-green-500/20 text-green-500 border border-green-500/30');
+                
+                showToast(`¡HAS GANADO ${activeChallenge.reward} NTK!`);
+                shareChallenge(); // Auto-open share modal
+            } catch(e) {
+                console.error("Challenge Error:", e);
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> REINTENTAR`;
+            }
+        }
+
+        function shareChallenge() {
+            const modal = document.getElementById('share-modal');
+            const ntk = document.getElementById('ntk-balance').innerText;
+            const streak = document.getElementById('streak-display').innerText;
+            
+            document.getElementById('card-ntk').innerText = ntk;
+            document.getElementById('card-streak').innerText = streak.split(' ')[0] + 'd';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Redraw card or generate canvas here if needed
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.add('hidden');
+            document.getElementById('share-modal').classList.remove('flex');
+        }
+
+        async function executeShare() {
+            const btn = document.querySelector('button[onclick="executeShare()"]');
+            btn.disabled = true;
+            btn.innerText = "GENERANDO BIO-ID...";
+
+            // Simulación de generación de imagen y apertura de Web Share API
+            setTimeout(() => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Healthy + Brain Bio-Achievement',
+                        text: `¡He completado el desafío: ${activeChallenge.title}! Mi racha de soberanía es de ${document.getElementById('streak-display').innerText}. Únete a la red: https://healthybrain.app/join?ref=${auth.currentUser.uid.substring(0,6)}`,
+                        url: window.location.href
+                    }).catch(console.error);
+                } else {
+                    alert("Copiado al portapapeles: Logro Bio-Soberano desbloqueado.");
+                }
+                btn.disabled = false;
+                btn.innerText = "Compartir en Redes";
+            }, 1000);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-primary text-black font-black py-4 px-8 rounded-full shadow-2xl z-[200] animate-bounce-in uppercase italic text-xs whitespace-nowrap';
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            syncData();
+            applyUserBg();
+            setTimeout(loadDailyChallenge, 1000);
+            
+            // Initialize Nano-Banana
+            if (window.NanoBanana) {
+                new NanoBanana('neural-bg');
+            }
+        });
+
+        async function triggerBioProtocol(action, reward = 10, protocolId = 'generic', btnElement = null) {
+            console.log("Triggering Bio-Protocol:", action, reward, protocolId);
+            
+            // Daily Lock Check
+            const today = new Date().toISOString().split('T')[0];
+            const lockKey = `hb_lock_${protocolId}_${today}`;
+            if (localStorage.getItem(lockKey)) {
+                if (btnElement) {
+                    btnElement.innerText = 'YA COMPLETADO';
+                    btnElement.disabled = true;
+                }
+                return;
+            }
+
+            // UI Feedback if button exists
+            let originalText = "";
+            if (btnElement) {
+                originalText = btnElement.innerText;
+                btnElement.innerText = "SYNCING...";
+                btnElement.disabled = true;
+                btnElement.classList.add('border-primary/50');
+            }
+
+            try {
+                // 1. Core Actions
+                switch(action) {
+                    case 'start_breath':
+                        showBreathingModal();
+                        break;
+                    case 'log_sunlight':
+                        // Handled by common reward logic below
+                        break;
+                    case 'log_nature':
+                        // Handled by common reward logic below
+                        break;
+                    case 'log_walk':
+                        // Handled by common reward logic below
+                        break;
+                    case 'start_focus':
+                        window.location.href = 'descanso.html';
+                        return;
+                    case 'go_library':
+                        window.location.href = 'ejercicios.html';
+                        return;
+                    default:
+                        console.warn("Acción no reconocida:", action);
+                }
+
+                // 2. Cloud Sync & Reward
+                if (currentUserDoc && reward > 0) {
+                    await currentUserDoc.collection('logs').add({
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        type: 'protocol_sync',
+                        protocolId: protocolId,
+                        title: `Protocolo: ${protocolId.toUpperCase()}`,
+                        reward: reward,
+                        client: 'web'
+                    });
+
+                    await currentUserDoc.update({
+                        ntkBalance: firebase.firestore.FieldValue.increment(reward)
+                    });
+
+                    // Lock for today
+                    localStorage.setItem(lockKey, 'true');
+
+                    // --- Sinergia Cloud Feed ---
+                    const userSnap = await currentUserDoc.get();
+                    const userData = userSnap.data() || {};
+                    
+                    await window.hb_db.collection('sinergias').add({
+                        userId: auth.currentUser.uid,
+                        userName: userData.displayName || 'Guerrero_' + auth.currentUser.uid.substring(0,4),
+                        type: 'protocol_sync',
+                        icon: 'bolt',
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        glows: 0,
+                        glowedBy: []
+                    });
+                    // --------------------------
+
+                    if (btnElement) {
+                        btnElement.innerText = `+${reward} NTK SYNC`;
+                        btnElement.classList.remove('border-primary/50');
+                        btnElement.classList.add('border-neon', 'text-neon');
+                    }
+                }
+
+            } catch (e) {
+                console.error("Protocol Error:", e);
+                if (btnElement) btnElement.innerText = "ERROR SYNC";
+            }
+
+            if (btnElement && action !== 'start_breath') {
+                setTimeout(() => {
+                    btnElement.innerText = originalText || "COMPLETADO";
+                    if (!localStorage.getItem(lockKey)) btnElement.disabled = false;
+                }, 3000);
+            }
+        }
+
+        function showBreathingModal() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-6 bg-dark/90 backdrop-blur-xl animate-fade-in';
+            modal.innerHTML = `
+                <div class="glass-card w-full max-w-sm p-8 text-center border-neon/30 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-neon/5 animate-pulse"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-xl font-black text-white uppercase tracking-widest mb-2">Suspiro Fisiológico</h2>
+                        <p class="text-[11px] text-text-gray mb-8">Reset del Sistema Nervioso Autónomo</p>
+                        
+                        <div class="w-32 h-32 rounded-full border-2 border-neon/20 mx-auto flex items-center justify-center relative mb-8">
+                            <div id="breath-circle" class="w-24 h-24 rounded-full bg-neon/20 transition-all duration-[4000ms] ease-in-out"></div>
+                            <span id="breath-text" class="absolute text-[10px] font-black uppercase text-neon">Inhala</span>
+                        </div>
+
+                        <p id="breath-inst" class="text-[12px] text-white/70 italic mb-8 h-12">Doble inhalación corta por la nariz...</p>
+
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">Finalizar Sesión</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Animation Logic
+            let phase = 0;
+            const circle = modal.querySelector('#breath-circle');
+            const text = modal.querySelector('#breath-text');
+            const inst = modal.querySelector('#breath-inst');
+
+            const runPhase = () => {
+                if (!document.body.contains(modal)) return;
+                
+                if (phase === 0) { // Inhale 1
+                    circle.style.transform = 'scale(1.2)';
+                    circle.style.backgroundColor = 'rgba(0, 209, 255, 0.4)';
+                    text.innerText = 'Inhala';
+                    inst.innerText = 'Inhalación profunda por la nariz...';
+                    setTimeout(() => { phase = 1; runPhase(); }, 2000);
+                } else if (phase === 1) { // Inhale 2 (Quick)
+                    circle.style.transform = 'scale(1.4)';
+                    text.innerText = 'Más';
+                    inst.innerText = '¡Un poco más al final!';
+                    setTimeout(() => { phase = 2; runPhase(); }, 1000);
+                } else { // Exhale
+                    circle.style.transform = 'scale(0.8)';
+                    circle.style.backgroundColor = 'rgba(0, 209, 255, 0.1)';
+                    text.innerText = 'Exhala';
+                    inst.innerText = 'Exhalación larga y lenta por la boca...';
+                    setTimeout(() => { phase = 0; runPhase(); }, 5000);
+                }
+            };
+            runPhase();
+        }
+
+        function showRewardPopup(title, amount) {
+            const popup = document.createElement('div');
+            popup.className = 'fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-dark/90 backdrop-blur-xl border border-primary/40 p-4 rounded-2xl shadow-[0_0_30px_rgba(255,138,0,0.3)] animate-fade-in flex items-center gap-4 w-[90%] max-w-sm';
+            popup.innerHTML = `
+                <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-primary text-[24px]">workspace_premium</span>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-[10px] font-black uppercase text-text-gray tracking-widest">${title}</h4>
+                    <p class="text-lg font-bold text-white">+${amount} NTK</p>
+                </div>
+            `;
+            document.body.appendChild(popup);
+            setTimeout(() => {
+                popup.style.transition = 'opacity 0.5s ease';
+                popup.classList.add('opacity-0');
+                setTimeout(() => popup.remove(), 500);
+            }, 4000);
+        }
+
+        // ─── FCM Push Notifications ─────────────────────────────────────
+        async function initFCM() {
+            try {
+                // 1. Register Service Worker
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    console.log('[FCM] Service Worker registered:', registration.scope);
+                }
+
+                // 2. Check if already granted
+                if (Notification.permission === 'granted') {
+                    await saveFCMToken();
+                    return;
+                }
+
+                // 3. Show non-intrusive banner after delay (first visit only)
+                if (Notification.permission === 'default' && !localStorage.getItem('hb_notif_asked')) {
+                    setTimeout(showNotificationBanner, 6000);
+                }
+            } catch (e) {
+                console.warn('[FCM] Init error:', e);
+            }
+        }
+
+        function showNotificationBanner() {
+            const banner = document.createElement('div');
+            banner.id = 'fcm-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm animate-fade-in';
+            banner.innerHTML = `
+                <div class="glass-card p-4 border-neon/30 bg-dark/95 backdrop-blur-2xl flex items-start gap-3 shadow-[0_0_40px_rgba(0,209,255,0.15)]">
+                    <div class="w-10 h-10 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <span class="material-symbols-outlined text-neon text-[20px]">notifications_active</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-[11px] font-black text-white uppercase tracking-tight mb-1">Activar Bio-Alertas</h4>
+                        <p class="text-[9px] text-white/50 font-medium leading-relaxed mb-3">Recibe recordatorios de protocolos, ventanas de ayuno y logros NTK en tiempo real.</p>
+                        <div class="flex gap-2">
+                            <button onclick="requestNotifPermission()" class="flex-1 py-2 rounded-xl bg-neon text-dark text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all">Activar</button>
+                            <button onclick="dismissNotifBanner()" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[9px] font-bold text-white/40 uppercase tracking-widest hover:bg-white/10 transition-all">Después</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(banner);
+        }
+
+        async function requestNotifPermission() {
+            localStorage.setItem('hb_notif_asked', 'true');
+            const banner = document.getElementById('fcm-banner');
+            if (banner) { banner.style.opacity = '0'; setTimeout(() => banner.remove(), 300); }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    await saveFCMToken();
+                    showRewardPopup('Bio-Alertas Activadas', 25);
+                    // Reward NTK for enabling notifications
+                    if (currentUserDoc) {
+                        await currentUserDoc.update({ ntkBalance: firebase.firestore.FieldValue.increment(25) });
+                    }
+                }
+            } catch (e) {
+                console.warn('[FCM] Permission error:', e);
+            }
+        }
+
+        function dismissNotifBanner() {
+            localStorage.setItem('hb_notif_asked', 'true');
+            const banner = document.getElementById('fcm-banner');
+            if (banner) { banner.style.transition = 'opacity 0.3s'; banner.style.opacity = '0'; setTimeout(() => banner.remove(), 300); }
+        }
+
+        async function saveFCMToken() {
+            try {
+                if (!firebase.messaging || !firebase.messaging.isSupported()) return;
+                const messaging = firebase.messaging();
+                const token = await messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY_HERE' });
+                console.log('[FCM] Token:', token);
+
+                if (currentUserDoc && token) {
+                    await currentUserDoc.update({ fcmToken: token, notificationsEnabled: true });
+                }
+
+                // Handle foreground messages
+                messaging.onMessage((payload) => {
+                    console.log('[FCM] Foreground message:', payload);
+                    const title = payload.notification?.title || 'HEALTHY + BRAIN';
+                    const body = payload.notification?.body || '';
+                    showForegroundNotification(title, body);
+                });
+            } catch (e) {
+                console.warn('[FCM] Token error:', e);
+            }
+        }
+
+        function showForegroundNotification(title, body) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm animate-fade-in';
+            toast.innerHTML = `
+                <div class="glass-card p-4 border-primary/30 bg-dark/95 backdrop-blur-2xl flex items-center gap-3 shadow-[0_0_30px_rgba(255,138,0,0.2)]" onclick="this.parentElement.remove()">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary text-[20px]">campaign</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-[11px] font-black text-white uppercase tracking-tight">${title}</h4>
+                        <p class="text-[9px] text-white/50 font-medium">${body}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.transition = 'opacity 0.5s'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 6000);
+        }
+
+        async function updateStreak() {
+            const streak = parseInt(localStorage.getItem('hb_login_streak') || '0');
+            const today = new Date().toDateString();
+            const lastLogin = localStorage.getItem('hb_last_login');
+            let currentStreak = streak;
+
+            if (lastLogin !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastLogin === yesterday.toDateString()) {
+                    currentStreak = streak + 1;
+                    localStorage.setItem('hb_login_streak', currentStreak);
+                    localStorage.setItem('hb_last_login', today);
+                } else if (lastLogin) {
+                    // Check for Bio-Shield in Cloud
+                    const user = window.hb_auth.currentUser;
+                    if (user) {
+                        const userRef = window.hb_db.collection('users').doc(user.uid);
+                        const doc = await userRef.get();
+                        const bioShields = doc.data()?.bioShields || 0;
+                        
+                        if (bioShields > 0) {
+                            // CONSUME SHIELD
+                            await userRef.update({
+                                bioShields: firebase.firestore.FieldValue.increment(-1)
+                            });
+                            // Keep previous streak
+                            currentStreak = streak + 1;
+                            showToast("🛡️ Bio-Shield Consumido: Racha Salvada");
+                            localStorage.setItem('hb_login_streak', currentStreak);
+                            localStorage.setItem('hb_last_login', today);
+                        } else {
+                            currentStreak = 1;
+                            localStorage.setItem('hb_login_streak', currentStreak);
+                            localStorage.setItem('hb_last_login', today);
+                        }
+                    } else {
+                        currentStreak = 1;
+                        localStorage.setItem('hb_login_streak', currentStreak);
+                        localStorage.setItem('hb_last_login', today);
+                    }
+                } else {
+                    currentStreak = 1;
+                    localStorage.setItem('hb_login_streak', currentStreak);
+                    localStorage.setItem('hb_last_login', today);
+                }
+            }
+            
+            const el = document.getElementById('streak-display');
+            if (el) el.innerHTML = `${currentStreak} <span class="text-[9px] opacity-70">Días</span>`;
+        }
+
+        // --- Squad & Growth Logic ---
+        async function syncSquadProgress(squadId) {
+            try {
+                window.hb_db.collection('squads').doc(squadId).onSnapshot(doc => {
+                    if (!doc.exists) return;
+                    const data = doc.data();
+                    const target = data.targetPoints || 5000;
+                    const current = data.totalPoints || 0;
+                    const pct = Math.min(100, Math.floor((current / target) * 100));
+                    const remaining = Math.max(0, target - current);
+
+                    const nameEl = document.getElementById('squad-active-name');
+                    const pctEl = document.getElementById('squad-progress-pct');
+                    const barEl = document.getElementById('squad-progress-bar');
+                    const msgEl = document.getElementById('squad-status-msg');
+
+                    if (nameEl) nameEl.innerText = data.name || squadId;
+                    if (pctEl) pctEl.innerText = `${pct}%`;
+                    if (barEl) barEl.style.width = `${pct}%`;
+                    if (msgEl) msgEl.innerText = 
+                        remaining > 0 ? `Faltan ${remaining.toLocaleString()} NTK para el próximo Bio-Drop` : "¡Meta Alcanzada! Sincronizando Recompensas...";
+                });
+            } catch (e) { console.error("Squad Sync Error", e); }
+        }
+
+        function shareBioScore() {
+            const modal = document.getElementById('share-modal');
+            const ntk = document.getElementById('ntk-balance').innerText;
+            const level = document.getElementById('user-level').innerText;
+            const hrv = document.getElementById('hrv-value').innerText;
+
+            document.getElementById('share-ntk').innerText = ntk;
+            document.getElementById('share-level').innerText = level;
+            document.getElementById('share-hrv').innerText = hrv;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        // --- Bio-Hack Interventions (Fase 36) ---
+        function triggerPhysiologicalSigh() {
+            if (typeof showBreathingModal === 'function') {
+                showBreathingModal();
+            } else {
+                console.warn("showBreathingModal not found");
+            }
+        }
+
+        function toggleGrayscaleTip() {
+            alert("Bio-Hack de Dopamina: Ve a Ajustes > Accesibilidad > Pantalla > Filtros de Color y activa 'Escala de Grises'. Elimina el secuestro de atención de las apps.");
+        }
+
+        // --- Bio-Bridge Logic ---
+        function openBioBridge(type) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-[150] flex items-center justify-center p-6 bg-dark/95 backdrop-blur-2xl animate-fade-in';
+            
+            let content = '';
+            if (type === 'manual') {
+                content = `
+                    <h3 class="text-xl font-black text-white uppercase mb-6 tracking-widest">Ingreso Manual</h3>
+                    <div class="space-y-4 mb-8">
+                        <div>
+                            <label class="text-[9px] font-bold text-white/40 uppercase mb-2 block">Glucosa (mg/dL)</label>
+                            <input id="in-glucose" type="number" placeholder="95" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-white/40 uppercase mb-2 block">Fuerza de Agarre (kg)</label>
+                            <input id="in-grip" type="number" placeholder="45" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-primary">
+                        </div>
+                    </div>
+                    <button onclick="saveManualBioData(this)" class="w-full py-4 bg-neon text-black font-black uppercase tracking-widest rounded-xl shadow-lg shadow-neon/20">Sincronizar Datos</button>
+                `;
+            } else if (type === 'screenshot') {
+                content = `
+                    <h3 class="text-xl font-black text-white uppercase mb-4 tracking-widest">IA Vision Bridge</h3>
+                    <p class="text-[10px] text-white/40 mb-8 uppercase font-bold">Sube un screenshot de tu Apple Health o Health Connect para análisis ocular de IA.</p>
+                    <div class="w-full aspect-video rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-3 mb-8 hover:bg-white/5 transition-all" onclick="document.getElementById('screen-input').click()">
+                        <span class="material-symbols-outlined text-4xl text-white/20">wallpaper</span>
+                        <span class="text-[9px] font-bold text-white/20 uppercase tracking-widest">Seleccionar Captura</span>
+                        <input type="file" id="screen-input" class="hidden" onchange="processBioScreenshot(this)">
+                    </div>
+                `;
+            } else {
+                content = `
+                    <h3 class="text-xl font-black text-white uppercase mb-4 tracking-widest">Importar CSV / TXT</h3>
+                    <p class="text-[10px] text-white/40 mb-8 uppercase font-bold">Importa exportaciones de datos crudos de wearables u otras plataformas.</p>
+                    <input type="file" accept=".csv,.txt" onchange="processBioCSV(this)" class="w-full bg-white/5 border border-white/10 rounded-xl p-8 text-white text-xs font-bold file:hidden text-center cursor-pointer hover:bg-white/10 transition-all">
+                `;
+            }
+
+            modal.innerHTML = `
+                <div class="glass-card w-full max-w-sm p-8 border-white/20 relative">
+                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white/20 hover:text-white transition-all">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                    ${content}
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function saveManualBioData(btn) {
+            const glucose = document.getElementById('in-glucose').value;
+            const grip = document.getElementById('in-grip').value;
+            
+            if (!glucose && !grip) return;
+            
+            btn.disabled = true;
+            btn.innerText = "SINCRONIZANDO...";
+            
+            try {
+                if (currentUserDoc) {
+                    const updateData = {};
+                    if (glucose) updateData.glucosa = parseInt(glucose);
+                    if (grip) updateData.gripStrength = parseInt(grip);
+                    updateData.lastManualSync = firebase.firestore.FieldValue.serverTimestamp();
+                    
+                    await currentUserDoc.update(updateData);
+                    showRewardPopup('Bio-Datos Sincronizados', 10);
+                    setTimeout(() => btn.parentElement.parentElement.remove(), 1000);
+                }
+            } catch (e) {
+                console.error(e);
+                btn.innerText = "ERROR DE RED";
+                btn.disabled = false;
+            }
+        }
+
+        function processBioScreenshot(input) {
+            const btn = input.parentElement;
+            btn.innerHTML = `
+                <span class="material-symbols-outlined text-4xl text-neon animate-spin">sync</span>
+                <span class="text-[9px] font-bold text-neon uppercase tracking-widest">IA Analizando Visión...</span>
+            `;
+            setTimeout(() => {
+                showRewardPopup('Datos Extraídos via OCR', 15);
+                btn.parentElement.parentElement.remove();
+            }, 3000);
+        }
+
+        function processBioCSV(input) {
+            showToast("Procesando Archivo Bio-Data...");
+            setTimeout(() => {
+                showRewardPopup('Importación CSV Exitosa', 20);
+                input.parentElement.parentElement.remove();
+            }, 2500);
+        }
+
+        function closeShareModal() {
+            const modal = document.getElementById('share-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function executeShare() {
+            const text = `🚀 Mi soberanía biológica está en ${document.getElementById('share-level').innerText}! He minado ${document.getElementById('share-ntk').innerText} Neuro-Tokens. Únete a la red Healthy + Brain y optimiza tu cerebro. #BioHacking #NeuroToken`;
+            const url = window.location.href;
+
+            if (navigator.share) {
+                navigator.share({ title: 'Healthy + Brain Progress', text, url });
+            } else {
+                navigator.clipboard.writeText(`${text} ${url}`);
+                showToast("¡Copiado al portapapeles!");
+            }
+        }
+
+        applyUserBg();
+        syncData();
+        initFCM();
+        window.addEventListener('focus', syncData);
+        updateStreak(); // Initial check
+    </script>
+
+    <!-- Share Modal (Marketing Growth) -->
+    <div id="share-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-xs flex flex-col gap-6">
+            <!-- Achievement Card -->
+            <div id="bio-card" class="glass-card aspect-[4/5] p-8 border-neon/30 bg-dark relative overflow-hidden flex flex-col items-center justify-center text-center">
+                <div class="absolute inset-0 bg-gradient-to-b from-neon/10 via-transparent to-primary/10"></div>
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon via-white to-primary"></div>
+                
+                <div class="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,209,255,0.2)]">
+                    <span class="material-symbols-outlined text-neon text-5xl font-black">token</span>
+                </div>
+
+                <h4 class="text-xs font-black text-white/40 uppercase tracking-[0.3em] mb-2">Estado de Soberanía</h4>
+                <div id="share-level" class="text-5xl font-black italic text-white mb-1">LVL 1</div>
+                <div class="flex items-center gap-2 mb-8">
+                    <span class="text-neon font-bold italic" id="share-ntk">0</span>
+                    <span class="text-[10px] text-white/30 font-bold uppercase">NTK Minados</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 w-full border-t border-white/5 pt-6">
+                    <div>
+                        <p class="text-[8px] text-white/40 font-bold uppercase mb-1">HRV Promedio</p>
+                        <p id="share-hrv" class="text-sm font-black text-neon">72 BPM</p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] text-white/40 font-bold uppercase mb-1">Red Global</p>
+                        <p class="text-sm font-black text-primary">TOP 12%</p>
+                    </div>
+                </div>
+
+                <div class="absolute bottom-6 flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-neon animate-pulse"></div>
+                    <span class="text-[8px] font-black text-white/40 uppercase tracking-widest italic">HEALTHY + BRAIN ID</span>
+                </div>
+            </div>
+
+            <!-- Share Buttons -->
+            <div class="flex flex-col gap-3">
+                <button onclick="executeShare()" class="w-full py-4 bg-neon text-black font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(0,209,255,0.4)] flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">share</span> Compartir Logro
+                </button>
+                <button onclick="closeShareModal()" class="w-full py-4 bg-white/5 text-white/60 font-black uppercase tracking-widest rounded-xl border border-white/10">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Status Indicator -->
+    <div id="sync-status"></div>
+
+<script>
+        // Initialize Bio-Age display
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.healthIntegrator) {
+                    var profile = window.healthIntegrator.userProfile;
+                    var badge = document.getElementById('bio-age-badge');
+                    if (badge && profile.biologicalAge) {
+                        badge.classList.remove('hidden');
+                        var diff = profile.biologicalAge - profile.age;
+                        var diffText = diff > 0 ? '+' + diff : diff;
+                        badge.innerHTML = 'Bio: ' + profile.biologicalAge + ' <span class="text-[8px]">(' + diffText + ')</span>';
+                    }
+                }
+            }, 3000);
+        });
+    </script>
+    <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW failed:', err));
+      });
+    }
+    </script>
+</body>
+
+</html>

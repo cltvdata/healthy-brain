@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Regulación Emocional - HEALTHY + BRAIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        green: '#13ec5b',
+                        dark: '#0a0a0a',
+                        alert: '#e74c3c',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(0, 209, 255, 0.05) 0%, transparent 70%);
+            transition: background-color 2s ease, background-image 2s ease;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 32px;
+        }
+
+        /* Hand SVG Styling */
+        #hand-svg {
+            width: 100%;
+            height: auto;
+            max-height: 50vh;
+            filter: drop-shadow(0 0 15px rgba(0, 209, 255, 0.2));
+            transition: filter 1s ease;
+        }
+
+        .hand-path {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 1s ease;
+        }
+
+        #tracer-dot {
+            fill: #00d1ff;
+            filter: drop-shadow(0 0 10px #00d1ff);
+            transition: fill 1s ease, filter 1s ease;
+        }
+
+        .pulse-ring {
+            fill: none;
+            stroke: #00d1ff;
+            stroke-width: 2;
+            opacity: 0;
+            transform-origin: center;
+        }
+
+        @keyframes holdPulse {
+            0% { transform: scale(1); opacity: 0.8; stroke-width: 2; }
+            100% { transform: scale(3); opacity: 0; stroke-width: 0.5; }
+        }
+
+        .anim-pulse {
+            animation: holdPulse 1.5s infinite cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        .phase-inhale { color: #00d1ff; }
+        .phase-hold { color: #ff8a00; }
+        .phase-exhale { color: #13ec5b; }
+
+        .btn-glow {
+            box-shadow: 0 0 20px rgba(0, 209, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(0, 209, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        #reward-modal {
+            backdrop-filter: blur(15px);
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="text-white h-screen flex flex-col items-center justify-center relative">
+
+    <!-- Top Bar -->
+    <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+        <a href="evolucion-bioquimica.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all backdrop-blur-md">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+        </a>
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+            <span class="material-symbols-outlined text-neon text-[16px]">headphones</span>
+            <span class="text-[10px] font-black tracking-widest uppercase">Audio 4Hz Theta Activo</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="w-full max-w-md px-6 flex flex-col items-center z-10 relative mt-10">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-black uppercase italic tracking-tighter mb-1">Protocolo <span class="text-neon">4-7-8</span></h1>
+            <p class="text-[11px] font-medium text-white/50 uppercase tracking-widest">Sincronización Autonómica</p>
+        </div>
+
+        <!-- Animation Container -->
+        <div class="relative w-full aspect-square flex items-center justify-center mb-10">
+            <svg id="hand-svg" viewBox="0 0 200 220" class="overflow-visible">
+                <!-- Abstract Hand Path (Starts bottom left, 5 fingers) -->
+                <!-- Points: 
+                    Base L: 20, 200
+                    Pinky: 35, 110 (tip 45, 90) -> 55, 110
+                    Ring: 65, 70 (tip 75, 50) -> 85, 70
+                    Middle: 95, 50 (tip 105, 30) -> 115, 50
+                    Index: 125, 70 (tip 135, 50) -> 145, 70
+                    Thumb: 155, 130 (tip 175, 120) -> 180, 160
+                    Base R: 180, 200
+                -->
+                <path id="track" class="hand-path" d="
+                    M 20 220 
+                    L 30 140 Q 35 120, 45 120 Q 55 120, 60 140 
+                    L 70 80 Q 75 60, 85 60 Q 95 60, 100 80 
+                    L 105 50 Q 110 30, 120 30 Q 130 30, 135 50 
+                    L 145 70 Q 150 50, 160 50 Q 170 50, 175 70 
+                    L 185 130 Q 195 125, 205 140 
+                    L 210 220" 
+                />
+                
+                <!-- Pulse rings at the current dot position -->
+                <circle id="pulse1" class="pulse-ring" cx="0" cy="0" r="10" />
+                <circle id="pulse2" class="pulse-ring" cx="0" cy="0" r="15" style="animation-delay: 0.5s" />
+                
+                <!-- Tracer Dot -->
+                <circle id="tracer-dot" cx="20" cy="220" r="6" />
+            </svg>
+
+            <!-- Center Phase Text -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-10">
+                <p id="instruction-text" class="text-3xl font-black uppercase tracking-widest text-white drop-shadow-lg transition-colors duration-500">LISTO</p>
+                <p id="timer-text" class="text-5xl font-black text-white/90 drop-shadow-xl mt-2 font-mono">--</p>
+                <p id="cycle-text" class="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mt-4">Ciclos: 0 / 5</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <button id="start-btn" class="btn-glow bg-white text-dark w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined font-black">play_arrow</span>
+            Iniciar Sesión
+        </button>
+        <p class="text-[10px] text-white/30 text-center mt-4 px-4 font-medium leading-relaxed">
+            Sigue el recorrido del dedo. Inhala al subir, retén en la punta, exhala al bajar. 
+            Asegúrate de tener el <strong>audio activado</strong>.
+        </p>
+
+    </div>
+
+    <!-- Reward Modal -->
+    <div id="reward-modal" class="fixed inset-0 bg-dark/90 z-[100] hidden items-center justify-center opacity-0 transition-opacity duration-500">
+        <div class="glass-panel w-[90%] max-w-sm p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-500 delay-100" id="reward-content">
+            <div class="w-20 h-20 rounded-full bg-neon/20 border border-neon/50 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,209,255,0.4)]">
+                <span class="material-symbols-outlined text-neon text-[40px]" style="font-variation-settings:'FILL' 1;">psychology_alt</span>
+            </div>
+            <h2 class="text-2xl font-black uppercase italic tracking-tighter text-white mb-2">Equilibrio <span class="text-neon">Restaurado</span></h2>
+            <p class="text-sm text-white/70 mb-6 font-medium leading-relaxed">Tus niveles de estrés simulados han disminuido exitosamente. HRV ha mejorado.</p>
+            
+            <div class="bg-black/50 border border-white/10 rounded-2xl p-4 w-full mb-8 flex items-center justify-between">
+                <div class="text-left">
+                    <p class="text-[10px] uppercase font-black text-white/40 tracking-widest mb-1">Recompensa</p>
+                    <p class="text-xl font-black text-neon tracking-tighter">+50 <span class="text-sm text-white/50">NTK</span></p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-neon/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-neon">toll</span>
+                </div>
+            </div>
+
+            <button onclick="finishSession()" class="w-full bg-neon text-dark font-black py-4 rounded-xl uppercase tracking-widest text-sm hover:opacity-90 transition-opacity">
+                Continuar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Web Audio API: 4Hz Theta Binaural Beats ---
+        let audioCtx;
+        let leftOsc, rightOsc, masterGain;
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0; // Fade in later
+            masterGain.connect(audioCtx.destination);
+
+            // Left ear: 200 Hz
+            leftOsc = audioCtx.createOscillator();
+            leftOsc.type = 'sine';
+            leftOsc.frequency.value = 200;
+            const leftPan = audioCtx.createStereoPanner();
+            leftPan.pan.value = -1;
+            leftOsc.connect(leftPan).connect(masterGain);
+
+            // Right ear: 204 Hz -> Difference is 4Hz (Theta)
+            rightOsc = audioCtx.createOscillator();
+            rightOsc.type = 'sine';
+            rightOsc.frequency.value = 204;
+            const rightPan = audioCtx.createStereoPanner();
+            rightPan.pan.value = 1;
+            rightOsc.connect(rightPan).connect(masterGain);
+
+            leftOsc.start();
+            rightOsc.start();
+        }
+
+        function playAudio() {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Smooth fade in
+            masterGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 1);
+        }
+
+        function stopAudio() {
+            if (masterGain) {
+                // Smooth fade out
+                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 1);
+            }
+        }
+
+        // --- Haptics ---
+        function vibrate(pattern) {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // --- Animation & Logic ---
+        const path = document.getElementById('track');
+        const dot = document.getElementById('tracer-dot');
+        const pulse1 = document.getElementById('pulse1');
+        const pulse2 = document.getElementById('pulse2');
+        const instructionText = document.getElementById('instruction-text');
+        const timerText = document.getElementById('timer-text');
+        const cycleText = document.getElementById('cycle-text');
+        const startBtn = document.getElementById('start-btn');
+        
+        const pathLength = path.getTotalLength();
+        
+        // Finger segments based on path. Roughly 5 segments.
+        // We will move the dot along a portion of the path for each phase.
+        const totalCycles = 5;
+        let currentCycle = 0;
+        let isRunning = false;
+        let animationFrame;
+
+        // Path segment fractions (approximate up and down per finger)
+        const segments = [
+            { start: 0, top: 0.08, end: 0.18 },   // Finger 1
+            { start: 0.18, top: 0.28, end: 0.38 }, // Finger 2
+            { start: 0.38, top: 0.48, end: 0.58 }, // Finger 3
+            { start: 0.58, top: 0.68, end: 0.78 }, // Finger 4 (Index)
+            { start: 0.78, top: 0.90, end: 1.0 }   // Finger 5 (Thumb)
+        ];
+
+        startBtn.addEventListener('click', () => {
+            if (isRunning) return;
+            startBtn.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => startBtn.style.display = 'none', 300);
+            startSession();
+        });
+
+        async function startSession() {
+            isRunning = true;
+            currentCycle = 0;
+            cycleText.textContent = `Ciclos: ${currentCycle} / ${totalCycles}`;
+            
+            // Start Binaural Beats
+            playAudio();
+            
+            // Loop through cycles
+            for (let i = 0; i < totalCycles; i++) {
+                currentCycle = i + 1;
+                cycleText.textContent = `Ciclos: ${currentCycle} / ${totalCycles}`;
+                
+                const seg = segments[i];
+
+                // Phase 1: Inhale (4s) - Move from start to top
+                await runPhase('INHALA', 4, '#00d1ff', seg.start, seg.top, true);
+                
+                // Phase 2: Hold (7s) - Stay at top, pulse
+                await runPhase('RETÉN', 7, '#ff8a00', seg.top, seg.top, false, true);
+
+                // Phase 3: Exhale (8s) - Move from top to end
+                await runPhase('EXHALA', 8, '#13ec5b', seg.top, seg.end, true);
+            }
+
+            endSession();
+        }
+
+        function runPhase(text, seconds, color, pathStartFrac, pathEndFrac, doMove, doPulse = false) {
+            return new Promise(resolve => {
+                // UI Updates
+                instructionText.textContent = text;
+                instructionText.style.color = color;
+                dot.style.fill = color;
+                dot.style.filter = `drop-shadow(0 0 10px ${color})`;
+                document.querySelector('.hand-path').style.stroke = color.replace(')', ', 0.3)').replace('rgb', 'rgba'); // Approximation
+                
+                // Haptic feedback at phase start
+                vibrate([30, 50, 30]);
+
+                let timeLeft = seconds;
+                timerText.textContent = timeLeft;
+
+                const startTime = performance.now();
+                const durationMs = seconds * 1000;
+
+                // Toggle pulsing rings
+                if (doPulse) {
+                    const pt = path.getPointAtLength(pathStartFrac * pathLength);
+                    pulse1.setAttribute('cx', pt.x); pulse1.setAttribute('cy', pt.y);
+                    pulse2.setAttribute('cx', pt.x); pulse2.setAttribute('cy', pt.y);
+                    pulse1.style.stroke = color; pulse2.style.stroke = color;
+                    pulse1.classList.add('anim-pulse');
+                    pulse2.classList.add('anim-pulse');
+                } else {
+                    pulse1.classList.remove('anim-pulse');
+                    pulse2.classList.remove('anim-pulse');
+                }
+
+                // Timer interval
+                const timerInt = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft >= 0) timerText.textContent = timeLeft;
+                }, 1000);
+
+                // Animation loop
+                function animate(time) {
+                    let elapsed = time - startTime;
+                    let progress = Math.min(elapsed / durationMs, 1);
+                    
+                    if (doMove) {
+                        // Ease in out sine
+                        const easeProgress = -(Math.cos(Math.PI * progress) - 1) / 2;
+                        const currentFrac = pathStartFrac + (pathEndFrac - pathStartFrac) * easeProgress;
+                        const pt = path.getPointAtLength(currentFrac * pathLength);
+                        dot.setAttribute('cx', pt.x);
+                        dot.setAttribute('cy', pt.y);
+                    }
+
+                    if (progress < 1) {
+                        animationFrame = requestAnimationFrame(animate);
+                    } else {
+                        clearInterval(timerInt);
+                        resolve();
+                    }
+                }
+                
+                animationFrame = requestAnimationFrame(animate);
+            });
+        }
+
+        async function endSession() {
+            isRunning = false;
+            stopAudio();
+            instructionText.textContent = "COMPLETADO";
+            instructionText.style.color = "#fff";
+            timerText.textContent = "";
+            vibrate([50, 100, 50, 100, 50]); // Completion pattern
+
+            // Show Reward Modal
+            setTimeout(() => {
+                const modal = document.getElementById('reward-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // Animate in
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    document.getElementById('reward-content').classList.remove('scale-95');
+                }, 50);
+
+                grantReward();
+            }, 1000);
+        }
+
+        async function grantReward() {
+            try {
+                const uid = window.hb_auth?.currentUser?.uid;
+                if (!uid) return;
+                
+                // Simulate biometric improvement and award 50 NTK
+                const userRef = window.hb_db.collection('users').doc(uid);
+                await window.hb_db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+                    if (!doc.exists) return;
+                    
+                    const data = doc.data();
+                    const newBalance = (data.ntkBalance || 0) + 50;
+                    
+                    // Simulated improvements
+                    const newCortisol = Math.max((data.cortisol || 15) - 3.5, 8.0).toFixed(1);
+                    const newHrv = Math.min((data.hrv || 60) + 12, 100);
+                    const newBioScore = Math.min((data.bioScore || 80) + 5, 100);
+                    
+                    transaction.update(userRef, {
+                        ntkBalance: newBalance,
+                        cortisol: parseFloat(newCortisol),
+                        hrv: newHrv,
+                        bioScore: newBioScore
+                    });
+                });
+                console.log("Recompensa de 50 NTK otorgada exitosamente.");
+            } catch (error) {
+                console.error("Error al otorgar recompensa:", error);
+            }
+        }
+
+        function finishSession() {
+            window.location.href = 'evolucion-bioquimica.html';
+        }
+
+        // Initialize dot position
+        const startPt = path.getPointAtLength(0);
+        dot.setAttribute('cx', startPt.x);
+        dot.setAttribute('cy', startPt.y);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Evolución Bioquímica - HEALTHY + BRAIN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Firebase Cloud Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        green: '#13ec5b',
+                        dark: '#0a0a0a',
+                        alert: '#e74c3c',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(0, 209, 255, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 138, 0, 0.04) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        .chart-grid {
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Animated SVG paths */
+        .chart-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease forwards;
+        }
+
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .metric-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-up {
+            background: rgba(19, 236, 91, 0.15);
+            color: #13ec5b;
+            border: 1px solid rgba(19, 236, 91, 0.25);
+        }
+
+        .badge-down {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.25);
+        }
+
+        .badge-neutral {
+            background: rgba(0, 209, 255, 0.1);
+            color: #00d1ff;
+            border: 1px solid rgba(0, 209, 255, 0.2);
+        }
+
+        .ring-gauge {
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+
+        .ring-fill {
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .timeframe-btn { transition: all 0.2s ease; }
+        .timeframe-btn.active {
+            background: rgba(0, 209, 255, 0.15);
+            color: #00d1ff;
+            border-color: rgba(0, 209, 255, 0.3);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+        .live-dot { animation: pulse-dot 1.5s infinite; }
+
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-up { animation: slide-up 0.5s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.2s; opacity: 0; }
+        .delay-3 { animation-delay: 0.3s; opacity: 0; }
+        .delay-4 { animation-delay: 0.4s; opacity: 0; }
+        .delay-5 { animation-delay: 0.5s; opacity: 0; }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="text-white min-h-screen">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-12 border-x border-white/5 shadow-2xl">
+
+        <!-- Header -->
+        <header class="sticky top-0 z-50 flex items-center justify-between px-6 pt-6 pb-4 bg-dark/80 backdrop-blur-xl border-b border-white/5">
+            <a href="historial.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            </a>
+            <div class="text-center">
+                <h1 class="text-xl font-black uppercase italic tracking-tighter">Evolución <span class="text-neon">Bio</span></h1>
+                <p class="text-[9px] font-black text-white/40 uppercase tracking-[0.25em]">Dashboard Bioquímico</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <div class="live-dot w-2 h-2 rounded-full bg-green"></div>
+                <span class="text-[9px] font-black text-green uppercase tracking-widest">Live</span>
+            </div>
+        </header>
+
+        <main class="flex-1 px-5 pt-4 overflow-y-auto no-scrollbar">
+
+            <!-- Bio-Score Hero -->
+            <section class="mb-6 slide-up delay-1">
+                <div class="glass-card p-6 relative overflow-hidden border-neon/15">
+                    <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-neon/5 blur-3xl pointer-events-none"></div>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <!-- Circular Gauge -->
+                        <div class="relative w-24 h-24 shrink-0">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+                                <circle id="bio-ring" class="ring-gauge ring-fill" cx="50" cy="50" r="38"
+                                    fill="none" stroke="#00d1ff" stroke-width="8"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="239"
+                                    stroke-dashoffset="239">
+                                </circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="bio-score-val" class="text-2xl font-black text-white leading-none">--</span>
+                                <span class="text-[8px] font-black text-neon uppercase tracking-widest">BIO</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Estado Global</p>
+                            <h2 id="bio-status-label" class="text-2xl font-black italic uppercase text-white leading-tight">Cargando...</h2>
+                            <p id="bio-status-sub" class="text-[11px] text-white/50 mt-1 leading-relaxed">Sincronizando biomarcadores...</p>
+                            <div class="flex gap-2 mt-3">
+                                <span id="bio-badge" class="metric-badge badge-neutral">-- %</span>
+                                <span class="metric-badge badge-neutral text-white/30 border-white/10" style="background:rgba(255,255,255,0.03)">Última: Hoy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timeframe Selector -->
+            <section class="mb-5 slide-up delay-2">
+                <div class="flex bg-white/5 p-1 rounded-xl border border-white/10 gap-1">
+                    <button onclick="setTimeframe('daily', this)" class="timeframe-btn active flex-1 py-2 text-[11px] font-black rounded-lg border border-transparent transition-all">Diario</button>
+                    <button onclick="setTimeframe('weekly', this)" class="timeframe-btn flex-1 py-2 text-[11px] font-black text-white/40 rounded-lg border border-transparent">Semanal</button>
+                    <button onclick="setTimeframe('monthly', this)" class="timeframe-btn flex-1 py-2 text-[11px] font-black text-white/40 rounded-lg border border-transparent">Mensual</button>
+                </div>
+            </section>
+
+            <!-- HRV Chart -->
+            <section class="mb-5 slide-up delay-2">
+                <div class="glass-card p-5 border-neon/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Variabilidad HRV</p>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span id="hrv-value" class="text-3xl font-black text-neon tracking-tighter">--</span>
+                                <span class="text-sm text-white/40 font-bold">ms</span>
+                                <span id="hrv-badge" class="metric-badge badge-neutral">--</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-neon/10 border border-neon/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-neon" style="font-variation-settings:'FILL' 1;">monitor_heart</span>
+                        </div>
+                    </div>
+                    <div class="relative h-32 w-full rounded-xl overflow-hidden bg-black/20">
+                        <div class="absolute inset-0 chart-grid"></div>
+                        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="hrvGrad" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#00d1ff" stop-opacity="0.25"/>
+                                    <stop offset="100%" stop-color="#00d1ff" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <path id="hrv-area" d="M0,80 Q40,75 80,55 T160,65 T240,35 T320,50 T400,30 V120 H0 Z" fill="url(#hrvGrad)"/>
+                            <path id="hrv-line" class="chart-line" d="M0,80 Q40,75 80,55 T160,65 T240,35 T320,50 T400,30" fill="none" stroke="#00d1ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="400" cy="30" r="4" fill="#00d1ff">
+                                <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                        </svg>
+                        <div class="absolute bottom-2 left-3 right-3 flex justify-between">
+                            <span class="text-[8px] text-white/20 font-bold uppercase">00h</span>
+                            <span class="text-[8px] text-white/20 font-bold uppercase">06h</span>
+                            <span class="text-[8px] text-white/20 font-bold uppercase">12h</span>
+                            <span class="text-[8px] text-white/20 font-bold uppercase">18h</span>
+                            <span class="text-[8px] text-neon font-black uppercase">Ahora</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-3">
+                        <div class="text-center">
+                            <p class="text-[9px] text-white/30 uppercase font-bold">Mín</p>
+                            <p id="hrv-min" class="text-sm font-black text-white">--</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] text-white/30 uppercase font-bold">Promedio</p>
+                            <p id="hrv-avg" class="text-sm font-black text-neon">--</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] text-white/30 uppercase font-bold">Máx</p>
+                            <p id="hrv-max" class="text-sm font-black text-white">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Glucose + Cortisol Row -->
+            <section class="mb-5 grid grid-cols-2 gap-3 slide-up delay-3">
+                <!-- Glucose -->
+                <div class="glass-card p-4 border-green/10">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-8 h-8 rounded-xl bg-green/10 border border-green/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-green text-[16px]" style="font-variation-settings:'FILL' 1;">water_drop</span>
+                        </div>
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">Glucosa</p>
+                    </div>
+                    <p id="glucose-val" class="text-2xl font-black text-white tracking-tighter">-- <span class="text-[11px] text-white/30 font-bold not-italic">mg/dL</span></p>
+                    <span id="glucose-badge" class="metric-badge badge-up mt-2 inline-flex">Óptimo</span>
+                    <!-- Mini sparkline -->
+                    <div class="mt-3 h-12 relative overflow-hidden rounded-lg">
+                        <svg class="w-full h-full" viewBox="0 0 120 40" preserveAspectRatio="none">
+                            <path class="chart-line" d="M0,30 L20,25 L40,20 L60,28 L80,15 L100,18 L120,10" fill="none" stroke="#13ec5b" stroke-width="2" opacity="0.8"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Cortisol / Stress -->
+                <div class="glass-card p-4 border-primary/10">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings:'FILL' 1;">bolt</span>
+                        </div>
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">Cortisol</p>
+                    </div>
+                    <p id="cortisol-val" class="text-2xl font-black text-white tracking-tighter">-- <span class="text-[11px] text-white/30 font-bold">µg/dL</span></p>
+                    <span id="cortisol-badge" class="metric-badge badge-neutral mt-2 inline-flex">Normal</span>
+                    <!-- Mini sparkline -->
+                    <div class="mt-3 h-12 relative overflow-hidden rounded-lg">
+                        <svg class="w-full h-full" viewBox="0 0 120 40" preserveAspectRatio="none">
+                            <path class="chart-line" d="M0,10 L20,15 L40,25 L60,20 L80,30 L100,22 L120,28" fill="none" stroke="#ff8a00" stroke-width="2" opacity="0.8" style="animation-delay:0.5s"/>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sleep Architecture -->
+            <section class="mb-5 slide-up delay-3">
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Arquitectura del Sueño</p>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span id="sleep-hours" class="text-3xl font-black text-white tracking-tighter">--</span>
+                                <span class="text-sm text-white/40 font-bold">h</span>
+                                <span id="sleep-badge" class="metric-badge badge-neutral">--</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white/40" style="font-variation-settings:'FILL' 1;">bedtime</span>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Stages Bar -->
+                    <div class="mb-3">
+                        <div class="flex h-5 rounded-full overflow-hidden gap-0.5">
+                            <div id="sleep-awake" class="bg-alert/60 h-full transition-all duration-1000" style="width:5%"></div>
+                            <div id="sleep-rem" class="bg-neon h-full transition-all duration-1000" style="width:20%"></div>
+                            <div id="sleep-light" class="bg-white/30 h-full transition-all duration-1000" style="width:45%"></div>
+                            <div id="sleep-deep" class="bg-primary h-full transition-all duration-1000" style="width:30%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2">
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-alert/60"></div><span class="text-[9px] text-white/30 font-bold">Vigilia <span id="sleep-awake-pct">5</span>%</span></div>
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-neon"></div><span class="text-[9px] text-white/30 font-bold">REM <span id="sleep-rem-pct">20</span>%</span></div>
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-white/30"></div><span class="text-[9px] text-white/30 font-bold">Ligero <span id="sleep-light-pct">45</span>%</span></div>
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="text-[9px] text-white/30 font-bold">Profundo <span id="sleep-deep-pct">30</span>%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mt-3">
+                        <div class="p-2 bg-white/3 rounded-xl text-center border border-white/5">
+                            <p class="text-[8px] text-white/30 uppercase font-bold mb-1">Eficiencia</p>
+                            <p id="sleep-efficiency" class="text-sm font-black text-white">--%</p>
+                        </div>
+                        <div class="p-2 bg-white/3 rounded-xl text-center border border-white/5">
+                            <p class="text-[8px] text-white/30 uppercase font-bold mb-1">Latencia</p>
+                            <p id="sleep-latency" class="text-sm font-black text-white">-- min</p>
+                        </div>
+                        <div class="p-2 bg-white/3 rounded-xl text-center border border-white/5">
+                            <p class="text-[8px] text-white/30 uppercase font-bold mb-1">Ciclos</p>
+                            <p id="sleep-cycles" class="text-sm font-black text-neon">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Biomarkers Grid -->
+            <section class="mb-5 slide-up delay-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.25em]">Panel de Biomarcadores</h3>
+                    <span class="text-[9px] font-black text-primary uppercase tracking-widest">Premium</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- BDNF -->
+                    <div class="glass-card p-4 border-neon/10 group hover:border-neon/30 transition-all cursor-pointer">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-neon text-[16px]">neurology</span>
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">BDNF</p>
+                        </div>
+                        <p id="bdnf-val" class="text-xl font-black text-white">-- <span class="text-[10px] text-white/30">ng/mL</span></p>
+                        <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="bdnf-bar" class="h-full bg-neon rounded-full transition-all duration-1000" style="width:0%"></div>
+                        </div>
+                        <p class="text-[9px] text-neon font-bold mt-1">Neuroplasticidad</p>
+                    </div>
+                    <!-- Testosterone -->
+                    <div class="glass-card p-4 border-primary/10 group hover:border-primary/30 transition-all cursor-pointer">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary text-[16px]">fitness_center</span>
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">Testosterona</p>
+                        </div>
+                        <p id="test-val" class="text-xl font-black text-white">-- <span class="text-[10px] text-white/30">ng/dL</span></p>
+                        <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="test-bar" class="h-full bg-primary rounded-full transition-all duration-1000" style="width:0%"></div>
+                        </div>
+                        <p class="text-[9px] text-primary font-bold mt-1">Anabólico</p>
+                    </div>
+                    <!-- Dopamine Index -->
+                    <div class="glass-card p-4 border-green/10 group hover:border-green/30 transition-all cursor-pointer">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-green text-[16px]" style="font-variation-settings:'FILL' 1;">psychology</span>
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">Índice Dopa</p>
+                        </div>
+                        <p id="dopa-val" class="text-xl font-black text-white">-- <span class="text-[10px] text-white/30">/ 100</span></p>
+                        <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="dopa-bar" class="h-full bg-green rounded-full transition-all duration-1000" style="width:0%"></div>
+                        </div>
+                        <p class="text-[9px] text-green font-bold mt-1">Motivación</p>
+                    </div>
+                    <!-- VO2 Max -->
+                    <div class="glass-card p-4 border-white/5 group hover:border-white/15 transition-all cursor-pointer">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-white/40 text-[16px]">air</span>
+                            <p class="text-[9px] font-black text-white/40 uppercase tracking-wider">VO₂ Máx</p>
+                        </div>
+                        <p id="vo2-val" class="text-xl font-black text-white">-- <span class="text-[10px] text-white/30">mL/kg</span></p>
+                        <div class="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="vo2-bar" class="h-full bg-white/30 rounded-full transition-all duration-1000" style="width:0%"></div>
+                        </div>
+                        <p class="text-[9px] text-white/30 font-bold mt-1">Capacidad Aer.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Trend Chart -->
+            <section class="mb-5 slide-up delay-4">
+                <div class="glass-card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Carga de Entrenamiento</p>
+                            <p id="training-load" class="text-2xl font-black text-white mt-1">-- <span class="text-[12px] text-white/30 font-bold">TSS</span></p>
+                        </div>
+                        <span id="training-badge" class="metric-badge badge-neutral">Calculando</span>
+                    </div>
+                    <!-- Bar chart -->
+                    <div class="flex items-end gap-1.5 h-20">
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-L" class="w-full bg-neon/20 rounded-t-md border border-neon/20 transition-all duration-1000" style="height:40%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">L</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-M" class="w-full bg-neon/30 rounded-t-md border border-neon/20 transition-all duration-1000" style="height:65%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">M</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-X" class="w-full bg-neon/40 rounded-t-md border border-neon/20 transition-all duration-1000" style="height:55%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">X</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-J" class="w-full bg-primary/50 rounded-t-md border border-primary/30 transition-all duration-1000" style="height:85%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">J</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-V" class="w-full bg-neon/20 rounded-t-md border border-neon/10 transition-all duration-1000" style="height:30%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">V</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-S" class="w-full bg-white/10 rounded-t-md border border-white/5 transition-all duration-1000" style="height:20%"></div>
+                            <span class="text-[8px] text-white/20 font-bold">S</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div id="bar-D" class="w-full bg-neon/60 rounded-t-md border border-neon/30 transition-all duration-1000 shadow-[0_0_8px_rgba(0,209,255,0.3)]" style="height:75%"></div>
+                            <span class="text-[8px] text-neon font-bold">H</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Insights Engine -->
+            <section class="mb-5 slide-up delay-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.25em]">Motor de Insights Bio-IA</h3>
+                </div>
+                <div id="insights-container" class="space-y-3">
+                    <!-- Populated by JS -->
+                    <div class="glass-card p-4 flex items-center justify-center opacity-30">
+                        <p class="text-[10px] uppercase font-black tracking-widest italic animate-pulse">Analizando Biomarcadores...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <section class="mb-6 slide-up delay-5">
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="soberania-biologica.html" class="glass-card p-4 flex flex-col items-center gap-2 border-neon/15 hover:border-neon/40 transition-all cursor-pointer group text-center">
+                        <span class="material-symbols-outlined text-neon group-hover:scale-110 transition-transform" style="font-variation-settings:'FILL' 1;">health_metrics</span>
+                        <p class="text-[10px] font-black uppercase tracking-wider">Soberanía<br>Biológica</p>
+                    </a>
+                    <a href="macros.html" class="glass-card p-4 flex flex-col items-center gap-2 border-primary/15 hover:border-primary/40 transition-all cursor-pointer group text-center">
+                        <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings:'FILL' 1;">calculate</span>
+                        <p class="text-[10px] font-black uppercase tracking-wider">Bio-<br>Optimizer</p>
+                    </a>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // ─── State ───────────────────────────────────────────────────────────
+        let bioData = {};
+        let currentTimeframe = 'daily';
+
+        const INSIGHTS = [
+            {
+                icon: 'psychology',
+                color: 'neon',
+                title: 'BDNF Elevado',
+                text: 'Tu factor neurotrófico supera el promedio en un 18%. Ventana óptima para aprendizaje de habilidades motoras complejas.',
+                action: 'Ver Protocolo',
+                link: 'sesion-enfoque.html'
+            },
+            {
+                icon: 'monitor_heart',
+                color: 'green',
+                title: 'HRV en Zona de Recuperación',
+                text: 'Variabilidad cardíaca indica sistema nervioso parasimpático dominante. Entrenamiento de alta intensidad habilitado.',
+                action: 'Entrenar Ahora',
+                link: 'ejercicios.html'
+            },
+            {
+                icon: 'bedtime',
+                color: 'primary',
+                title: 'Optimizar Sueño Profundo',
+                text: 'Solo 18% de sueño profundo esta noche (objetivo: 25%). Considera magnesio treonato 30 min antes de dormir.',
+                action: 'Protocolo Sueño',
+                link: 'descanso.html'
+            }
+        ];
+
+        const COLOR_MAP = { neon: '#00d1ff', green: '#13ec5b', primary: '#ff8a00', alert: '#e74c3c' };
+
+        // ─── Firebase Sync ───────────────────────────────────────────────────
+        async function initBioDashboard() {
+            try {
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const uid = window.hb_auth.currentUser.uid;
+
+                window.hb_db.collection('users').doc(uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        bioData = doc.data();
+                    } else {
+                        // Seed with demo data
+                        bioData = {
+                            bioScore: 88,
+                            hrv: 74, hrvMin: 58, hrvMax: 89,
+                            glucosa: 98,
+                            cortisol: 12.4,
+                            bdnf: 28.6,
+                            testosterone: 620,
+                            dopamineIndex: 76,
+                            vo2max: 48,
+                            sleepHours: 7.4,
+                            sleepDeep: 18,
+                            sleepREM: 22,
+                            sleepLight: 55,
+                            sleepAwake: 5,
+                            sleepEfficiency: 91,
+                            sleepLatency: 8,
+                            sleepCycles: 5,
+                            trainingLoad: 342
+                        };
+                        window.hb_db.collection('users').doc(uid).set(bioData, { merge: true });
+                    }
+                    renderDashboard();
+                });
+
+            } catch(e) {
+                console.error('Bio-Sync Error:', e);
+                // Fallback data
+                bioData = {
+                    bioScore: 88, hrv: 74, hrvMin: 58, hrvMax: 89,
+                    glucosa: 98, cortisol: 12.4, bdnf: 28.6,
+                    testosterone: 620, dopamineIndex: 76, vo2max: 48,
+                    sleepHours: 7.4, sleepDeep: 18, sleepREM: 22,
+                    sleepLight: 55, sleepAwake: 5, sleepEfficiency: 91,
+                    sleepLatency: 8, sleepCycles: 5, trainingLoad: 342
+                };
+                renderDashboard();
+            }
+        }
+
+        // ─── Render ──────────────────────────────────────────────────────────
+        function renderDashboard() {
+            const d = bioData;
+
+            // ── Bio-Score Ring
+            const score = d.bioScore || 88;
+            const circ = 239;
+            const offset = circ - (score / 100) * circ;
+            const ring = document.getElementById('bio-ring');
+            setTimeout(() => { ring.style.strokeDashoffset = offset; }, 200);
+            document.getElementById('bio-score-val').textContent = score;
+
+            let statusLabel, statusSub, statusColor, statusPct;
+            if (score >= 90) {
+                statusLabel = 'Estado de Flujo'; statusSub = 'Todos tus sistemas biológicos operan en máxima coherencia.';
+                statusColor = '#00d1ff'; statusPct = `+${Math.round((score - 85))}%`;
+                ring.setAttribute('stroke', '#00d1ff');
+            } else if (score >= 75) {
+                statusLabel = 'Recuperación'; statusSub = 'Biomarcadores dentro del rango óptimo con ligeras áreas de mejora.';
+                statusColor = '#13ec5b'; statusPct = `+${Math.round((score - 70))}%`;
+                ring.setAttribute('stroke', '#13ec5b');
+            } else {
+                statusLabel = 'Alerta Biológica'; statusSub = 'Algunos marcadores requieren atención. Consulta los insights.';
+                statusColor = '#ff8a00'; statusPct = `-${Math.round(85 - score)}%`;
+                ring.setAttribute('stroke', '#ff8a00');
+            }
+
+            document.getElementById('bio-status-label').textContent = statusLabel;
+            document.getElementById('bio-status-sub').textContent = statusSub;
+            const bioBadge = document.getElementById('bio-badge');
+            bioBadge.textContent = statusPct;
+            bioBadge.className = score >= 75 ? 'metric-badge badge-up' : 'metric-badge badge-down';
+
+            // ── HRV
+            const hrv = d.hrv || 74;
+            document.getElementById('hrv-value').textContent = hrv;
+            document.getElementById('hrv-min').textContent = (d.hrvMin || 58) + ' ms';
+            document.getElementById('hrv-avg').textContent = hrv + ' ms';
+            document.getElementById('hrv-max').textContent = (d.hrvMax || 89) + ' ms';
+            const hrvBadge = document.getElementById('hrv-badge');
+            if (hrv >= 70) { hrvBadge.textContent = '↑ Óptimo'; hrvBadge.className = 'metric-badge badge-up'; }
+            else if (hrv >= 50) { hrvBadge.textContent = '→ Normal'; hrvBadge.className = 'metric-badge badge-neutral'; }
+            else { hrvBadge.textContent = '↓ Bajo'; hrvBadge.className = 'metric-badge badge-down'; }
+
+            // ── Glucose
+            const gluc = d.glucosa || 98;
+            document.getElementById('glucose-val').innerHTML = `${gluc} <span class="text-[11px] text-white/30 font-bold not-italic">mg/dL</span>`;
+            const glucBadge = document.getElementById('glucose-badge');
+            if (gluc >= 70 && gluc <= 100) { glucBadge.textContent = '↑ Óptimo'; glucBadge.className = 'metric-badge badge-up'; }
+            else if (gluc > 100 && gluc <= 125) { glucBadge.textContent = '→ Elevado'; glucBadge.className = 'metric-badge badge-neutral'; }
+            else { glucBadge.textContent = '↓ Atención'; glucBadge.className = 'metric-badge badge-down'; }
+
+            // ── Cortisol
+            const cort = d.cortisol || 12.4;
+            document.getElementById('cortisol-val').innerHTML = `${cort} <span class="text-[11px] text-white/30 font-bold">µg/dL</span>`;
+            const cortBadge = document.getElementById('cortisol-badge');
+            if (cort <= 15) { cortBadge.textContent = '↑ Normal'; cortBadge.className = 'metric-badge badge-up'; }
+            else if (cort <= 20) { cortBadge.textContent = '→ Moderado'; cortBadge.className = 'metric-badge badge-neutral'; }
+            else { cortBadge.textContent = '↓ Alto'; cortBadge.className = 'metric-badge badge-down'; }
+
+            // ── Sleep
+            const sleepH = d.sleepHours || 7.4;
+            document.getElementById('sleep-hours').textContent = sleepH;
+            const deep = d.sleepDeep || 18;
+            const rem = d.sleepREM || 22;
+            const light = d.sleepLight || 55;
+            const awake = d.sleepAwake || 5;
+            document.getElementById('sleep-deep').style.width = deep + '%';
+            document.getElementById('sleep-rem').style.width = rem + '%';
+            document.getElementById('sleep-light').style.width = light + '%';
+            document.getElementById('sleep-awake').style.width = awake + '%';
+            document.getElementById('sleep-deep-pct').textContent = deep;
+            document.getElementById('sleep-rem-pct').textContent = rem;
+            document.getElementById('sleep-light-pct').textContent = light;
+            document.getElementById('sleep-awake-pct').textContent = awake;
+            document.getElementById('sleep-efficiency').textContent = (d.sleepEfficiency || 91) + '%';
+            document.getElementById('sleep-latency').textContent = (d.sleepLatency || 8) + ' min';
+            document.getElementById('sleep-cycles').textContent = (d.sleepCycles || 5);
+            const sleepBadge = document.getElementById('sleep-badge');
+            if (sleepH >= 7) { sleepBadge.textContent = '↑ Óptimo'; sleepBadge.className = 'metric-badge badge-up'; }
+            else if (sleepH >= 6) { sleepBadge.textContent = '→ Suficiente'; sleepBadge.className = 'metric-badge badge-neutral'; }
+            else { sleepBadge.textContent = '↓ Insuficiente'; sleepBadge.className = 'metric-badge badge-down'; }
+
+            // ── Biomarkers
+            const bdnf = d.bdnf || 28.6;
+            document.getElementById('bdnf-val').innerHTML = `${bdnf} <span class="text-[10px] text-white/30">ng/mL</span>`;
+            setTimeout(() => { document.getElementById('bdnf-bar').style.width = Math.min((bdnf / 40) * 100, 100) + '%'; }, 400);
+
+            const test = d.testosterone || 620;
+            document.getElementById('test-val').innerHTML = `${test} <span class="text-[10px] text-white/30">ng/dL</span>`;
+            setTimeout(() => { document.getElementById('test-bar').style.width = Math.min((test / 1000) * 100, 100) + '%'; }, 500);
+
+            const dopa = d.dopamineIndex || 76;
+            document.getElementById('dopa-val').innerHTML = `${dopa} <span class="text-[10px] text-white/30">/ 100</span>`;
+            setTimeout(() => { document.getElementById('dopa-bar').style.width = dopa + '%'; }, 600);
+
+            const vo2 = d.vo2max || 48;
+            document.getElementById('vo2-val').innerHTML = `${vo2} <span class="text-[10px] text-white/30">mL/kg</span>`;
+            setTimeout(() => { document.getElementById('vo2-bar').style.width = Math.min((vo2 / 70) * 100, 100) + '%'; }, 700);
+
+            // ── Training Load
+            const tss = d.trainingLoad || 342;
+            document.getElementById('training-load').innerHTML = `${tss} <span class="text-[12px] text-white/30 font-bold">TSS</span>`;
+            const tBadge = document.getElementById('training-badge');
+            if (tss < 200) { tBadge.textContent = '↑ Recuperación'; tBadge.className = 'metric-badge badge-up'; }
+            else if (tss <= 400) { tBadge.textContent = '→ Productiva'; tBadge.className = 'metric-badge badge-neutral'; }
+            else { tBadge.textContent = '↓ Sobrecarga'; tBadge.className = 'metric-badge badge-down'; }
+
+            // ── Insights
+            renderInsights(d);
+        }
+
+        function renderInsights(d) {
+            const container = document.getElementById('insights-container');
+            const insights = [...INSIGHTS];
+
+            // High Stress Alert (Cortisol > 20 or HRV < 50)
+            if ((d.cortisol || 12.4) > 20 || (d.hrv || 74) < 50 || (d.bioScore || 88) < 75) {
+                insights.unshift({
+                    icon: 'crisis_alert',
+                    color: 'alert',
+                    title: 'ALERTA: Estrés Agudo Detectado',
+                    text: 'Tus biomarcadores indican una alta carga alostática (Cortisol alto / HRV bajo). Inicia el protocolo de regulación 4-7-8 para recuperar el equilibrio y ganar 50 NTK.',
+                    action: 'Iniciar Protocolo',
+                    link: 'regulacion-emocional.html'
+                });
+            }
+
+            // Add dynamic insight based on data
+            if ((d.glucosa || 98) > 100) {
+                insights.unshift({
+                    icon: 'water_drop',
+                    color: 'alert',
+                    title: 'Glucosa Elevada',
+                    text: 'Tu glucosa en ayunas supera 100 mg/dL. Considera ayuno intermitente 16:8 y reducir carbohidratos refinados esta semana.',
+                    action: 'Plan Nutricional',
+                    link: 'macros.html'
+                });
+            }
+
+            container.innerHTML = insights.map((ins, i) => {
+                const col = COLOR_MAP[ins.color] || '#00d1ff';
+                const clsMap = { neon: 'text-neon border-neon/20 bg-neon/5', green: 'text-green border-green/20 bg-green/5', primary: 'text-primary border-primary/20 bg-primary/5', alert: 'text-alert border-alert/20 bg-alert/5' };
+                const cls = clsMap[ins.color] || clsMap.neon;
+                return `
+                <div class="glass-card p-4 ${cls.includes('neon') ? 'border-neon/10' : ins.color === 'green' ? 'border-green/10' : ins.color === 'primary' ? 'border-primary/10' : 'border-alert/10'} slide-up" style="animation-delay:${0.6 + i * 0.1}s; opacity:0;">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:${col}15; border:1px solid ${col}30">
+                            <span class="material-symbols-outlined text-[18px]" style="color:${col}; font-variation-settings:'FILL' 1;">${ins.icon}</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-[11px] font-black uppercase tracking-wider" style="color:${col}">${ins.title}</h4>
+                            <p class="text-[10px] text-white/50 leading-relaxed mt-1 font-medium">${ins.text}</p>
+                            <a href="${ins.link}" class="inline-flex items-center gap-1 mt-2 text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition-opacity" style="color:${col}">
+                                ${ins.action} <span class="material-symbols-outlined text-[11px]">arrow_forward</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ─── Timeframe Toggle ────────────────────────────────────────────────
+        function setTimeframe(tf, btn) {
+            currentTimeframe = tf;
+            document.querySelectorAll('.timeframe-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('text-white/40');
+            });
+            btn.classList.add('active');
+            btn.classList.remove('text-white/40');
+
+            // Animate chart re-render (visual feedback)
+            document.querySelectorAll('.chart-line').forEach(l => {
+                l.style.animation = 'none';
+                l.offsetHeight; // reflow
+                l.style.animation = 'drawLine 1.5s ease forwards';
+            });
+        }
+
+        // ─── Init ────────────────────────────────────────────────────────────
+        window.onload = initBioDashboard;
+    </script>
+</body>
+</html>

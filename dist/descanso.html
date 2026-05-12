@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Neuro Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <!-- Bio-Cloud Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                        mind: '#b24cff', // Purple for mind
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #0a0a0a;
+            background-image:
+                radial-gradient(circle at 50% 10%, rgba(255, 138, 0, 0.03) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .timer-text {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Halo Breathwork animation */
+        @keyframes breathHalo {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 0.2; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        .halo-pulse {
+            animation: breathHalo 12s infinite ease-in-out;
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="bg-dark text-white min-h-screen">
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden pb-24 shadow-2xl border-x border-white/5">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between p-6 pb-4 border-b border-white/5 bg-dark/80 backdrop-blur-xl sticky top-0 z-40">
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter uppercase italic">Neuro-<span
+                        class="text-neon" id="header-flavor">Hub</span></h1>
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-1">Sincronización Cognitiva</p>
+            </div>
+            <a href="perfil-setup.html"
+                class="h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg shrink-0">
+                <span class="material-symbols-outlined text-text-gray text-[20px]">person</span>
+            </a>
+        </header>
+
+        <!-- Tabs Navigation -->
+        <div class="flex border-b border-white/5 bg-dark/80 backdrop-blur-3xl px-4 sticky top-[76px] z-30">
+            <button onclick="switchTab('sleep')" id="tab-btn-sleep" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-primary border-b-2 border-primary transition-all">Sueño</button>
+            <button onclick="switchTab('breath')" id="tab-btn-breath" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-gray hover:text-white border-b-2 border-transparent transition-all">Respira</button>
+            <button onclick="switchTab('mind')" id="tab-btn-mind" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-gray hover:text-white border-b-2 border-transparent transition-all">Mente</button>
+        </div>
+
+        <main class="flex-1 flex flex-col">
+            <div class="flex-1 overflow-y-auto px-6 py-6 pb-safe relative no-scrollbar">
+
+                <!----------------------------------------------------------
+                    TAB 1: SUEÑO & ORÁCULO
+                ------------------------------------------------------------>
+                <div id="tab-sleep" class="space-y-6 animate-fade-in">
+                    
+                    <div class="glass-card border-primary/20 bg-primary/5 p-6 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-[40px] pointer-events-none"></div>
+                        <h2 class="text-[18px] font-black italic tracking-tighter uppercase mb-1">Oráculo Diano</h2>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-text-gray mb-6">Regulación del Ritmo Circadiano</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[9px] font-black text-primary uppercase tracking-widest block mb-2">Horas dormidas anoche</label>
+                                <div class="flex gap-3">
+                                    <input type="number" id="sleep-hours" placeholder="Ej. 7.5" step="0.5" class="flex-1 high-contrast-input rounded-xl py-3 px-4 text-[14px] font-black focus:outline-none transition-all placeholder:text-text-gray/50 border border-white/5 bg-black/40">
+                                    <button id="sync-sleep-btn" onclick="analyzeSleep()" class="bg-primary text-dark font-black px-6 rounded-xl uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(255,138,0,0.2)] flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[16px]">sync</span> Sincronizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Quality Score Ring -->
+                    <div id="sleep-score-card" class="hidden glass-card border-primary/20 p-5 flex items-center gap-5">
+                        <div class="relative w-20 h-20 shrink-0">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>
+                                <circle id="sleep-score-ring" cx="40" cy="40" r="34" fill="none" stroke="#ff8a00" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transition: stroke-dashoffset 1.2s ease, stroke 0.5s ease; filter: drop-shadow(0 0 6px rgba(255,138,0,0.4));"/>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="sleep-score-val" class="text-xl font-black text-white">0</span>
+                                <span class="text-[7px] font-black text-gray-500 uppercase">Score</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xs font-black uppercase tracking-widest mb-1">Calidad del Sueño</h3>
+                            <p id="sleep-score-label" class="text-[10px] text-gray-400 leading-relaxed">Sincroniza para calcular tu puntuación.</p>
+                            <div class="flex gap-2 mt-2">
+                                <span id="sleep-badge-eff" class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">—</span>
+                                <span id="sleep-badge-debt" class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/5 text-gray-400 border border-white/10">Deuda: —</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7-Day Sleep History Sparkline -->
+                    <div class="glass-card border-white/5 p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-gray-500">Historial 7 Días</span>
+                            <span id="sleep-avg-label" class="text-[9px] font-black text-primary">Prom: —h</span>
+                        </div>
+                        <div id="sleep-sparkline" class="flex items-end gap-1.5 h-16">
+                            <!-- JS fills 7 bars -->
+                        </div>
+                        <div class="flex justify-between mt-2 px-0.5">
+                            <span class="text-[7px] text-gray-600 font-bold">Lun</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Mar</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Mié</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Jue</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Vie</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Sáb</span>
+                            <span class="text-[7px] text-gray-600 font-bold">Dom</span>
+                        </div>
+                    </div>
+
+                    <div id="sleep-result" class="hidden flex-col gap-4 animate-fade-in">
+                        <div class="glass-card p-5 border-white/10 bg-white/5">
+                            <p id="sleep-verdict" class="text-[11px] font-bold italic text-white mb-4 leading-relaxed"></p>
+                            <div class="flex flex-wrap gap-2">
+                                <span id="sleep-tag-1" class="text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-dark border border-white/10"></span>
+                                <span id="sleep-tag-2" class="text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-dark border border-white/10"></span>
+                            </div>
+                        </div>
+
+                        <!-- Huberman/Science Protocols -->
+                        <div class="space-y-3">
+                            <h3 class="text-[10px] font-black text-text-gray uppercase tracking-[0.2em] mt-2 mb-2 pl-2">Protocolos Recomendados Hoy</h3>
+                            
+                            <div class="glass-card p-4 border-white/5 flex gap-4 items-center bg-black/40">
+                                <span class="material-symbols-outlined text-yellow-500 text-[24px]">wb_sunny</span>
+                                <div>
+                                    <h4 class="text-[11px] font-black uppercase tracking-widest mb-1">Luz Matutina</h4>
+                                    <p class="text-[10px] text-text-gray leading-tight">Visualiza el sol de 10-15 min antes de las 9 AM para frenar melatonina y crear un pico de dopamina matutino.</p>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-4 border-white/5 flex gap-4 items-center bg-black/40">
+                                <span class="material-symbols-outlined text-amber-600 text-[24px]">coffee</span>
+                                <div>
+                                    <h4 class="text-[11px] font-black uppercase tracking-widest mb-1">Retraso de Cafeína</h4>
+                                    <p class="text-[10px] text-text-gray leading-tight">Espera 90-120 min tras despertar antes de beber café para evitar el "crash" de adenosina vespertino.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!----------------------------------------------------------
+                    TAB 2: RESPIRA (Breathwork)
+                ------------------------------------------------------------>
+                <div id="tab-breath" class="hidden space-y-8 animate-fade-in flex-col items-center pt-4">
+                    
+                    <div class="text-center mb-4">
+                        <h2 class="text-[18px] font-black italic tracking-tighter uppercase mb-1">Coherencia Cardíaca</h2>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-text-gray">Dominio del sistema Nervioso Autónomo</p>
+                    </div>
+
+                    <!-- Circular Progress & Timer -->
+                    <div class="relative w-64 h-64 flex items-center justify-center mx-auto mb-8">
+                        <svg class="w-full h-full transform -rotate-90 absolute top-0 left-0" viewBox="0 0 100 100">
+                            <!-- Base ring -->
+                            <circle cx="50" cy="50" r="45" fill="none" class="stroke-white/5" stroke-width="4"></circle>
+                            <!-- Progress ring -->
+                            <circle id="progress-ring" cx="50" cy="50" r="45" fill="none" class="stroke-neon"
+                                stroke-width="5" stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round"
+                                style="transition: stroke-dashoffset 1s linear;"></circle>
+                        </svg>
+                        
+                        <div class="absolute inset-0 border-[4px] border-neon/10 rounded-full halo-pulse pointer-events-none"></div>
+
+                        <div class="flex flex-col items-center justify-center relative z-10 text-center">
+                            <span id="timer-display"
+                                class="timer-text text-6xl font-black text-white tracking-tighter italic drop-shadow-[0_0_10px_rgba(0,209,255,0.5)]">01:00</span>
+                            <div id="timer-status-container" class="mt-2">
+                                <span id="timer-status"
+                                    class="text-[10px] font-black text-neon uppercase tracking-[0.3em] bg-neon/10 px-3 py-1 rounded-full border border-neon/20">Listo</span>
+                            </div>
+                        </div>
+                        <!-- Background Glow -->
+                        <div class="absolute inset-0 bg-neon/10 blur-[60px] rounded-full pointer-events-none"></div>
+                    </div>
+
+                    <!-- Timer Controls -->
+                    <div class="flex items-center justify-center gap-8 w-full border-b border-white/5 pb-8">
+                        <button onclick="addTime(30)"
+                            class="w-12 h-12 rounded-2xl bg-white/2 border border-white/10 text-white font-black flex items-center justify-center hover:bg-white/5 transition-all text-[10px] uppercase tracking-tighter">
+                            +30s
+                        </button>
+                        <button id="play-btn" onclick="toggleTimer()"
+                            class="glow-btn w-20 h-20 rounded-[28px] bg-neon text-dark flex items-center justify-center shadow-[0_0_30px_rgba(0,209,255,0.3)] hover:scale-105 active:scale-95 transition-all">
+                            <span id="play-icon" class="material-symbols-outlined text-[40px] font-black">play_arrow</span>
+                        </button>
+                        <button onclick="addTime(60)"
+                            class="w-12 h-12 rounded-2xl bg-white/2 border border-white/10 text-white font-black flex items-center justify-center hover:bg-white/5 transition-all text-[10px] uppercase tracking-tighter">
+                            +1m
+                        </button>
+                    </div>
+
+                    <!-- Protocolos Guiados de Respiración -->
+                    <div class="w-full space-y-3">
+                        <h3 class="text-[10px] font-black text-text-gray uppercase tracking-[0.2em] mb-2 pl-2">Protocolos Dinámicos</h3>
+                        
+                        <button onclick="openBreathMode('box')" class="w-full glass-card p-5 border-white/5 hover:border-neon hover:bg-white/5 transition-all text-left flex justify-between items-center group">
+                            <div>
+                                <h4 class="text-[12px] font-black uppercase tracking-widest text-white group-hover:text-neon transition-colors">Respiración de Caja</h4>
+                                <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mt-1">Simpático / Parasimpático (Balance)</p>
+                            </div>
+                            <span class="material-symbols-outlined text-text-gray group-hover:text-neon">arrow_forward</span>
+                        </button>
+
+                        <button onclick="openBreathMode('sigh')" class="w-full glass-card p-5 border-white/5 hover:border-neon hover:bg-white/5 transition-all text-left flex justify-between items-center group">
+                            <div>
+                                <h4 class="text-[12px] font-black uppercase tracking-widest text-white group-hover:text-neon transition-colors">Suspiro Fisiológico</h4>
+                                <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mt-1">Elimina dióxido de carbono • Estrés agudo</p>
+                            </div>
+                            <span class="material-symbols-outlined text-text-gray group-hover:text-neon">arrow_forward</span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!----------------------------------------------------------
+                    TAB 3: MENTE Y CEREBRO
+                ------------------------------------------------------------>
+                <div id="tab-mind" class="hidden space-y-6 animate-fade-in pt-2">
+                    
+                    <div class="glass-card overflow-hidden relative border-mind/30 bg-gradient-to-br from-mind/20 to-black p-6 group">
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                        <h2 class="text-[20px] font-black italic tracking-tighter uppercase mb-2 relative z-10">NSDR Protocol</h2>
+                        <p class="text-[11px] text-white/70 relative z-10 leading-relaxed mb-4">Non-Sleep Deep Rest. Desinflamación neuronal profunda y recuperación de dopamina basal en 20 minutos.</p>
+                        <button class="relative z-10 bg-mind text-white font-black px-6 py-2 rounded-xl text-[10px] uppercase tracking-widest shadow-[0_0_20px_rgba(178,76,255,0.3)] hover:scale-105 transition-transform flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">headphones</span> Iniciar Sesión NSDR
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Delta Waves -->
+                        <div id="card-delta" onclick="toggleNeuroAudio('delta')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">water_drop</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Delta Waves</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Sueño Profundo (2 Hz)</p>
+                            <div id="indicator-delta" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
+                        </div>
+
+                        <!-- Binaural Gamma -->
+                        <div id="card-gamma" onclick="toggleNeuroAudio('gamma')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">bolt</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Binaural Gamma</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Enfoque 40 Hz</p>
+                            <div id="indicator-gamma" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
+                        </div>
+
+                        <!-- Theta Meditation -->
+                        <div id="card-theta" onclick="toggleNeuroAudio('theta')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">self_improvement</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Theta · Flow</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Meditación (6 Hz)</p>
+                            <div id="indicator-theta" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
+                        </div>
+
+                        <!-- Brown Noise -->
+                        <div id="card-brown" onclick="toggleNeuroAudio('brown')" class="glass-card border-white/5 p-5 relative overflow-hidden bg-black/40 hover:bg-[#b24cff]/10 cursor-pointer group transition-all active:scale-95">
+                            <span class="material-symbols-outlined text-[#b24cff]/40 text-[32px] absolute -right-2 -bottom-2 group-hover:scale-110 transition-transform">graphic_eq</span>
+                            <h4 class="text-[12px] font-black uppercase tracking-widest text-white mb-1">Ruido Marrón</h4>
+                            <p class="text-[9px] font-black text-text-gray uppercase tracking-widest mb-3">Relajación continua</p>
+                            <div id="indicator-brown" class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all"></span>
+                                <span class="text-[8px] font-black text-white/30 uppercase tracking-widest transition-all">Toca para activar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Fixed Bottom Nav -->
+        <nav class="fixed bottom-0 left-0 w-full border-t border-white/5 bg-dark/90 backdrop-blur-3xl pb-safe pt-4 z-50">
+            <div class="flex items-center justify-around max-w-md mx-auto px-4 pb-4">
+                <a href="index.html" class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Lobby</span>
+                </a>
+                <a href="entrenar.html" class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Gimnasio</span>
+                </a>
+                <a href="historial.html" class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Progreso</span>
+                </a>
+                <a href="descanso.html" class="flex flex-col items-center gap-1 text-neon w-1/5">
+                    <span class="material-symbols-outlined filled" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter text-neon">Neuro</span>
+                </a>
+                <a href="ejercicios.html" class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">library_books</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Biblioteca</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Breathing Mode Overlay (Inmersivo) -->
+    <div id="breath-overlay" class="fixed inset-0 bg-dark z-[60] hidden flex-col items-center justify-center p-10 backdrop-blur-2xl bg-dark/90 transition-opacity duration-500 opacity-0">
+        <button onclick="closeBreathMode()" class="absolute top-8 right-8 text-white/50 hover:text-white transition-all">
+            <span class="material-symbols-outlined text-[32px] font-black">close</span>
+        </button>
+
+        <div id="breath-circle" class="w-64 h-64 rounded-full bg-neon/5 border-2 border-neon/30 flex items-center justify-center relative shadow-[0_0_80px_rgba(0,209,255,0.15)] transition-all ease-in-out duration-1000">
+            <span id="breath-label" class="text-3xl font-black text-neon uppercase tracking-[0.4em] italic drop-shadow-[0_0_10px_rgba(0,209,255,0.8)]">Inhala</span>
+            <div class="absolute inset-4 rounded-full border border-neon/10"></div>
+        </div>
+
+        <div class="mt-24 text-center">
+            <h2 id="breath-title" class="text-2xl font-black mb-2 uppercase tracking-tighter italic">Respiración</h2>
+            <div id="breath-seconds" class="text-[80px] font-black text-white/20 tracking-tighter tabular-nums leading-none">4.0</div>
+        </div>
+
+        <div class="absolute -bottom-20 -left-20 w-[600px] h-[600px] bg-neon/10 blur-[150px] pointer-events-none rounded-full"></div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Tab System
+        function switchTab(tab) {
+            document.getElementById('tab-sleep').classList.add('hidden');
+            document.getElementById('tab-breath').classList.add('hidden');
+            document.getElementById('tab-mind').classList.add('hidden');
+            
+            document.getElementById('tab-btn-sleep').className = "flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-gray hover:text-white border-b-2 border-transparent transition-all";
+            document.getElementById('tab-btn-breath').className = "flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-gray hover:text-white border-b-2 border-transparent transition-all";
+            document.getElementById('tab-btn-mind').className = "flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-text-gray hover:text-white border-b-2 border-transparent transition-all";
+
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            
+            let activeColor = 'text-primary border-primary';
+            if(tab === 'breath') activeColor = 'text-neon border-neon';
+            if(tab === 'mind') activeColor = 'text-[mind] border-[mind]'; // Tailwind JIT doesn't easily interpolate custom dynamic colors in classes via JS string without safelisting. We use explicit styles below.
+            
+            const btn = document.getElementById('tab-btn-' + tab);
+            btn.className = `flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2`;
+            
+            if(tab === 'sleep') { btn.classList.add('text-primary', 'border-primary'); document.getElementById('header-flavor').innerText = 'Recuperación'; document.getElementById('header-flavor').className = 'text-primary'; }
+            if(tab === 'breath') { btn.classList.add('text-neon', 'border-neon'); document.getElementById('header-flavor').innerText = 'Respiración'; document.getElementById('header-flavor').className = 'text-neon'; }
+            if(tab === 'mind') { btn.classList.add('text-[#b24cff]', 'border-[#b24cff]'); document.getElementById('header-flavor').innerText = 'Mente'; document.getElementById('header-flavor').className = 'text-[#b24cff]'; }
+        }
+
+        // Sleep Oracle Logic (Cloud Sync)
+        async function analyzeSleep() {
+            const hrsInput = document.getElementById('sleep-hours').value;
+            const resBox = document.getElementById('sleep-result');
+            const verdict = document.getElementById('sleep-verdict');
+            const t1 = document.getElementById('sleep-tag-1');
+            const t2 = document.getElementById('sleep-tag-2');
+            const btn = document.getElementById('sync-sleep-btn');
+
+            if(!hrsInput || isNaN(hrsInput)) return;
+            const hrs = parseFloat(hrsInput);
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined animate-spin">autorenew</span> Sincronizando...`;
+
+                // Firebase Sync
+                if (!window.hb_auth.currentUser) await window.hb_auth.signInAnonymously();
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                const isGoalMet = hrs >= 7.5;
+                const reward = isGoalMet ? 150 : 0; // Use REWARD_GOAL_ACHIEVED from logic (hardcoded here for simplicity in pure HTML/JS)
+
+                await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(userId);
+                    const userDoc = await transaction.get(userRef);
+                    
+                    // Add sleep log to user's unified logs
+                    const logRef = userRef.collection('logs').doc();
+                    transaction.set(logRef, {
+                        type: 'sleep',
+                        hours: hrs,
+                        goalMet: isGoalMet,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        category: 'rest'
+                    });
+
+                    // Update balance ONLY if goal met
+                    if (userDoc.exists && isGoalMet) {
+                        const currentBalance = userDoc.data().ntkBalance || 0;
+                        transaction.update(userRef, { 
+                            ntkBalance: currentBalance + reward,
+                            lastSleep: hrs,
+                            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                });
+
+                localStorage.setItem('hb_sleep_data', JSON.stringify({ hours: hrs, last_updated: Date.now() }));
+                
+                if (isGoalMet) {
+                    btn.innerHTML = `<span class="material-symbols-outlined">star</span> META: +${reward} NTK`;
+                    btn.classList.replace('bg-primary', 'bg-green-500');
+                } else {
+                    btn.innerHTML = `<span class="material-symbols-outlined">info</span> Sin Recompensa`;
+                    btn.classList.replace('bg-primary', 'bg-yellow-600');
+                }
+
+                resBox.classList.remove('hidden');
+                resBox.classList.add('flex');
+
+                if (hrs >= 7.5) {
+                    verdict.innerText = "Remodelación Neural Óptima. HGH (Hormona) maximizada. Preparación idónea para hipertrofia y sobrecarga progresiva neuronal.";
+                    t1.innerText = "SÍNTESIS +20%"; t1.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-green-500/10 text-green-400 border border-green-500/20";
+                    t2.innerText = "CORTISOL BAJO"; t2.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-green-500/10 text-green-400 border border-green-500/20";
+                } else if (hrs >= 6) {
+                    verdict.innerText = "Recuperación basal completada. El sistema linfático cerebral funcionó a nivel moderado. Cuidado con excesos oxidativos hoy.";
+                    t1.innerText = "SÍNTESIS BASE"; t1.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/20";
+                    t2.innerText = "CORTISOL MOD"; t2.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-yellow-500/10 text-yellow-400 border border-yellow-500/20";
+                } else {
+                    verdict.innerText = "¡ALERTA ESTADO! Predominancia catabólica neural. Ausencia grave de barrido de residuos. Evitar hipertrofia estresante, aplicar NSDR o meditación de urgencia.";
+                    t1.innerText = "CATABÓLICO"; t1.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-red-500/10 text-red-500 border border-red-500/20";
+                    t2.innerText = "RIESGO COGNITIVO"; t2.className = "text-[8px] font-black tracking-widest uppercase py-1 px-2 rounded-md bg-red-500/10 text-red-500 border border-red-500/20";
+                }
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">sync</span> Sincronizar`;
+                    btn.classList.replace('bg-green-500', 'bg-primary');
+                }, 3000);
+
+            } catch (error) {
+                console.error("Sleep Sync Error:", error);
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">sync</span> Sincronizar`;
+                alert("Error de Bio-Cloud. Verifica tu conexión.");
+            }
+        }
+
+        // Timer Logic
+        let initialTime = 60;
+        let timeRemaining = 60;
+        let timerInterval = null;
+        let isRunning = false;
+        const timerDisplay = document.getElementById('timer-display');
+        const timerStatus = document.getElementById('timer-status');
+        const playIcon = document.getElementById('play-icon');
+        const playBtn = document.getElementById('play-btn');
+        const progressRing = document.getElementById('progress-ring');
+        const circumference = 2 * Math.PI * 45;
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            const proportion = timeRemaining / initialTime;
+            const offset = circumference - (proportion * circumference);
+            progressRing.style.strokeDashoffset = offset || 0;
+
+            if (timeRemaining === 0) progressRing.style.stroke = "#ef4444";
+            else progressRing.style.stroke = "#00d1ff";
+        }
+
+        function toggleTimer() {
+            if (timeRemaining === 0) { timeRemaining = initialTime; updateDisplay(); }
+            if (isRunning) {
+                isRunning = false; clearInterval(timerInterval);
+                playIcon.textContent = 'play_arrow';
+                playBtn.classList.remove('bg-white'); playBtn.classList.add('bg-neon');
+                timerStatus.textContent = "Pausado";
+            } else {
+                if (timeRemaining > 0) {
+                    isRunning = true;
+                    playIcon.textContent = 'pause';
+                    playBtn.classList.remove('bg-neon'); playBtn.classList.add('bg-white');
+                    timerStatus.textContent = "Sincronizando";
+                    timerInterval = setInterval(() => {
+                        timeRemaining--; updateDisplay();
+                        if (timeRemaining <= 0) {
+                            isRunning = false; clearInterval(timerInterval);
+                            timerStatus.textContent = "¡Completado!";
+                            playIcon.textContent = 'restart_alt';
+                            playBtn.classList.remove('bg-white', 'bg-neon'); playBtn.classList.add('bg-red-500');
+                            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200, 100, 500]);
+                        }
+                    }, 1000);
+                }
+            }
+        }
+
+        function addTime(seconds) {
+            timeRemaining += seconds;
+            if (timeRemaining > initialTime) initialTime = timeRemaining;
+            updateDisplay();
+            if (timeRemaining > 0 && playIcon.textContent === 'restart_alt') {
+                playIcon.textContent = 'play_arrow';
+                playBtn.classList.remove('bg-red-500'); playBtn.classList.add('bg-neon');
+            }
+        }
+
+        // Advanced Breath Mode Logic
+        let breathInterval = null;
+        let breathTimer = null;
+        let currentBreathPhases = [];
+
+        function openBreathMode(type) {
+            const overlay = document.getElementById('breath-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10); // Animate IN
+
+            if (type === 'box') {
+                document.getElementById('breath-title').innerText = "Respiración de Caja";
+                currentBreathPhases = [
+                    { name: 'Inhala', time: 4, scale: 1.5, duration: 4000 },
+                    { name: 'Retén', time: 4, scale: 1.5, duration: 4000 },
+                    { name: 'Exhala', time: 4, scale: 1, duration: 4000 },
+                    { name: 'Retén', time: 4, scale: 1, duration: 4000 }
+                ];
+            } else if (type === 'sigh') {
+                document.getElementById('breath-title').innerText = "Suspiro Fisiológico";
+                currentBreathPhases = [
+                    { name: 'Inhala', time: 2, scale: 1.3, duration: 2000 },
+                    { name: 'Extra Inhala', time: 1, scale: 1.6, duration: 1000 },
+                    { name: 'Exhala Largo', time: 6, scale: 1, duration: 6000 }
+                ];
+            }
+            startBreathCycle();
+        }
+
+        function closeBreathMode() {
+            const overlay = document.getElementById('breath-overlay');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }, 500); // Animate OUT
+            
+            clearInterval(breathInterval);
+            clearTimeout(breathTimer);
+            document.getElementById('breath-circle').style.transform = 'scale(1)';
+        }
+
+        function startBreathCycle() {
+            const circle = document.getElementById('breath-circle');
+            const label = document.getElementById('breath-label');
+            const secondsText = document.getElementById('breath-seconds');
+            let phase = 0;
+
+            function nextPhase() {
+                if(document.getElementById('breath-overlay').classList.contains('hidden')) return; // Check closure
+
+                const p = currentBreathPhases[phase];
+                label.innerText = p.name;
+                circle.style.transitionDuration = `${p.duration}ms`;
+                circle.style.transform = `scale(${p.scale})`;
+
+                let remaining = p.time;
+                if (breathInterval) clearInterval(breathInterval);
+                
+                breathInterval = setInterval(() => {
+                    remaining -= 0.1;
+                    secondsText.innerText = Math.max(0, remaining).toFixed(1);
+                    if (remaining <= 0) clearInterval(breathInterval);
+                }, 100);
+
+                if (breathTimer) clearTimeout(breathTimer);
+                breathTimer = setTimeout(() => {
+                    phase = (phase + 1) % currentBreathPhases.length;
+                    nextPhase();
+                }, p.duration);
+            }
+            nextPhase();
+        }
+
+        function applyUserBg() {
+            const bg = localStorage.getItem('hb_user_bg') || 'tech';
+            const bgOverlay = document.createElement('div');
+            bgOverlay.id = 'dynamic-bg';
+            bgOverlay.className = 'fixed inset-0 pointer-events-none z-[-1] opacity-[0.05] transition-opacity duration-1000';
+            bgOverlay.style.backgroundImage = `url('assets/images/bg_${bg}.png')`;
+            bgOverlay.style.backgroundSize = 'cover';
+            bgOverlay.style.backgroundPosition = 'center';
+            document.body.appendChild(bgOverlay);
+        }
+
+        applyUserBg();
+        updateDisplay();
+        switchTab('sleep'); // Default tab
+
+        // ─── Neuro Audio Engine (Web Audio API) ──────────────────────────────
+        let audioCtx = null;
+        let neuroNodes = {}; // { type: { left, right, gainL, gainR, source } }
+        let activeNeuro = null;
+
+        const NEURO_CONFIG = {
+            delta: { base: 100, beat: 2,   color: '#b24cff', label: 'Delta · 2 Hz Activo' },
+            gamma: { base: 200, beat: 40,  color: '#b24cff', label: 'Gamma · 40 Hz Activo' },
+            theta: { base: 150, beat: 6,   color: '#b24cff', label: 'Theta · 6 Hz Activo'  },
+            brown: { base: null, beat: null, color: '#b24cff', label: 'Ruido Marrón Activo' },
+        };
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function startBinaural(type) {
+            const ctx = getAudioCtx();
+            const cfg = NEURO_CONFIG[type];
+            const masterGain = ctx.createGain();
+            masterGain.gain.setValueAtTime(0, ctx.currentTime);
+            masterGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 1.5);
+            masterGain.connect(ctx.destination);
+
+            let left, right;
+
+            if (type === 'brown') {
+                // Brown noise: filtered white noise
+                const bufSize = ctx.sampleRate * 4;
+                const buffer = ctx.createBuffer(2, bufSize, ctx.sampleRate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = buffer.getChannelData(ch);
+                    let lastOut = 0;
+                    for (let i = 0; i < bufSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        lastOut = (lastOut + 0.02 * white) / 1.02;
+                        data[i] = lastOut * 3.5;
+                    }
+                }
+                const src = ctx.createBufferSource();
+                src.buffer = buffer;
+                src.loop = true;
+                src.connect(masterGain);
+                src.start();
+                neuroNodes[type] = { src, masterGain };
+            } else {
+                // Binaural beats via stereo panning
+                const merger = ctx.createChannelMerger(2);
+                merger.connect(masterGain);
+
+                left = ctx.createOscillator();
+                left.frequency.value = cfg.base;
+                left.type = 'sine';
+
+                right = ctx.createOscillator();
+                right.frequency.value = cfg.base + cfg.beat;
+                right.type = 'sine';
+
+                // Pan left/right
+                const splitter = ctx.createChannelSplitter(2);
+                left.connect(splitter);
+                const gainL = ctx.createGain(); gainL.gain.value = 1;
+                splitter.connect(gainL, 0);
+                gainL.connect(merger, 0, 0);
+
+                const splitterR = ctx.createChannelSplitter(2);
+                right.connect(splitterR);
+                const gainR = ctx.createGain(); gainR.gain.value = 1;
+                splitterR.connect(gainR, 0);
+                gainR.connect(merger, 0, 1);
+
+                left.start();
+                right.start();
+                neuroNodes[type] = { left, right, gainL, gainR, masterGain };
+            }
+        }
+
+        function stopBinaural(type) {
+            const n = neuroNodes[type];
+            if (!n) return;
+            const ctx = getAudioCtx();
+            if (n.masterGain) {
+                n.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+            }
+            setTimeout(() => {
+                try {
+                    if (n.left)  n.left.stop();
+                    if (n.right) n.right.stop();
+                    if (n.src)   n.src.stop();
+                    if (n.masterGain) n.masterGain.disconnect();
+                } catch(e) {}
+            }, 900);
+            delete neuroNodes[type];
+        }
+
+        function toggleNeuroAudio(type) {
+            if (activeNeuro === type) {
+                // Stop this one
+                stopBinaural(type);
+                activeNeuro = null;
+                setNeuroIndicator(type, false);
+            } else {
+                // Stop any running
+                if (activeNeuro) {
+                    stopBinaural(activeNeuro);
+                    setNeuroIndicator(activeNeuro, false);
+                }
+                startBinaural(type);
+                activeNeuro = type;
+                setNeuroIndicator(type, true);
+            }
+        }
+
+        function setNeuroIndicator(type, active) {
+            const cfg = NEURO_CONFIG[type];
+            const ind = document.getElementById('indicator-' + type);
+            const card = document.getElementById('card-' + type);
+            if (!ind) return;
+            const dot  = ind.querySelector('span:first-child');
+            const label = ind.querySelector('span:last-child');
+            if (active) {
+                dot.style.cssText = `background-color: ${cfg.color}; box-shadow: 0 0 8px ${cfg.color};`;
+                dot.className = 'w-1.5 h-1.5 rounded-full animate-pulse transition-all';
+                label.textContent = cfg.label;
+                label.style.color = cfg.color;
+                card.style.borderColor = cfg.color + '50';
+                card.style.background = cfg.color + '08';
+            } else {
+                dot.style.cssText = '';
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-white/20 transition-all';
+                label.textContent = 'Toca para activar';
+                label.style.color = '';
+                card.style.borderColor = '';
+                card.style.background = '';
+            }
+        }
+    </script>
+</body>
+
+</html>

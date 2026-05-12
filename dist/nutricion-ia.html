@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Nutrición IA</title>
+    <!-- Cloud & 3D Infrastructure -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#13ec5b',
+                        'primary-dark': '#0dbd47',
+                        'background-dark': '#102216',
+                        'surface-dark': '#1a3324',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s ease-out forwards',
+                        'scan-line': 'scan 2.5s infinite linear',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        scan: {
+                            '0%': { top: '0%' },
+                            '50%': { top: '100%' },
+                            '100%': { top: '0%' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(19, 236, 91, 0.2)' },
+                            '50%': { boxShadow: '0 0 40px rgba(19, 236, 91, 0.6)' },
+                        },
+                        drawCurve: {
+                            '0%': { strokeDasharray: '0, 300' },
+                            '100%': { strokeDasharray: '300, 300' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .camera-bg {
+            background-image: linear-gradient(to bottom, rgba(16, 34, 22, 0.6), rgba(16, 34, 22, 0.95)), url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            border-radius: 24px;
+        }
+
+        .stroke-dasharray-anim {
+            animation: drawCurve 2.5s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white min-h-screen flex justify-center">
+    <div
+        class="relative w-full max-w-md bg-background-dark min-h-screen flex flex-col overflow-x-hidden shadow-2xl border-x border-white/5 pb-6">
+
+        <!-- Header -->
+        <header class="flex flex-col p-6 pb-2 z-20">
+            <div class="flex items-center justify-between w-full mb-2">
+                <a href="index.html"
+                    class="w-10 h-10 rounded-full bg-surface-dark border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </a>
+                <div class="flex items-center gap-1.5 px-3 py-1 bg-surface-dark rounded-full border border-white/10">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Motor IA V4.0</span>
+                </div>
+            </div>
+            <h1 class="text-2xl font-black mt-2 tracking-tight">Nutrición <span class="text-primary">IA</span></h1>
+            <p class="text-xs text-gray-400 font-medium">Análisis instantáneo de macros y calorías</p>
+        </header>
+
+        <!-- View 1: Camera Scanner -->
+        <main id="view-camera" class="flex-1 px-5 py-4 flex flex-col h-full animate-fade-in z-10">
+            <div
+                class="flex-1 camera-bg border border-primary/20 relative overflow-hidden flex flex-col justify-between py-8 px-6 shadow-[0_10px_40px_rgba(19,236,91,0.1)]">
+                <!-- Viewfinder corners -->
+                <div
+                    class="absolute top-8 left-8 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-xl opacity-80">
+                </div>
+                <div
+                    class="absolute top-8 right-8 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-xl opacity-80">
+                </div>
+                <div
+                    class="absolute bottom-8 left-8 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-xl opacity-80">
+                </div>
+                <div
+                    class="absolute bottom-8 right-8 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-xl opacity-80">
+                </div>
+
+                <!-- Scan line -->
+                <div
+                    class="absolute left-8 right-8 h-[2px] bg-primary/80 shadow-[0_0_15px_#13ec5b] animate-scan-line z-20">
+                </div>
+
+                <div class="text-center z-10 relative mt-4">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-[9px] font-extrabold text-white uppercase tracking-widest border border-white/10">
+                        <span class="material-symbols-outlined text-[14px] text-primary">center_focus_strong</span>
+                        Auto-Enfoque Múltiple
+                    </span>
+                </div>
+
+                <div class="z-10 relative">
+                    <p class="text-center text-xs font-bold text-white/90 drop-shadow-md mb-6 uppercase tracking-wider">
+                        Apunta al plato o al código
+                    </p>
+                    <div class="flex gap-3">
+                        <button onclick="document.getElementById('file-input').click()"
+                            class="flex-1 bg-surface-dark/90 backdrop-blur-md border border-white/10 text-white font-bold py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 hover:bg-white/10 transition-colors shadow-lg active:scale-95">
+                            <span class="material-symbols-outlined text-gray-300">screenshot_region</span>
+                            <span class="text-[10px] uppercase tracking-wider">Galería</span>
+                        </button>
+                        <input type="file" id="file-input" class="hidden" accept="image/*" onchange="startAnalysis()">
+                        
+                        <button onclick="openBarcodeScanner()"
+                            class="flex-1 bg-primary text-background-dark font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 hover:scale-[1.02] transition-all shadow-lg active:scale-95">
+                            <span class="material-symbols-outlined font-black">barcode_scanner</span>
+                            <span class="text-[10px] uppercase tracking-wider">Barras</span>
+                        </button>
+
+                        <button onclick="startAnalysis()"
+                            class="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 hover:bg-white/20 transition-colors shadow-lg active:scale-95">
+                            <span class="material-symbols-outlined text-primary">photo_camera</span>
+                            <span class="text-[10px] uppercase tracking-wider">Capturar</span>
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- View 2: Analysis Loading -->
+        <main id="view-analyzing"
+            class="hidden flex-1 px-6 py-4 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in relative z-10">
+            <!-- Decorative BG circles -->
+            <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/5 rounded-full blur-sm">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-primary/20 rounded-full blur-sm">
+            </div>
+
+            <div
+                class="relative w-32 h-32 mb-10 animate-pulse-glow rounded-full bg-surface-dark flex items-center justify-center border border-primary/30 z-20 shadow-[0_0_50px_rgba(19,236,91,0.1)]">
+                <span class="material-symbols-outlined text-primary text-[50px]">memory</span>
+                <!-- Orbiting dots -->
+                <svg class="absolute inset-0 w-full h-full animate-spin" style="animation-duration: 4s;"
+                    viewBox="0 0 100 100">
+                    <circle cx="50" cy="5" r="4" fill="#13ec5b" />
+                    <circle cx="95" cy="50" r="3" fill="#3b82f6" opacity="0.8" />
+                    <circle cx="20" cy="85" r="3" fill="#eab308" opacity="0.6" />
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-black text-white mb-3 tracking-wide">Desglosando Matriz Nutricional</h3>
+
+            <div
+                class="w-full max-w-[200px] bg-surface-dark rounded-full h-1.5 mb-4 overflow-hidden border border-white/5">
+                <div class="bg-primary h-1.5 rounded-full w-0 transition-all duration-[2500ms] ease-out"
+                    id="progress-bar"></div>
+            </div>
+
+            <p id="analyzing-text"
+                class="text-xs font-bold text-gray-400 uppercase tracking-widest h-5 transition-opacity duration-300">
+                Identificando ingredientes...</p>
+        </main>
+
+        <!-- View 3: Results -->
+        <main id="view-results" class="hidden flex-1 px-5 py-2 overflow-y-auto no-scrollbar z-10">
+
+            <!-- Success Header -->
+            <div class="flex items-center gap-4 bg-surface-dark border border-white/10 rounded-[20px] p-4 mb-6 shadow-md opacity-0 animate-slide-up"
+                style="animation-delay: 0.1s;">
+                <div
+                    class="w-12 h-12 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(19,236,91,0.2)]">
+                    <span class="material-symbols-outlined text-primary text-[24px] font-black">check</span>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-white leading-tight">Análisis Completado</h2>
+                    <p class="text-[11px] font-medium text-gray-400 mt-1">Plato detectado: <span
+                            class="text-primary" id="detected-food-name">Bowl de Salmón y Quinoa</span></p>
+                </div>
+            </div>
+
+            <!-- Macro Donut (Reusing macros.html logic) -->
+            <div class="bg-surface-dark border border-white/5 rounded-[24px] p-6 mb-6 flex flex-col items-center shadow-lg opacity-0 animate-slide-up"
+                style="animation-delay: 0.2s;">
+                <h3 class="text-[10px] font-extrabold text-gray-500 uppercase tracking-[0.2em] mb-7 w-full text-center">
+                    Estimación Calórica y Macros</h3>
+
+                <div class="relative w-48 h-48 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(19,236,91,0.05)]"
+                    id="ai-macro-donut"
+                    style="background: conic-gradient(#3b82f6 0% 35%, #13ec5b 35% 65%, #eab308 65% 100%);">
+                    <div
+                        class="absolute inset-[14px] bg-surface-dark rounded-full flex flex-col items-center justify-center shadow-inner">
+                        <span class="text-5xl font-black text-white tracking-tighter"
+                            id="total-calories-display" style="text-shadow: 0 4px 20px rgba(0,0,0,0.5);">680</span>
+                        <span class="text-[9px] text-gray-400 uppercase tracking-[0.15em] mt-1 font-bold">KCAL
+                            TOTALES</span>
+                    </div>
+                </div>
+
+                <!-- Mini legends -->
+                    <div class="flex justify-between w-full mt-8 px-2 text-xs font-bold">
+                        <div class="flex flex-col items-center gap-1.5"><span
+                                class="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span><span
+                                class="text-blue-400 text-sm" id="protein-val">42g</span><span
+                                class="text-[9px] text-gray-500 uppercase tracking-widest">Proteína</span></div>
+                        <div class="flex flex-col items-center gap-1.5"><span
+                                class="w-3.5 h-3.5 rounded-full bg-primary shadow-[0_0_8px_rgba(19,236,91,0.6)]"></span><span
+                                class="text-primary text-sm" id="carbs-val">55g</span><span
+                                class="text-[9px] text-gray-500 uppercase tracking-widest">Carbos</span></div>
+                        <div class="flex flex-col items-center gap-1.5"><span
+                                class="w-3.5 h-3.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]"></span><span
+                                class="text-yellow-500 text-sm" id="fats-val">30g</span><span
+                                class="text-[9px] text-gray-500 uppercase tracking-widest">Grasas</span></div>
+                    </div>
+
+                    <!-- Metabolic Flexibility Score -->
+                    <div class="w-full mt-8 pt-6 border-t border-white/5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Score de Flexibilidad Metabólica</span>
+                            <span id="metabolic-score" class="text-xs font-black text-primary">8.5 / 10</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div id="metabolic-bar" class="h-full bg-primary w-[85%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights & Conclusions -->
+            <div class="bg-gradient-to-br from-surface-dark to-[#0f1f15] border border-white/10 rounded-[24px] p-6 mb-8 relative overflow-hidden shadow-xl opacity-0 animate-slide-up"
+                style="animation-delay: 0.3s;">
+                <!-- BG Decoration -->
+                <span
+                    class="material-symbols-outlined absolute -right-6 -bottom-6 text-[150px] text-white/[0.03] pointer-events-none">psychology</span>
+
+                <h3 class="flex items-center gap-2 text-sm font-black text-white mb-5 relative z-10">
+                    <span class="material-symbols-outlined text-primary text-[20px]">neurology</span>
+                    Veredicto IA - <span class="text-gray-400 font-semibold text-xs ml-1">Meta: Recomposición</span>
+                </h3>
+
+                <div class="space-y-4 relative z-10" id="ai-verdicts-container">
+                    <div class="flex gap-3 items-start bg-background-dark/50 p-3 rounded-xl border border-white/5">
+                        <div
+                            class="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0 mt-0.5 border border-primary/30">
+                            <span class="material-symbols-outlined text-[16px] font-bold">add</span>
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-bold text-white mb-1 leading-tight" id="verdict-pos-title">Excelente bloque de proteínas
+                                y grasas saludables (Omega-3).</p>
+                            <p class="text-[11px] text-gray-400 font-medium" id="verdict-pos-desc">Favorece la saciedad prolongada y
+                                neuroprotección.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 items-start bg-background-dark/50 p-3 rounded-xl border border-white/5">
+                        <div
+                            class="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 mt-0.5 border border-orange-500/30">
+                            <span class="material-symbols-outlined text-[16px] font-bold">priority_high</span>
+                        </div>
+                        <div>
+                            <p class="text-[13px] font-bold text-white mb-1 leading-tight" id="verdict-neg-title">Carbohidratos ligeramente
+                                altos para la cena.</p>
+                            <p class="text-[11px] text-gray-400 font-medium" id="verdict-neg-desc"><span
+                                    class="text-orange-400/80">Sugerencia:</span> Si no has entrenado, reduce la porción
+                                de quinoa a la mitad en el futuro.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/40 rounded-xl p-4 border border-white/5 mt-4">
+                        <div class="flex items-center gap-1.5 mb-3">
+                            <span class="material-symbols-outlined text-[16px] text-primary">monitoring</span>
+                            <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">Oráculo Metabólico</p>
+                        </div>
+                        
+                        <!-- Curva de Glucosa -->
+                        <div class="relative w-full h-16 mb-4 mt-2">
+                            <!-- Background Grid -->
+                            <div class="absolute inset-0 border-b border-l border-white/10"></div>
+                            <!-- Ejes text -->
+                            <span class="absolute -bottom-4 left-0 text-[8px] text-gray-500">Ahora</span>
+                            <span class="absolute -bottom-4 right-0 text-[8px] text-gray-500">+2 Hrs</span>
+                            <span class="absolute top-0 -left-6 text-[8px] text-gray-500">120+</span>
+                            
+                            <!-- Animated SVG Curve -->
+                            <svg class="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 50">
+                                <!-- Zona de Riesgo -->
+                                <rect x="0" y="0" width="100" height="20" fill="url(#danger-pattern)" opacity="0.1" />
+                                <defs>
+                                    <pattern id="danger-pattern" width="4" height="4" patternUnits="userSpaceOnUse">
+                                        <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="#ef4444" stroke-width="0.5" />
+                                    </pattern>
+                                    <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#13ec5b" />
+                                        <stop offset="50%" stop-color="#eab308" />
+                                        <stop offset="100%" stop-color="#13ec5b" />
+                                    </linearGradient>
+                                </defs>
+                                
+                                <!-- La Curva (Animada) -->
+                                <path d="M0,45 Q20,45 35,25 T70,30 T100,40" fill="none" stroke="url(#line-gradient)" stroke-width="3" stroke-linecap="round" class="stroke-dasharray-anim" />
+                                
+                                <!-- Punto de Pico -->
+                                <circle cx="52.5" cy="27.5" r="2.5" fill="#eab308" class="animate-pulse" />
+                            </svg>
+                        </div>
+                        
+                        <div class="flex justify-between items-end mb-3 mt-5">
+                            <p class="text-[12px] font-bold text-white">Predicción: Pico Moderado</p>
+                            <p class="text-[14px] font-black text-yellow-500" id="glucose-prediction-val">105 <span class="text-[9px] text-gray-500">mg/dL</span></p>
+                        </div>
+
+                        <!-- Actionable Hacks -->
+                        <div class="space-y-2">
+                            <div class="flex gap-2 items-center bg-white/5 rounded-lg p-2 border border-white/5">
+                                <span class="material-symbols-outlined text-[14px] text-primary">directions_walk</span>
+                                <p class="text-[11px] text-gray-300"><strong class="text-white">Bio-Hack:</strong> 10 min de caminata post-comida aplanará la curva un 15%.</p>
+                            </div>
+                            <div class="flex gap-2 items-center bg-white/5 rounded-lg p-2 border border-white/5">
+                                <span class="material-symbols-outlined text-[14px] text-primary">science</span>
+                                <p class="text-[11px] text-gray-300"><strong class="text-white">Bio-Hack:</strong> Un vaso con agua y vinagre de manzana ahora reduciría el pico.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-3 opacity-0 animate-slide-up" style="animation-delay: 0.4s;">
+                <button onclick="addToLog(event)"
+                    class="w-full bg-primary text-background-dark font-black py-4 rounded-[16px] flex items-center justify-center gap-2 hover:opacity-90 shadow-[0_5px_20px_rgba(19,236,91,0.25)] transition-all active:scale-95">
+                    <span class="material-symbols-outlined filled text-[20px]"
+                        style="font-variation-settings: 'FILL' 1;">add_task</span>
+                    AÑADIR AL DIARIO
+                </button>
+                <div class="flex gap-3">
+                    <button onclick="resetCamera()"
+                        class="flex-1 bg-surface-dark border border-white/10 text-gray-300 font-bold py-4 rounded-[16px] flex items-center justify-center gap-2 hover:bg-white/5 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-[20px]">refresh</span>
+                        Re-Escanear
+                    </button>
+                    <a href="macros.html"
+                        class="flex-1 bg-surface-dark border border-white/10 text-primary font-bold py-4 rounded-[16px] flex items-center justify-center gap-2 hover:bg-primary/5 transition-all active:scale-95">
+                        <span class="material-symbols-outlined text-[20px]">tune</span>
+                        Bio-Optimizer
+                    </a>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- UI Logic -->
+    <script>
+        // --- Bio-Cloud & IA Global State ---
+        let userData = null;
+        let setupData = {
+            isAnabolicResistanceRisk: false,
+            cronotype: 'neutral'
+        };
+
+        // Firebase Sync
+        const auth = window.hb_auth;
+        const db = window.hb_db;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                if (window.hb_unsubscribe) window.hb_unsubscribe();
+                window.hb_unsubscribe = db.collection('users').doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        userData = doc.data();
+                        setupData.isAnabolicResistanceRisk = userData.isAnabolicResistanceRisk || (userData.age >= 40);
+                        setupData.cronotype = userData.cronotype || 'neutral';
+                        console.log("Bio-Data Sync: Anabolic Risk", setupData.isAnabolicResistanceRisk);
+                    }
+                });
+            }
+        });
+
+        // --- Bio-Cloud & IA Mock Data Pool ---
+        const foodDatabase = [
+            {
+                name: "Bowl de Salmón y Quinoa",
+                kcal: 680,
+                protein: 42,
+                carbs: 55,
+                fats: 30,
+                glucose: 105,
+                posTitle: "Excelente bloque de proteínas y grasas Omega-3",
+                posDesc: "Favorece la saciedad prolongada y neuroprotección.",
+                negTitle: "Carbohidratos altos para la cena",
+                negDesc: "Sugerencia: Si no has entrenado, reduce la porción de quinoa.",
+                gradient: "conic-gradient(#3b82f6 0% 35%, #13ec5b 35% 65%, #eab308 65% 100%)"
+            },
+            {
+                name: "Pollo a la Plancha con Batata",
+                kcal: 540,
+                protein: 48,
+                carbs: 45,
+                fats: 12,
+                glucose: 98,
+                posTitle: "Proteína magra de alta biodisponibilidad",
+                posDesc: "Ideal para la síntesis proteica post-entrenamiento.",
+                negTitle: "Bajo en fibra soluble",
+                negDesc: "Añade una porción de brócoli o espinacas para mejorar el tránsito.",
+                gradient: "conic-gradient(#3b82f6 0% 45%, #13ec5b 45% 85%, #eab308 85% 100%)"
+            },
+            {
+                name: "Avocado Toast con Huevo",
+                kcal: 420,
+                protein: 18,
+                carbs: 32,
+                fats: 24,
+                glucose: 112,
+                posTitle: "Grasas monoinsaturadas y vitaminas clave",
+                posDesc: "Tu cerebro utilizará estas grasas para estabilidad energética.",
+                negTitle: "Densidad calórica moderada/alta",
+                negDesc: "Controla el aceite de oliva extra si estás en fase de déficit.",
+                gradient: "conic-gradient(#3b82f6 0% 20%, #13ec5b 20% 50%, #eab308 50% 100%)"
+            }
+        ];
+
+        let currentScanResult = null;
+
+        function startAnalysis() {
+            // Pick random result
+            currentScanResult = foodDatabase[Math.floor(Math.random() * foodDatabase.length)];
+
+            // Hide camera, show analyzing
+            vCamera.classList.add('hidden');
+            vAnalyzing.classList.remove('hidden');
+            vAnalyzing.classList.add('flex');
+
+            // Start progress bar animation
+            setTimeout(() => {
+                progress.style.width = '100%';
+            }, 100);
+
+            // Change text dynamically
+            const texts = ["Identificando ingredientes...", "Consultando base de datos nutricional...", "Calculando distribución de macros...", "Generando veredicto IA..."];
+            let step = 0;
+
+            const interval = setInterval(() => {
+                step++;
+                if (step < texts.length) {
+                    analyzingText.style.opacity = '0';
+                    setTimeout(() => {
+                        analyzingText.innerText = texts[step];
+                        analyzingText.style.opacity = '1';
+                    }, 300);
+                } else {
+                    clearInterval(interval);
+                    showResults();
+                }
+            }, 600);
+        }
+
+        function showResults() {
+            vAnalyzing.classList.remove('flex');
+            vAnalyzing.classList.add('hidden');
+
+            vResults.classList.remove('hidden');
+            vResults.classList.add('block');
+
+            // Populate localized data
+            document.getElementById('detected-food-name').innerText = currentScanResult.name;
+            document.getElementById('total-calories-display').innerText = currentScanResult.kcal;
+            document.getElementById('protein-val').innerText = currentScanResult.protein + "g";
+            document.getElementById('carbs-val').innerText = currentScanResult.carbs + "g";
+            document.getElementById('fats-val').innerText = currentScanResult.fats + "g";
+            document.getElementById('ai-macro-donut').style.background = currentScanResult.gradient;
+            document.getElementById('glucose-prediction-val').innerHTML = `${currentScanResult.glucose} <span class="text-[9px] text-gray-500">mg/dL</span>`;
+            
+            // Circadian Advice Logic
+            const hour = new Date().getHours();
+            let posTitle = currentScanResult.posTitle;
+            let negTitle = currentScanResult.negTitle;
+            let negDesc = currentScanResult.negDesc;
+
+            if (hour >= 20 || hour < 5) {
+                negTitle = "Aviso Circadiano: Comida Nocturna";
+                negDesc = "La sensibilidad a la insulina cae por la noche. Considera un suspiro fisiológico para mitigar el cortisol.";
+            }
+
+            document.getElementById('verdict-pos-title').innerText = posTitle;
+            document.getElementById('verdict-pos-desc').innerText = currentScanResult.posDesc;
+            document.getElementById('verdict-neg-title').innerText = negTitle;
+            document.getElementById('verdict-neg-desc').innerText = negDesc;
+
+            // Metabolic Score Logic
+            const score = Math.min(10, (currentScanResult.protein / 5) - (currentScanResult.carbs / 20) + 7).toFixed(1);
+            document.getElementById('metabolic-score').innerText = `${score} / 10`;
+            document.getElementById('metabolic-bar').style.width = `${score * 10}%`;
+
+            // Trigger animations
+            const elements = vResults.querySelectorAll('.animate-slide-up');
+            elements.forEach(el => {
+                el.style.animationName = 'none';
+                el.offsetHeight; /* trigger reflow */
+                el.style.animationName = 'slideUp';
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function resetCamera() {
+            // Reset state
+            progress.style.transition = 'none';
+            progress.style.width = '0%';
+
+            setTimeout(() => {
+                progress.style.transition = 'all 2500ms ease-out';
+            }, 50);
+
+            analyzingText.innerText = "Identificando ingredientes...";
+
+            vResults.classList.remove('block');
+            vResults.classList.add('hidden');
+
+            vCamera.classList.remove('hidden');
+            vCamera.classList.add('flex');
+            window.scrollTo(0, 0);
+        }
+
+        async function addToLog(event) {
+            const btn = event.currentTarget;
+            const originalContent = btn.innerHTML;
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> SINCRONIZANDO...`;
+
+                // Authentication Check
+                if (!window.hb_auth.currentUser) {
+                    await window.hb_auth.signInAnonymously();
+                }
+                const userId = window.hb_auth.currentUser.uid;
+                const db = window.hb_db;
+
+                // 1. Save to Unified Log (for Timeline)
+                const userRef = db.collection('users').doc(userId);
+                const userDoc = await userRef.get();
+                const userData = userDoc.data() || {};
+
+                await userRef.collection('logs').add({
+                    type: 'diet',
+                    category: 'diet',
+                    title: `Nutrición: ${currentScanResult.name}`,
+                    reward: 15,
+                    foodName: currentScanResult.name,
+                    protein: currentScanResult.protein,
+                    carbs: currentScanResult.carbs,
+                    fats: currentScanResult.fats,
+                    kcal: currentScanResult.kcal,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 2. Also keep in detailed diet logs (legacy support)
+                await userRef.collection('diet_logs').add({
+                    ...currentScanResult,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 3. Create Social Synergy Record
+                const metabolicScore = ((currentScanResult.protein / 5) - (currentScanResult.carbs / 20) + 7).toFixed(1);
+                await db.collection('sinergias').add({
+                    userId: userId,
+                    userName: userData.displayName || "Guerrero_" + userId.substring(0,4),
+                    type: 'diet',
+                    icon: 'restaurant',
+                    foodName: currentScanResult.name,
+                    metabolicScore: metabolicScore,
+                    glows: 0,
+                    glowedBy: [],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 4. Update Core Biometrics & NTK Rewards
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(userRef);
+                    const data = doc.data() || {};
+                    
+                    const newNtk = (parseInt(data.ntkBalance || '450')) + 15;
+                    // Slightly nudge bioScore towards optimization
+                    const newBioScore = Math.min(9.9, (parseFloat(data.bioScore || '9.2') + 0.05));
+
+                    transaction.update(userRef, {
+                        ntkBalance: newNtk,
+                        bioScore: newBioScore,
+                        lastFoodScan: currentScanResult.name,
+                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                // Success Feedback
+                btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span> +15 NTK GUARDADOS`;
+                btn.classList.replace('bg-primary', 'bg-white');
+                btn.classList.add('text-dark');
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
+
+            } catch (error) {
+                console.error("Cloud Sync Error:", error);
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined">error</span> FALLO DE RED`;
+                btn.classList.add('bg-red-500');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-red-500');
+                }, 2000);
+            }
+        }
+
+        // --- Barcode Scanning & AI Advice ---
+        let html5QrCode;
+
+        function openBarcodeScanner() {
+            const scannerContainer = document.createElement('div');
+            scannerContainer.id = 'scanner-overlay';
+            scannerContainer.className = 'fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-6 animate-fade-in';
+            scannerContainer.innerHTML = `
+                <div class="w-full max-w-sm aspect-square bg-surface-dark rounded-3xl border-2 border-primary/40 relative overflow-hidden mb-8">
+                    <div id="qr-reader" class="w-full h-full"></div>
+                    <div class="absolute inset-0 pointer-events-none border-[40px] border-black/40"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-[2px] bg-primary shadow-[0_0_15px_#13ec5b] animate-scan-line"></div>
+                </div>
+                <div class="text-center mb-8">
+                    <h3 class="text-white font-black uppercase tracking-widest mb-2">Escáner Bio-Digital</h3>
+                    <p class="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Apunta al código de barras del producto</p>
+                </div>
+                <button onclick="closeScanner()" class="w-full py-5 bg-white/5 border border-white/10 rounded-2xl font-black uppercase tracking-[0.2em] text-white/60">Cancelar Escaneo</button>
+            `;
+            document.body.appendChild(scannerContainer);
+
+            html5QrCode = new Html5Qrcode("qr-reader");
+            const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                closeScanner();
+                lookupBarcode(decodedText);
+            }).catch(err => {
+                console.warn("Scanner init error", err);
+                showToast("Error al activar cámara");
+                closeScanner();
+            });
+        }
+
+        function closeScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scanner-overlay')?.remove();
+                }).catch(() => {
+                    document.getElementById('scanner-overlay')?.remove();
+                });
+            } else {
+                document.getElementById('scanner-overlay')?.remove();
+            }
+        }
+
+        async function lookupBarcode(barcode) {
+            analyzingText.innerText = "Consultando Base Bio-Informática...";
+            vCamera.classList.add('hidden');
+            vResults.classList.remove('hidden');
+            vResults.classList.add('block');
+            
+            // Progress Bar simulation
+            progress.style.transition = 'width 1s ease-in-out';
+            progress.style.width = '100%';
+
+            try {
+                const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+                const data = await response.json();
+
+                if (data.status === 1) {
+                    const product = data.product;
+                    const nutrients = product.nutriments;
+                    const name = product.product_name || "Bio-Producto";
+
+                    currentScanResult = {
+                        name: name,
+                        kcal: Math.round(nutrients['energy-kcal_100g'] || (nutrients.energy_100g / 4.184) || 0),
+                        protein: Math.round(nutrients.proteins_100g || 0),
+                        carbs: Math.round(nutrients.carbohydrates_100g || 0),
+                        fats: Math.round(nutrients.fat_100g || 0),
+                        score: Math.max(1, Math.min(10, 10 - (product.nutriscore_score || 5) / 2))
+                    };
+
+                    // AI Insights logic based on NotebookLM (+40 Age & Cronotype)
+                    let insights = `Analizando ${name}... `;
+                    
+                    if (setupData.isAnabolicResistanceRisk) {
+                        if (currentScanResult.protein < 30) {
+                            insights += "⚠️ Riesgo de Resistencia Anabólica. Aumenta la proteína a 30-50g para activar mTOR. ";
+                        } else {
+                            insights += "✅ Excelente densidad proteica para longevidad. ";
+                        }
+                    }
+
+                    if (setupData.cronotype === 'morning' && new Date().getHours() > 18) {
+                        insights += "🌙 Eres de Cronotipo Matutino. Evita carbohidratos densos ahora para optimizar melatonina. ";
+                    }
+
+                    if (currentScanResult.carbs > 30) insights += "⚠️ Impacto glucémico alto detectado. ";
+                    if (product.additives_n > 5) insights += "🧪 Alta presencia de aditivos (Procesado). ";
+                    
+                    currentScanResult.advice = insights || "Producto equilibrado. Procede con moderación.";
+
+                    renderResults(currentScanResult);
+                    showToast("Análisis Bio-Digital Completo");
+                } else {
+                    showToast("Producto no identificado en Bio-Cloud");
+                    resetCamera();
+                }
+            } catch (e) {
+                console.error("Lookup error:", e);
+                showToast("Error de conexión con la red");
+                resetCamera();
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-surface-dark border border-white/10 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-2xl z-[200] animate-fade-in';
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+    <!-- Fixed Bottom Nav -->
+    <nav
+        class="fixed bottom-0 left-0 w-full border-t border-white/10 bg-background-dark/95 backdrop-blur-md pb-safe pt-3 z-50">
+        <div class="flex items-center justify-around max-w-md mx-auto px-1 pb-4">
+            <a href="index.html"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors w-1/5">
+                <span class="material-symbols-outlined">home</span>
+                <span class="text-[10px] font-medium scale-90">Inicio</span>
+            </a>
+            <a href="entrenar.html"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors w-1/5">
+                <span class="material-symbols-outlined">fitness_center</span>
+                <span class="text-[10px] font-medium scale-90">Entrenar</span>
+            </a>
+            <a href="historial.html"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors w-1/5">
+                <span class="material-symbols-outlined">history</span>
+                <span class="text-[10px] font-medium scale-90">Historial</span>
+            </a>
+            <a href="descanso.html"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors w-1/5">
+                <span class="material-symbols-outlined">timer</span>
+                <span class="text-[10px] font-medium scale-90">Descanso</span>
+            </a>
+            <a href="ejercicios.html"
+                class="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors w-1/5">
+                <span class="material-symbols-outlined">library_books</span>
+                <span class="text-[10px] font-medium scale-90">Ejercicios</span>
+            </a>
+        </div>
+    </nav>
+</body>
+
+</html>

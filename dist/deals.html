@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Deals & Descuentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#ff8a00', neon: '#00d1ff', dark: '#0a0a0a', surface: '#121212' },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; }
+    </style>
+</head>
+<body class="bg-dark text-white min-h-screen">
+    <div class="w-full max-w-md mx-auto min-h-screen p-6 pb-24">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-8">
+            <a href="index.html" class="w-10 h-10 rounded-full bg-surface border border-white/10 flex items-center justify-center">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span class="text-xs font-bold text-gray-400">Ofertas Activas</span>
+            </div>
+        </header>
+
+        <!-- Title -->
+        <div class="text-center mb-8">
+            <span class="inline-block px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-black uppercase rounded-full">Exclusivo Miembros</span>
+            <h1 class="text-3xl font-black mt-4"> Deals <span class="text-green-400">& Descuentos</span></h1>
+            <p class="text-sm text-gray-400 mt-2">Usa tus NTK para desbloquear ofertas exclusivas</p>
+        </div>
+
+        <!-- NTK Balance -->
+        <section class="glass-card p-4 mb-6 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 uppercase">Tu Balance</p>
+                <p class="text-2xl font-black text-primary">2,450 <span class="text-sm">NTK</span></p>
+            </div>
+            <a href="recompensas.html" class="px-4 py-2 bg-primary/20 text-primary text-sm font-bold rounded-lg">
+                Ganar Más
+            </a>
+        </section>
+
+        <!-- Partner Deals -->
+        <section class="mb-8">
+            <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Tiendas Aliadas</h3>
+            
+            <!-- adidas Deal -->
+            <div class="glass-card p-5 mb-4 border-primary/20">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-black flex items-center justify-center">
+                        <span class="text-xl font-black italic">adidas</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold">adidas Training</h4>
+                            <span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">-20%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Ropa fitness y accesorios de alto rendimiento</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-500">Costo con NTK</p>
+                                <p class="text-lg font-black text-primary">1,500 NTK</p>
+                            </div>
+                            <button onclick="redeemDeal('adidas')" class="px-4 py-2 bg-primary text-black text-sm font-bold rounded-lg">
+                                Canjear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-white/5">
+                    <p class="text-[10px] text-gray-500">Código único:</p>
+                    <p class="text-sm font-mono text-neon">HEALTHYBRAIN-20OFF</p>
+                </div>
+            </div>
+
+            <!-- Garmin Deal -->
+            <div class="glass-card p-5 mb-4 border-neon/20">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center">
+                        <span class="text-lg font-black text-white">GARMIN</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold">Garmin Wearables</h4>
+                            <span class="bg-neon/20 text-neon text-[10px] px-2 py-0.5 rounded-full">-15%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Relojes y pulseras para bio-tracking</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-500">Costo con NTK</p>
+                                <p class="text-lg font-black text-neon">2,000 NTK</p>
+                            </div>
+                            <button onclick="redeemDeal('garmin')" class="px-4 py-2 bg-neon text-black text-sm font-bold rounded-lg">
+                                Canjear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimum Nutrition -->
+            <div class="glass-card p-5 mb-4 border-green-500/20">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-yellow-500 flex items-center justify-center">
+                        <span class="text-xs font-black text-black">ON</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold">Optimum Nutrition</h4>
+                            <span class="bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded-full">-25%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Proteína y suplementos premium</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-500">Costo con NTK</p>
+                                <p class="text-lg font-black text-green-400">800 NTK</p>
+                            </div>
+                            <button onclick="redeemDeal('on')" class="px-4 py-2 bg-green-500 text-black text-sm font-bold rounded-lg">
+                                Canjear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WHOOP Deal -->
+            <div class="glass-card p-5 mb-4 border-purple-500/20">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-600 flex items-center justify-center">
+                        <span class="text-lg font-black text-white">WHOOP</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold">WHOOP 4.0</h4>
+                            <span class="bg-purple-500/20 text-purple-400 text-[10px] px-2 py-0.5 rounded-full">-30%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Monitoreo de recuperación y rendimiento</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-500">Costo con NTK</p>
+                                <p class="text-lg font-black text-purple-400">3,500 NTK</p>
+                            </div>
+                            <button onclick="redeemDeal('whoop')" class="px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-lg">
+                                Canjear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amazon Deal -->
+            <div class="glass-card p-5 mb-4 border-orange-500/20">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center">
+                        <span class="text-lg font-black text-white">amazon</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold">Amazon Prime</h4>
+                            <span class="bg-orange-500/20 text-orange-400 text-[10px] px-2 py-0.5 rounded-full">3 meses</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3">Entregas rápidas y contenido exclusivo</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] text-gray-500">Costo con NTK</p>
+                                <p class="text-lg font-black text-orange-400">1,200 NTK</p>
+                            </div>
+                            <button onclick="redeemDeal('amazon')" class="px-4 py-2 bg-orange-500 text-white text-sm font-bold rounded-lg">
+                                Canjear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Your Redeemed Deals -->
+        <section class="mb-6">
+            <h3 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Tus Códigos Canjeados</h3>
+            <div id="redeemed-list" class="space-y-3">
+                <div class="glass-card p-4 text-center text-gray-400 text-sm">
+                    No has canjeado ningún deal aún
+                </div>
+            </div>
+        </section>
+
+        <!-- Add New Partner -->
+        <section class="glass-card p-4 border-dashed border-white/20">
+            <button class="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-white transition-all">
+                <span class="material-symbols-outlined">add_circle</span>
+                <span class="text-sm font-bold">Sugerir Nueva Tienda</span>
+            </button>
+        </section>
+
+    </div>
+
+    <script>
+        // Load redeemed deals
+        const redeemedDeals = JSON.parse(localStorage.getItem('hb_redeemed_deals') || '[]');
+        
+        function redeemDeal(brand) {
+            const deals = {
+                adidas: { name: 'adidas', discount: '20%', code: 'HEALTHYBRAIN-20OFF', cost: 1500 },
+                garmin: { name: 'Garmin', discount: '15%', code: 'BIOFITNESS15', cost: 2000 },
+                on: { name: 'Optimum Nutrition', discount: '25%', code: 'HBON25', cost: 800 },
+                whoop: { name: 'WHOOP', discount: '30%', code: 'HEALTHY30', cost: 3500 },
+                amazon: { name: 'Amazon Prime', discount: '3 meses', code: 'PRIME-HB', cost: 1200 }
+            };
+            
+            const deal = deals[brand];
+            const currentBalance = 2450;
+            
+            if (currentBalance < deal.cost) {
+                alert(`Necesitas ${deal.cost} NTK. Te faltan ${deal.cost - currentBalance} NTK`);
+                return;
+            }
+            
+            // Deduct tokens
+            const newBalance = currentBalance - deal.cost;
+            localStorage.setItem('hb_ntk_balance', newBalance);
+            
+            // Add to redeemed
+            const redeemed = {
+                brand: deal.name,
+                code: deal.code,
+                discount: deal.discount,
+                date: new Date().toLocaleDateString('es-ES')
+            };
+            redeemedDeals.push(redeemed);
+            localStorage.setItem('hb_redeemed_deals', JSON.stringify(redeemedDeals));
+            
+            alert(`¡Canjeado! Tu código: ${deal.code}`);
+            renderRedeemed();
+        }
+
+        function renderRedeemed() {
+            const listEl = document.getElementById('redeemed-list');
+            if (redeemedDeals.length > 0) {
+                listEl.innerHTML = redeemedDeals.map(d => `
+                    <div class="glass-card p-4 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold">${d.brand}</p>
+                            <p class="text-xs text-gray-400">${d.discount} • ${d.date}</p>
+                        </div>
+                        <span class="font-mono text-neon text-sm">${d.code}</span>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        renderRedeemed();
+    </script>
+</body>
+</html>

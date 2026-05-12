@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Bio-Librería de Longevidad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    
+    <!-- Firebase Cloud Infrastructure (Fase 20) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/jefit-engine.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-image:
+                radial-gradient(circle at 50% 10%, rgba(255, 138, 0, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .pill-active {
+            background-color: #ff8a00;
+            color: #0a0a0a;
+            border-color: #ff8a00;
+            box-shadow: 0 4px 15px rgba(255, 138, 0, 0.3);
+        }
+
+        .anatomy-preview {
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .anatomy-preview img {
+            max-height: 200px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(0, 209, 255, 0.2));
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/ejercicios-bTUj66BH.css">
+  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+</head>
+
+<body class="bg-dark text-white min-h-screen">
+    <div
+        class="relative w-full max-w-md mx-auto min-h-screen flex flex-col pb-24 shadow-2xl bg-dark border-x border-white/5">
+
+        <!-- Header -->
+        <header class="flex items-center justify-between p-6 pb-4 bg-dark/80 backdrop-blur-xl sticky top-0 z-40 border-b border-white/5">
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-tighter italic">Bio-<span
+                        class="text-primary">Librería</span></h1>
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-1">Protocolos de Longevidad</p>
+            </div>
+            <a href="perfil-setup.html"
+                class="h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-surface-glass backdrop-blur-md flex items-center justify-center hover:border-primary transition-all shadow-lg shrink-0">
+                <span class="material-symbols-outlined text-text-gray text-[20px]">person</span>
+            </a>
+        </header>
+        
+        <!-- Jefit Library Toggle -->
+        <div class="px-6 py-3 bg-dark/80 border-b border-white/5">
+            <button onclick="toggleJefitLibrary()" class="w-full py-3 bg-gradient-to-r from-primary/20 to-neon/20 border border-primary/30 rounded-xl flex items-center justify-center gap-2 hover:from-primary/30 hover:to-neon/30 transition-all">
+                <span class="material-symbols-outlined text-primary">fitness_center</span>
+                <span class="text-sm font-bold text-white">Biblioteca JFIT <span class="text-primary">Pro</span></span>
+                <span class="text-[10px] text-text-gray bg-white/10 px-2 py-0.5 rounded">1400+ Ejercicios</span>
+            </button>
+        </div>
+        
+        <!-- Jefit Library Container (Hidden by default) -->
+        <div id="jefit-library" class="hidden px-6 py-4 border-b border-white/10">
+            <div class="jefit-search">
+                <input type="text" id="jefit-search" placeholder="Buscar ejercicio..." oninput="searchJefitExercises()">
+                <select id="jefit-equipment" onchange="filterJefitExercises()">
+                    <option value="">Equipo</option>
+                    <option value="Barra">Barra</option>
+                    <option value="Mancuernas">Mancuernas</option>
+                    <option value="Bodyweight">Bodyweight</option>
+                    <option value="Máquina">Máquina</option>
+                    <option value="Polea">Polea</option>
+                </select>
+            </div>
+            <div class="jefit-muscle-tabs" id="jefit-muscle-tabs">
+                <!-- Generated by JS -->
+            </div>
+            <div class="jefit-exercise-list" id="jefit-exercise-list">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+        
+        <div class="px-6 py-4 bg-dark/80 backdrop-blur-xl sticky top-[85px] z-40 border-b border-white/5">
+            <!-- Search Bar -->
+            <div class="relative group">
+                <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/40 font-black group-focus-within:text-primary transition-colors">search</span>
+                <input type="text" id="search-input" oninput="filterExercises()" placeholder="Buscar técnica..."
+                    class="w-full high-contrast-input rounded-2xl py-4 pl-11 pr-4 text-sm outline-none transition-all font-bold">
+            </div>
+        </div>
+
+        <!-- Sticky Category Pills -->
+        <div
+            class="sticky top-[154px] z-30 bg-dark/90 backdrop-blur-md px-6 py-4 border-b border-white/5 shadow-md space-y-4">
+            <div id="category-container" class="flex gap-2 overflow-x-auto no-scrollbar">
+                <button onclick="setCategory('Todos', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all pill-active shrink-0 uppercase tracking-widest">Todos</button>
+                <button onclick="setCategory('Cardio', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">VO₂ Max</button>
+                <button onclick="setCategory('Pecho', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Pecho</button>
+                <button onclick="setCategory('Espalda', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Espalda</button>
+                <button onclick="setCategory('Piernas', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Piernas</button>
+                <button onclick="setCategory('Mente', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Mente</button>
+                <button onclick="setCategory('Core', this)"
+                    class="pill-cat text-[10px] font-black px-5 py-2 rounded-xl border border-white/10 bg-white/5 transition-all shrink-0 uppercase tracking-widest">Core</button>
+            </div>
+
+            <div id="material-container" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <button onclick="setMaterial('Cualquiera', this)"
+                    class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all pill-active shrink-0 uppercase tracking-tighter">Cualquiera</button>
+                <button onclick="setMaterial('Mancuernas', this)"
+                    class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all shrink-0 uppercase tracking-tighter italic">Mancuernas</button>
+                <button onclick="setMaterial('Barra', this)"
+                    class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all shrink-0 uppercase tracking-tighter italic">Barra</button>
+                <button onclick="setMaterial('Máquina', this)"
+                    class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all shrink-0 uppercase tracking-tighter italic">Máquina</button>
+                <button onclick="setMaterial('Sin Peso', this)"
+                    class="pill-mat text-[9px] font-black px-4 py-1.5 rounded-lg border border-white/5 bg-black/40 text-white/40 transition-all shrink-0 uppercase tracking-tighter italic">Peso
+                    Corporal</button>
+            </div>
+        </div>
+
+        <!-- Longevity Bio-Banner -->
+        <div class="px-6 pt-6 pb-0">
+            <div class="relative rounded-3xl p-5 overflow-hidden border border-neon/20 bg-neon/5 mb-2">
+                <div class="absolute inset-0 bg-gradient-to-br from-neon/10 via-transparent to-transparent pointer-events-none"></div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+                    <p class="text-[9px] font-black text-neon uppercase tracking-[0.3em]">Principio Científico #1</p>
+                </div>
+                <p class="text-white font-black text-sm italic leading-snug">"El músculo es el <span class="text-neon">órgano de la longevidad.</span> No tener masa muscular es 8× más riesgoso que fumar."</p>
+                <p class="text-white/40 text-[9px] font-bold uppercase tracking-wider mt-2">Haz click en cualquier protocolo para activarlo</p>
+            </div>
+        </div>
+
+        <main class="flex-1 px-6 py-6">
+            <div id="exercise-list" class="grid gap-4">
+                <!-- Exercises will be injected here -->
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav
+            class="fixed bottom-0 left-0 w-full border-t border-white/5 bg-dark/90 backdrop-blur-2xl pb-safe pt-4 z-50">
+            <div class="flex items-center justify-around max-w-md mx-auto px-4 pb-4">
+                <a href="index.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Lobby</span>
+                </a>
+                <a href="entrenar.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Gimnasio</span>
+                </a>
+                <a href="historial.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Progreso</span>
+                </a>
+                <a href="descanso.html"
+                    class="flex flex-col items-center gap-1 text-text-gray hover:text-white transition-all w-1/5">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Descanso</span>
+                </a>
+                <a href="ejercicios.html" class="flex flex-col items-center gap-1 text-primary w-1/5">
+                    <span class="material-symbols-outlined filled"
+                        style="font-variation-settings: 'FILL' 1;">library_books</span>
+                    <span class="text-[10px] font-bold uppercase tracking-tighter">Biblioteca</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] hidden items-end justify-center">
+        <div
+            class="bg-dark w-full max-w-md rounded-t-[40px] p-8 animate-slide-up border-t border-white/10 max-h-[85vh] overflow-y-auto no-scrollbar shadow-2xl">
+            <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div id="modal-tag"
+                    class="text-[10px] font-black bg-primary/20 text-primary px-4 py-1.5 rounded-full uppercase tracking-widest border border-primary/20">
+                    Categoría</div>
+                <button onclick="closeModal()" class="text-text-gray hover:text-white transition-all"><span
+                        class="material-symbols-outlined font-black">close</span></button>
+            </div>
+
+            <!-- Exercise Animation -->
+            <div
+                class="w-full aspect-video bg-white/2 rounded-3xl mb-8 relative overflow-hidden group border border-white/10 flex items-center justify-center overflow-hidden">
+                <img id="modal-exercise-gif" src="" alt="Exercise Animation" class="w-full h-full object-contain p-4 hidden">
+                <div id="exercise-placeholder" class="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-6xl text-primary/30">fitness_center</span>
+                        <p class="text-white/30 text-xs mt-2 font-medium">Animación del ejercicio</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2 id="modal-title" class="text-3xl font-black mb-6 text-white uppercase tracking-tighter italic leading-tight">Título
+                del Ejercicio</h2>
+
+            <!-- Anatomía Activa Section -->
+            <div class="mb-8">
+                <h3 class="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                    Anatomía Activa
+                </h3>
+                <div class="anatomy-preview p-6">
+                    <img id="modal-anatomy-img" src="assets/images/3d_torso_muscles_organs.png" alt="Anatomical View">
+                    <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 w-full text-center">
+                        <span id="anatomy-label" class="text-[9px] font-black text-white/40 uppercase tracking-[0.4em]">Sistemas Primarios</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-[10px] font-black text-text-gray uppercase tracking-widest mb-3">Protocolo
+                        Biomecánico</h3>
+                    <p id="modal-desc" class="text-white/80 leading-relaxed text-sm font-medium">Descripción
+                        detallada...</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card border-neon/20 p-5 shadow-xl relative overflow-hidden">
+                        <div class="absolute inset-0 bg-neon/5 pointer-events-none"></div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-neon text-[18px] font-black">target</span>
+                            <h3 class="text-[9px] font-black text-text-gray uppercase tracking-widest">Foco Neural</h3>
+                        </div>
+                        <p id="modal-muscles" class="text-white font-black text-xs uppercase tracking-tight">Primarios
+                        </p>
+                    </div>
+
+                    <div class="glass-card border-white/5 p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-primary text-[18px] font-black">bolt</span>
+                            <h3 class="text-[9px] font-black text-text-gray uppercase tracking-widest">Intensidad</h3>
+                        </div>
+                        <p id="modal-level" class="text-white font-black text-xs uppercase tracking-tight">Intermedio
+                        </p>
+                    </div>
+                </div>
+
+                <div class="glass-card border-primary/20 p-5 bg-primary/5">
+                    <h3 class="text-[9px] font-black text-primary uppercase tracking-widest mb-2">Optimización</h3>
+                    <p id="modal-benefits"
+                        class="text-primary font-bold text-xs italic leading-relaxed uppercase tracking-tight">"Mejora
+                        la postura y el grosor."</p>
+                </div>
+            </div>
+
+            <button onclick="closeModal()"
+                class="glow-btn w-full bg-primary text-dark font-black py-5 rounded-[24px] mt-10 shadow-xl uppercase italic tracking-tighter">Confirmar
+                Técnica</button>
+            <div class="h-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const exercises = [
+            // === CARDIO / VO2 MAX ===
+            { name: "HIIT Brain Primer", category: "Cardio", material: "Sin Peso", sci: "BDNF / SIRT1", desc: "Protocolo de 10 min: 30s Sprint Máximo + 90s recuperación lenta. Eleva el lactato sanguíneo para activar la señalización SIRT1 y cruzar la barrera hematoencefálica, estimulando la expresión de BDNF (Factor Neurotrófico Derivado del Cerebro).", muscles: "Corazón, Cerebro (Plasticidad), Piernas", level: "Avanzado", benefits: "Maximiza la plasticidad sináptica antes de sesiones de estudio o enfoque profundo." },
+            { name: "Protocolo Noruego", category: "Cardio", material: "Sin Peso", sci: "VO₂ Max", desc: "4 series de 4 minutos de alta intensidad (≥85% FC máx) con 4 minutos de recuperación activa moderada. Solo 30 minutos, 2×/semana. El protocolo más efectivo científicamente para mejorar la capacidad cardiorrespiratoria.", muscles: "Corazón, Pulmones, Mitocondrias", level: "Avanzado", benefits: "Mejora el VO₂ Max hasta un 10% en 8 semanas. El biomarcador #1 de supervivencia." },
+            { name: "Carrera de Intervalos", category: "Cardio", material: "Sin Peso", sci: "VO₂ Max", desc: "Alternar 1 minuto al 90% de esfuerzo con 2 minutos de trote recuperador. 6–8 repeticiones. Correr rápido, recuperar lento — así se construye el motor aeróbico.", muscles: "Corazón, Glúteos, Cuádriceps, Pantorrillas", level: "Intermedio", benefits: "Activa la biogénesis mitocondrial — más mitocondrias = más energía crónica." },
+            { name: "Caminata en Zona 2", category: "Cardio", material: "Sin Peso", sci: "Longevidad", desc: "Caminar 45–60 minutos a ritmo conversacional (puedes hablar pero hay esfuerzo). Zona 2 = base aeróbica fundamental para salud metabólica y longevidad.", muscles: "Mitocondrias, Sistema Cardiovascular", level: "Principiante", benefits: "Quema grasa como combustible, protege la salud mitocondrial y reduce la inflamación sistémica."},
+            // === PECHO ===
+            { name: "Press Mancuernas Inclinado", category: "Pecho", material: "Mancuernas", desc: "En un banco con inclinación ligera (15-30°), bajar las mancuernas metiendo los hombros en forma de flecha para un estiramiento profundo del pectoral superior.", muscles: "Pectoral Mayor, Hombros, Tríceps", level: "Avanzado", benefits: "Maximiza el crecimiento de la parte superior del pecho." },
+            { name: "Push-up Cadena Posterior", category: "Pecho", material: "Sin Peso", desc: "Desde posición de plancha, bajar al suelo, extender brazos al frente (Superman), volver y empujar de forma explosiva.", muscles: "Pecho, Tríceps, Core", level: "Intermedio", benefits: "Fuerza de empuje funcional y activación total del cuerpo." },
+            // === ESPALDA ===
+            { name: "Dominadas (Pull-ups)", category: "Espalda", material: "Sin Peso", sci: "Fuerza Grip", desc: "Colgarse de la barra, tirar llevando los codos hacia las costillas y el pecho hacia la barra. Controlar el descenso lento (3 seg). La fuerza de agarre es predictor de mortalidad y salud cognitiva.", muscles: "Dorsales, Espalda Media, Bíceps, Antebrazo", level: "Intermedio/Avanzado", benefits: "V-Taper estético + Grip Strength como biomarcador de longevidad y SNC." },
+            { name: "Remo Invertido", category: "Espalda", material: "Sin Peso", desc: "Bajo una barra baja, mantener cuerpo recto y tirar del pecho hacia ella. Ideal para corregir postura.", muscles: "Romboides, Trapecio, Bíceps", level: "Principiante", benefits: "Base sólida para dominadas y salud escapular." },
+            { name: "Hip Hinge (Bisagra de Cadera)", category: "Espalda", material: "Mancuernas", sci: "Longevidad", desc: "Con pies a la anchura de cadera, empujar las caderas hacia atrás (no doblar la espalda) y bajar las pesas a lo largo de los muslos hasta sentir tensión en isquios. Volver con fuerza de glúteo.", muscles: "Isquiotibiales, Glúteos, Erectores Espinales", level: "Principiante", benefits: "Base de todo levantamiento libre. Protege la espalda baja y activa la cadena posterior — esencial para la salud metabólica." },
+            // === PIERNAS ===
+            { name: "Sentadilla Goblet", category: "Piernas", material: "Mancuernas", desc: "Sujetar una pesa contra el pecho, bajar con espalda recta buscando profundidad máxima. Codos por dentro de rodillas.", muscles: "Cuádriceps, Glúteos, Core", level: "Principiante", benefits: "Enseña la mecánica perfecta de sentadilla con seguridad." },
+            { name: "Bulgarian Split Squat", category: "Piernas", material: "Mancuernas", sci: "Hipertrofia", desc: "Pie trasero elevado en banco, bajar hasta que la rodilla trasera casi toca el suelo. Ir hasta el fallo o cerca. Es uno de los ejercicios de mayor estímulo muscular unilateral para cuádriceps y glúteos.", muscles: "Cuádriceps, Glúteos, Core", level: "Avanzado", benefits: "Máximo estímulo de hipertrofia con carga submáxima. Ideal para romper la homeostasis muscular." },
+            // === MENTE ===
+            { name: "Regulación 4-7-8 (Tapping)", category: "Mente", material: "Sin Peso", sci: "Regulación Autonómica", desc: "Protocolo de respiración táctica con trazado de mano y audio binaural a 4Hz (ondas Theta). Reduce drásticamente los niveles de cortisol y la ansiedad aguda.", muscles: "Sistema Nervioso Parasimpático", level: "Principiante", benefits: "Mitiga estrés agudo, balancea el HRV y reconecta la atención.", url: "regulacion-emocional.html" },
+            { name: "Recuperación Sueño Titánico", category: "Mente", material: "Sin Peso", desc: "Limpieza Linfática y consolidación cognitiva", muscles: "Ondas Delta", level: "Avanzado", benefits: "Maximiza recuperación neural", url: "recuperacion-sueno.html" },
+            { name: "Expansión Torácica", category: "Mente", material: "Sin Peso", desc: "Técnica respiratoria", muscles: "Diafragma, Intercostales", level: "Intermedio", benefits: "Mejora saturación y movilidad", url: "expansion-toracica.html" },
+            { name: "Enfoque Profundo", category: "Mente", material: "Sin Peso", desc: "Bio-Asistido para estado de Flow", muscles: "Corteza Prefrontal", level: "Avanzado", benefits: "Enfoque láser y cero distracciones", url: "sesion-enfoque.html" },
+            { name: "Envejecimiento Cerebral", category: "Mente", material: "Sin Peso", desc: "Neuro-Optimización y mitigación del declive cognitivo mediante bio-hacking y nutrición celular.", muscles: "Neuronas, Integridad de Barrera", level: "Avanzado", benefits: "Mitiga el entrecruzamiento de AGEs y mejora la eficiencia mitocondrial.", url: "envejecimiento-cerebral.html" },
+            { name: "Mente y Dopamina (Ayuno)", category: "Mente", material: "Sin Peso", desc: "Reducción de Cortisol y reseteo", muscles: "Sistema Límbico", level: "Intermedio", benefits: "Resetea vías neuronales y reduce estrés", url: "regulacion-dopamina.html" },
+            // === CORE ===
+            { name: "Dead Bug", category: "Core", material: "Sin Peso", desc: "Boca arriba, bajar brazo y pierna contraria lentamente sin despegar la lumbar del suelo.", muscles: "Transverso, Recto Abdominal", level: "Principiante", benefits: "Estabilidad lumbopélvica esencial." }
+        ];
+
+        let currentCategory = "Todos";
+        let currentMaterial = "Cualquiera";
+
+        function setCategory(cat, btn) {
+            currentCategory = cat;
+            document.querySelectorAll('.pill-cat').forEach(p => p.classList.remove('pill-active'));
+            btn.classList.add('pill-active');
+            filterExercises();
+        }
+
+        function setMaterial(mat, btn) {
+            currentMaterial = mat;
+            document.querySelectorAll('.pill-mat').forEach(p => {
+                p.classList.remove('pill-active');
+                p.classList.replace('text-white', 'text-white/40');
+            });
+            btn.classList.add('pill-active');
+            btn.classList.replace('text-white/40', 'text-white');
+            filterExercises();
+        }
+
+        function filterExercises() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = "";
+
+            const filtered = exercises.filter(ex => {
+                const matchCat = currentCategory === "Todos" || ex.category === currentCategory;
+                const matchMat = currentMaterial === "Cualquiera" || ex.material === currentMaterial;
+                const matchSearch = ex.name.toLowerCase().includes(query) || ex.muscles.toLowerCase().includes(query);
+                return matchCat && matchMat && matchSearch;
+            });
+
+            filtered.forEach(ex => {
+                const card = document.createElement('div');
+                card.className = "glass-card p-6 border-white/5 active:scale-95 transition-all cursor-pointer group";
+                card.onclick = () => {
+                    if (ex.url) {
+                        window.location.href = ex.url;
+                    } else {
+                        openModal(ex);
+                    }
+                };
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[9px] font-black text-primary uppercase tracking-widest">${ex.category}</span>
+                        <div class="flex items-center gap-1">
+                            ${ex.sci ? `<span class="text-[8px] font-black text-neon bg-neon/10 border border-neon/20 px-2 py-0.5 rounded-full uppercase tracking-wider">${ex.sci}</span>` : ''}
+                            <span class="text-[9px] text-text-gray font-black uppercase">${ex.level}</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-black text-white mb-2 uppercase tracking-tighter italic group-hover:text-primary transition-colors">${ex.name}</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="w-1 h-1 rounded-full bg-primary"></span>
+                        <p class="text-[10px] text-text-gray font-bold uppercase tracking-tight">${ex.muscles}</p>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="text-center text-text-gray py-10 font-bold uppercase tracking-widest">No se encontraron registros</p>`;
+            }
+        }
+
+        function openModal(ex) {
+            document.getElementById('modal-title').innerText = ex.name;
+            document.getElementById('modal-tag').innerText = ex.category;
+            document.getElementById('modal-desc').innerText = ex.desc;
+            document.getElementById('modal-muscles').innerText = ex.muscles;
+            document.getElementById('modal-level').innerText = ex.level;
+            document.getElementById('modal-benefits').innerText = `"${ex.benefits}"`;
+
+            // Load Exercise GIF
+            const exerciseGif = document.getElementById('modal-exercise-gif');
+            const placeholder = document.getElementById('exercise-placeholder');
+            const exerciseMap = {
+                'Sentadilla': 'assets/ejercicios/fuerza/sentadilla.svg',
+                'Flexiones': 'assets/ejercicios/fuerza/flexiones.svg',
+                'Plancha': 'assets/ejercicios/fuerza/plancha.svg',
+                'Peso Muerto': 'assets/ejercicios/fuerza/peso-muerto.svg',
+                'Box Breathing': 'assets/ejercicios/respiracion/box-breathing-4-4-4-4.svg',
+                '4-7-8': 'assets/ejercicios/respiracion/respiracion-4-7-8.svg',
+                'Respiración': 'assets/ejercicios/respiracion/box-breathing-4-4-4-4.svg'
+            };
+            const gifSrc = Object.keys(exerciseMap).find(k => ex.name.includes(k));
+            if (gifSrc) {
+                exerciseGif.src = exerciseMap[gifSrc];
+                exerciseGif.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                exerciseGif.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+
+            // Anatomical Mapping
+            const anatomyImg = document.getElementById('modal-anatomy-img');
+            const anatomyLabel = document.getElementById('anatomy-label');
+            
+            if (ex.category === 'Mente') {
+                anatomyImg.src = 'assets/images/3d_brain_anatomy.png';
+                anatomyLabel.innerText = 'OPTIMIZACIÓN CORTICAL';
+            } else if (ex.name.includes('Torácica') || ex.name.includes('Respiratoria')) {
+                anatomyImg.src = 'assets/images/3d_respiratory_system.png';
+                anatomyLabel.innerText = 'DINÁMICA PULMONAR';
+            } else {
+                anatomyImg.src = 'assets/images/3d_torso_muscles_organs.png';
+                anatomyLabel.innerText = 'ACTIVACIÓN MIOFASCIAL';
+            }
+
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        }
+        function applyUserBg() {
+            const bg = localStorage.getItem('hb_user_bg') || 'tech';
+            const bgOverlay = document.createElement('div');
+            bgOverlay.id = 'dynamic-bg';
+            bgOverlay.className = 'fixed inset-0 pointer-events-none z-[-1] opacity-[0.08] transition-opacity duration-1000';
+            bgOverlay.style.backgroundImage = `url('assets/images/bg_${bg}.png')`;
+            bgOverlay.style.backgroundSize = 'cover';
+            bgOverlay.style.backgroundPosition = 'center';
+            document.body.appendChild(bgOverlay);
+        }
+
+        applyUserBg();
+        filterExercises();
+        
+        // === JEFIT LIBRARY FUNCTIONS ===
+        let jefitCurrentMuscle = 'pectorales';
+        
+        function toggleJefitLibrary() {
+            const lib = document.getElementById('jefit-library');
+            lib.classList.toggle('hidden');
+            if (!lib.classList.contains('hidden')) {
+                initJefitLibrary();
+            }
+        }
+        
+        function initJefitLibrary() {
+            renderJefitMuscleTabs();
+            renderJefitExercises();
+        }
+        
+        function renderJefitMuscleTabs() {
+            const muscles = [
+                { key: 'pectorales', name: 'Pecho' },
+                { key: 'espalda', name: 'Espalda' },
+                { key: 'hombros', name: 'Hombros' },
+                { key: 'biceps', name: 'Bíceps' },
+                { key: 'triceps', name: 'Tríceps' },
+                { key: 'cuadriceps', name: 'Piernas' },
+                { key: 'gluteos', name: 'Glúteos' },
+                { key: 'abdominales', name: 'Abs' },
+                { key: 'cardio', name: 'Cardio' }
+            ];
+            
+            const container = document.getElementById('jefit-muscle-tabs');
+            container.innerHTML = muscles.map(m => `
+                <button class="jefit-muscle-tab ${m.key === jefitCurrentMuscle ? 'active' : ''}" 
+                    onclick="setJefitMuscle('${m.key}', this)">${m.name}</button>
+            `).join('');
+        }
+        
+        function setJefitMuscle(muscle, btn) {
+            jefitCurrentMuscle = muscle;
+            document.querySelectorAll('.jefit-muscle-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            renderJefitExercises();
+        }
+        
+        function renderJefitExercises() {
+            if (!window.jefitEngine) return;
+            
+            const exercises = window.jefitEngine.getExercisesByMuscle(jefitCurrentMuscle);
+            const searchTerm = document.getElementById('jefit-search')?.value?.toLowerCase() || '';
+            const equipment = document.getElementById('jefit-equipment')?.value || '';
+            
+            let filtered = exercises;
+            if (searchTerm) {
+                filtered = filtered.filter(e => e.name.toLowerCase().includes(searchTerm));
+            }
+            if (equipment) {
+                filtered = filtered.filter(e => e.equipment === equipment);
+            }
+            
+            const container = document.getElementById('jefit-exercise-list');
+            container.innerHTML = filtered.map(e => `
+                <div class="jefit-exercise-item" onclick="addJefitToWorkout('${e.id}')">
+                    <div class="jefit-exercise-icon">🏋️</div>
+                    <div class="jefit-exercise-info">
+                        <div class="jefit-exercise-name">${e.name}</div>
+                        <div class="jefit-exercise-meta">
+                            <span>${e.equipment}</span>
+                            <span class="jefit-level-badge ${e.level.toLowerCase()}">${e.level}</span>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-text-gray">add_circle</span>
+                </div>
+            `).join('');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-center text-text-gray py-8">No se encontraron ejercicios</p>';
+            }
+        }
+        
+        function searchJefitExercises() {
+            renderJefitExercises();
+        }
+        
+        function filterJefitExercises() {
+            renderJefitExercises();
+        }
+        
+        function addJefitToWorkout(exerciseId) {
+            const exercise = window.jefitEngine.getExercisesByMuscle(jefitCurrentMuscle).find(e => e.id === exerciseId);
+            if (exercise) {
+                window.jefitEngine.addExercise(exercise, 3, 10, 0, 90);
+                alert(`✅ ${exercise.name} añadido al workout!`);
+            }
+        }
+        // === END JEFIT ===
+    </script>
+</body>
+
+</html>
