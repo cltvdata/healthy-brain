@@ -1,0 +1,315 @@
+/* Bio-Analytics Dashboard Styles */
+
+.bio-dashboard {
+  background: rgba(18, 18, 18, 0.95);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bio-dashboard-header {
+  background: linear-gradient(135deg, #ff8a00 0%, #ff3366 100%);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bio-dashboard-header h2 {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.bio-overall-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bio-overall-score .score-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.bio-overall-score .score-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+}
+
+/* Score Bars */
+.bio-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px;
+}
+
+.bio-score-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.bio-score-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bio-score-item .label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.bio-score-item .value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bio-score-item.nutrition .value { color: #ff8a00; }
+.bio-score-item.sleep .value { color: #00d1ff; }
+.bio-score-item.exercise .value { color: #13ec5b; }
+.bio-score-item.stress .value { color: #ff3366; }
+
+.bio-score-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bio-score-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.bio-score-item.nutrition .bio-score-bar-fill { background: linear-gradient(90deg, #ff8a00, #ffaa00); }
+.bio-score-item.sleep .bio-score-bar-fill { background: linear-gradient(90deg, #00d1ff, #00e5ff); }
+.bio-score-item.exercise .bio-score-bar-fill { background: linear-gradient(90deg, #13ec5b, #4dff7a); }
+.bio-score-item.stress .bio-score-bar-fill { background: linear-gradient(90deg, #ff3366, #ff6b6b); }
+
+/* AI Strategy Section */
+.bio-strategy-section {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bio-strategy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 138, 0, 0.15);
+  border: 1px solid #ff8a00;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff8a00;
+  margin-bottom: 12px;
+}
+
+.bio-strategy-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.bio-strategy-desc {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Recommendations */
+.bio-recommendations {
+  padding: 0 16px 16px;
+}
+
+.bio-rec-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border-left: 3px solid;
+}
+
+.bio-rec-item.high { border-color: #ff3366; }
+.bio-rec-item.medium { border-color: #ff8a00; }
+.bio-rec-item.low { border-color: #00d1ff; }
+
+.bio-rec-icon {
+  font-size: 18px;
+}
+
+.bio-rec-text {
+  font-size: 12px;
+  color: #ccc;
+  flex: 1;
+}
+
+.bio-rec-priority {
+  font-size: 9px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.bio-rec-priority.high { background: #ff3366; color: #fff; }
+.bio-rec-priority.medium { background: #ff8a00; color: #000; }
+.bio-rec-priority.low { background: #00d1ff; color: #000; }
+
+/* Forecast Week */
+.bio-forecast {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bio-forecast-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.bio-forecast-grid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.bio-forecast-day {
+  min-width: 60px;
+  text-align: center;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.bio-forecast-day.today {
+  background: rgba(255, 138, 0, 0.2);
+  border: 1px solid #ff8a00;
+}
+
+.bio-forecast-day-name {
+  font-size: 10px;
+  color: #666;
+  font-weight: 600;
+}
+
+.bio-forecast-day-type {
+  font-size: 11px;
+  color: #fff;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.bio-forecast-day-score {
+  font-size: 14px;
+  font-weight: 800;
+  color: #00d1ff;
+  margin-top: 4px;
+}
+
+/* Insights */
+.bio-insights {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bio-insight-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.bio-insight-icon {
+  font-size: 20px;
+}
+
+.bio-insight-content {
+  flex: 1;
+}
+
+.bio-insight-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.bio-insight-text {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.4;
+}
+
+.bio-insight-item.warning .bio-insight-icon { color: #ff3366; }
+.bio-insight-item.opportunity .bio-insight-icon { color: #13ec5b; }
+.bio-insight-item.action .bio-insight-icon { color: #00d1ff; }
+.bio-insight-item.balance .bio-insight-icon { color: #ff8a00; }
+
+/* Next Day Plan */
+.bio-next-plan {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bio-next-plan-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.bio-next-plan-toggle h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bio-schedule-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bio-schedule-time {
+  font-size: 11px;
+  color: #ff8a00;
+  font-weight: 600;
+  min-width: 70px;
+}
+
+.bio-schedule-activity {
+  font-size: 12px;
+  color: #ccc;
+  flex: 1;
+}
+
+.bio-schedule-priority {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.bio-schedule-priority.high { background: #ff3366; color: #fff; }
+.bio-schedule-priority.medium { background: #666; color: #fff; }
