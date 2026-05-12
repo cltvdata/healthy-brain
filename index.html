@@ -20,6 +20,33 @@
         0%, 100% { box-shadow: 0 0 5px rgba(255, 138, 0, 0.3); }
         50% { box-shadow: 0 0 15px rgba(255, 138, 0, 0.6); }
       }
+      .smart-notification-toast {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, rgba(18,18,18,0.98), rgba(30,30,30,0.98));
+        border: 1px solid rgba(255, 138, 0, 0.4);
+        border-radius: 16px;
+        padding: 16px;
+        max-width: 350px;
+        z-index: 9999;
+        animation: slideUpToast 0.4s ease;
+      }
+      @keyframes slideUpToast {
+        from { opacity: 0; transform: translateX(-50%) translateY(50px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      #sync-status {
+        position: fixed;
+        top: 80px;
+        right: 16px;
+        padding: 6px 12px;
+        background: rgba(0,0,0,0.8);
+        border-radius: 20px;
+        font-size: 11px;
+        z-index: 1000;
+      }
     </style>
     
     <!-- Firebase Cloud Infrastructure (Fase 20) -->
@@ -43,6 +70,8 @@
     <script src="js/bio-dashboard-component.js"></script>
     <script src="js/health-data-integrator.js"></script>
     <script src="js/data-source-manager.js"></script>
+    <script src="js/auto-sync-engine.js"></script>
+    <script src="js/notification-engine.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -1490,6 +1519,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Sync Status Indicator -->
+    <div id="sync-status"></div>
 
 <script>
         // Initialize Bio-Age display
