@@ -11,6 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8a00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/assets/images/icon.png">
     <link rel="stylesheet" href="assets/css/haptic-debug.css">
     <link rel="stylesheet" href="assets/css/master-control.css">
     <link rel="stylesheet" href="assets/css/bio-dashboard.css">
@@ -1541,6 +1546,16 @@
                 }
             }, 3000);
         });
+    </script>
+    <script>
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW failed:', err));
+      });
+    }
     </script>
 </body>
 
