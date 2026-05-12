@@ -1,18 +1,46 @@
+import React, { useEffect, useState } from 'react';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { LanguageProvider } from '@/context/LanguageContext';
+import { auth } from '@/constants/FirebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import { View, ActivityIndicator } from 'react-native';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const subscriber = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      if (initializing) setInitializing(false);
+      
+      if (!user) {
+        router.replace('/login');
+      }
+    });
+    return subscriber;
+  }, [initializing]);
+
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#13ec5b" />
+      </View>
+    );
+  }
+
   return (
     <LanguageProvider>
       <ThemeProvider value={DarkTheme}>
         <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="login" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="progreso" />
           <Stack.Screen name="pagos" />
@@ -37,6 +65,13 @@ export default function RootLayout() {
           <Stack.Screen name="torneos" />
           <Stack.Screen name="wallet" />
           <Stack.Screen name="legal-disclaimer" />
+          <Stack.Screen name="micro-intervenciones" />
+          <Stack.Screen name="recovery-dashboard" />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="logros" />
+          <Stack.Screen name="gemelo" />
+          <Stack.Screen name="salud-conexiones" />
+          <Stack.Screen name="mEDITACION" />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="light" />

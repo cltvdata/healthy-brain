@@ -19,15 +19,15 @@ interface BioPassportProps {
   isFounder?: boolean;
 }
 
-export const BioPassportCard: React.FC<BioPassportProps> = ({ 
+export default function BioPassportCard({ 
   userName, 
   bioScore, 
   streak, 
   referralCode, 
-  memberSince?: string,
-  isPremium?: boolean,
-  isFounder?: boolean
-}) => {
+  memberSince,
+  isPremium,
+  isFounder
+}: BioPassportProps) {
   const shimmerValue = useRef(new Animated.Value(0)).current;
 
   const getRank = () => {

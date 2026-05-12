@@ -1,0 +1,234 @@
+.haptic-debug-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  background: rgba(18, 18, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.haptic-debug-panel h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #00d1ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.haptic-debug-panel h3::before {
+  content: '⬡';
+  font-size: 16px;
+}
+
+.haptic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.haptic-btn {
+  background: rgba(25, 25, 25, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 8px;
+  color: #fff;
+  font-size: 11px;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.haptic-btn:hover {
+  background: rgba(255, 138, 0, 0.15);
+  border-color: #ff8a00;
+  transform: translateY(-2px);
+}
+
+.haptic-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 138, 0, 0.3);
+}
+
+.haptic-btn .icon {
+  font-size: 18px;
+}
+
+.haptic-btn[data-pattern="sedentary"] .icon { color: #ff3366; }
+.haptic-btn[data-pattern="stress"] .icon { color: #ff8a00; }
+.haptic-btn[data-pattern="sleepPrep"] .icon { color: #9b59b6; }
+.haptic-btn[data-pattern="meditationStart"] .icon { color: #00d1ff; }
+.haptic-btn[data-pattern="mealReminder"] .icon { color: #13ec5b; }
+.haptic-btn[data-pattern="achievement"] .icon { color: #f1c40f; }
+.haptic-btn[data-pattern="focusMode"] .icon { color: #3498db; }
+
+.haptic-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.haptic-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #13ec5b;
+  animation: pulse 2s infinite;
+}
+
+.haptic-status-dot.offline {
+  background: #ff3366;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.haptic-log {
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  max-height: 80px;
+  overflow-y: auto;
+  font-size: 10px;
+  font-family: monospace;
+  color: #888;
+}
+
+.haptic-log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.haptic-log-entry.active {
+  color: #00d1ff;
+}
+
+.context-display {
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(255, 138, 0, 0.1);
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.context-display-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.context-display-row span:first-child {
+  color: #666;
+}
+
+.close-debug {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.close-debug:hover {
+  color: #fff;
+}
+
+.haptic-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff8a00, #ff3366);
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255, 138, 0, 0.4);
+  z-index: 9998;
+  display: none;
+}
+
+.haptic-toggle.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scenario-panel {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.scenario-panel h4 {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.scenario-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scenario-btn {
+  padding: 6px 10px;
+  font-size: 10px;
+  font-family: 'Outfit', sans-serif;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scenario-btn:hover {
+  background: rgba(255,138,0,0.15);
+  color: #ff8a00;
+  border-color: #ff8a00;
+}
+
+.intervention-result {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0,209,255,0.1);
+  border-radius: 6px;
+  font-size: 10px;
+  color: #00d1ff;
+  display: none;
+}
+
+.intervention-result.show {
+  display: block;
+}

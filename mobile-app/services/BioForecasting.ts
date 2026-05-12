@@ -1,18 +1,17 @@
+import { db } from '@/constants/FirebaseConfig';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+
 export interface BioProjection {
   currentAge: number;
   metabolicAge: number;
   futureBioScore: number;
-  longevityFactor: number; // 0.0 to 1.0
+  longevityFactor: number;
   recommendation: string;
-  energyProjection: number; // 0-100
+  energyProjection: number;
   trend: 'OPTIMAL' | 'RECOVERY' | 'STRESS';
 }
 
-import { db, auth } from '@/constants/FirebaseConfig';
-import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase/firestore';
-  /**
-   * Complex trend analysis based on log history.
-   */
+export class BioForecasting {
   static async analyzeTrends(userId: string): Promise<{ hrvTrend: number; consistency: number }> {
     try {
       const logsRef = collection(db, 'users', userId, 'logs');
@@ -31,7 +30,6 @@ import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase
         if (data.type === 'reward') activityLogs++;
       });
 
-      // Calculate simple slope for HRV
       let hrvTrend = 0;
       if (hrvValues.length >= 2) {
         hrvTrend = hrvValues[0] - hrvValues[hrvValues.length - 1];
@@ -50,11 +48,10 @@ import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase
   static estimateMetabolicAge(currentAge: number, hrv: number, avgSteps: number, hrvTrend: number = 0): number {
     let reduction = 0;
     
-    // Weighted variables
-    if (hrv > 50) reduction += (hrv - 50) / 8; // Improved sensitivity
+    if (hrv > 50) reduction += (hrv - 50) / 8;
     if (avgSteps > 7000) reduction += (avgSteps - 7000) / 3000;
-    if (hrvTrend > 5) reduction += 1.5; // Bonus for positive recovery trend
-    if (hrvTrend < -5) reduction -= 1.0; // Penalty for chronic stress
+    if (hrvTrend > 5) reduction += 1.5;
+    if (hrvTrend < -5) reduction -= 1.0;
     
     const metabolicAge = currentAge - reduction;
     return Math.max(currentAge * 0.7, parseFloat(metabolicAge.toFixed(1)));
@@ -72,26 +69,17 @@ import { collection, query, where, getDocs, orderBy, limit, doc } from 'firebase
     return "Estás en equilibrio homeostático. Mantén el protocolo de sincronización.";
   }
 
-  /**
-   * Projects the biological state to the year 2050.
-   */
   static project2050(currentAge: number, bioScore: number, hrv: number) {
     const yearsUntil2050 = 2050 - new Date().getFullYear();
     const ageIn2050 = currentAge + yearsUntil2050;
     
-    // Probability of "Sovereign Longevity"
     const probability = Math.min(95, Math.round((bioScore * 0.6) + (hrv * 0.4)));
     
-    // Narrative generation
     let narrative = "";
     if (probability > 80) narrative = `En 2050, a tus ${ageIn2050} años, proyectamos que conservarás una plasticidad neuronal del 90%. Tu "Digital Twin" muestra una integridad celular superior.`;
     else if (probability > 50) narrative = `En 2050, con ${ageIn2050} años, tu estado será estable pero con degradación mitocondrial moderada. Mantener el protocolo NTK es crítico ahora.`;
     else narrative = `A los ${ageIn2050} años (en 2050), el sistema predice riesgos crónicos si no se revierte la tendencia actual de HRV/Estrés.`;
 
-    return {
-      ageIn2050,
-      probability,
-      narrative
-    };
+    return { ageIn2050, probability, narrative };
   }
 }

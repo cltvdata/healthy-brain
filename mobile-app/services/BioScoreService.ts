@@ -65,6 +65,8 @@ export class BioScoreService {
         hrv: Math.round(hrvScore)
       }
     };
+  }
+
   /**
    * Identifies biological risks by analyzing current trends vs 7-day baseline.
    */

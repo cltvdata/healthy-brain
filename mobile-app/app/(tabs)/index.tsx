@@ -16,6 +16,8 @@ import { BioNotificationService } from '@/services/NotificationService';
 import { BioSensorService } from '@/services/BioSensorService';
 import BioBanner, { BioBannerRef } from '@/components/BioBanner';
 import BioCycleCard from '@/components/BioCycleCard';
+import BioHydrationWidget from '@/components/BioHydrationWidget';
+import { BioCycleService } from '@/services/BioCycleService';
 import { NativeHealthService, BioMetrics } from '@/services/NativeHealthService';
 import { BioScoreService, BioImpactReport } from '@/services/BioScoreService';
 import { StreakService, StreakState } from '@/services/StreakService';
@@ -61,6 +63,8 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [shields, setShields] = useState(0);
   const [showProtection, setShowProtection] = useState(false);
+  const [aguaMeta, setAguaMeta] = useState(2.5);
+  const [lastReport, setLastReport] = useState<Date | null>(null);
   const bannerRef = React.useRef<BioBannerRef>(null);
 
   // Ticker Animation
@@ -202,12 +206,21 @@ export default function HomeScreen() {
                 router.replace('/legal-disclaimer' as any);
               }
 
-              const lastReport = data.lastWeeklyReportDate?.toDate();
-              const weekAgo = new Date();
-              weekAgo.setDate(weekAgo.getDate() - 7);
+              if (data.enableCycleTracking && data.lastPeriodDate) {
+                 const state = BioCycleService.calculateState(data.lastPeriodDate, data.cycleLength || 28);
+                 setCycleState(state);
+              } else {
+                 setCycleState(null);
+              }
 
-              if (!lastReport || lastReport < weekAgo) {
-                 const history = await NativeHealthService.fetchWeeklyMetrics();
+if (data.aguaMeta !== undefined) setAguaMeta(data.aguaMeta);
+
+               const lastReportDate = data.lastWeeklyReportDate?.toDate();
+               const weekAgo = new Date();
+               weekAgo.setDate(weekAgo.getDate() - 7);
+
+               if (!lastReportDate || lastReportDate < weekAgo) {
+                  const history = await NativeHealthService.fetchWeeklyMetrics();
                  const stabilityReport = BioScoreService.calculateWeeklyStability(history);
                  if (stabilityReport) {
                     setWeeklyReportData(stabilityReport);
@@ -357,6 +370,20 @@ export default function HomeScreen() {
 
         {/* BIO-STATUS BAR */}
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
+           <TouchableOpacity 
+             onPress={() => router.push('/salud-conexiones' as any)}
+             style={[styles.statusBadge, { backgroundColor: 'rgba(19, 236, 91, 0.05)', borderColor: 'rgba(19, 236, 91, 0.2)' }]}
+           >
+              <Ionicons name="hardware-chip" size={14} color={AppColors.primaryBioGreen} />
+              <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 11 }}>SALUD</Text>
+           </TouchableOpacity>
+           <TouchableOpacity 
+             onPress={() => router.push('/mEDITACION' as any)}
+             style={[styles.statusBadge, { backgroundColor: 'rgba(139, 92, 246, 0.05)', borderColor: 'rgba(139, 92, 246, 0.2)' }]}
+           >
+              <Ionicons name="leaf" size={14} color="#8b5cf6" />
+              <Text style={{ color: '#8b5cf6', fontWeight: 'bold', fontSize: 11 }}>RESPIRA</Text>
+           </TouchableOpacity>
            <View style={[styles.statusBadge, { backgroundColor: 'rgba(255, 107, 0, 0.05)', borderColor: 'rgba(255, 107, 0, 0.2)' }]}>
               <Ionicons name="flame" size={14} color="#FF6B00" />
               <Text style={{ color: '#FF6B00', fontWeight: 'bold', fontSize: 11 }}>{streak} DÍAS</Text>
@@ -453,6 +480,14 @@ export default function HomeScreen() {
          </TouchableOpacity>
       </View>
 
+      {/* Bio-Cycle Optimization */}
+      {cycleState && (
+        <BioCycleCard state={cycleState} />
+      )}
+
+      {/* Hydration Matrix */}
+      <BioHydrationWidget goal={aguaMeta} />
+
       <AtlasOrganico hrv={hrv} score={score} />
 
       {/* Navigation Cluster */}
@@ -470,6 +505,20 @@ export default function HomeScreen() {
             sub="Ranking ZK" 
             color={AppColors.primaryNeonBlue} 
             onPress={() => router.push('/ranking' as any)} 
+         />
+         <NavButton 
+            icon="person" 
+            label="Gemelo" 
+            sub="Evolución" 
+            color="#ff6b35" 
+            onPress={() => router.push('/gemelo' as any)} 
+         />
+         <NavButton 
+            icon="trophy" 
+            label="Logros" 
+            sub="Desbloquea" 
+            color="#ffd700" 
+            onPress={() => router.push('/logros' as any)} 
          />
       </View>
 
@@ -725,7 +774,7 @@ const styles = StyleSheet.create({
   },
   navCluster: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     marginBottom: 25
   },
   navBtn: {

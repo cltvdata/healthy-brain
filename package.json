@@ -5,7 +5,11 @@
     "scripts": {
         "dev": "vite --port 3000",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "mobile:dev": "cd mobile-app && npx expo start",
+        "mobile:build:android": "cd mobile-app && npx expo run:android",
+        "mobile:build:preview": "cd mobile-app && eas build -p android --profile preview",
+        "mobile:build:prod": "cd mobile-app && eas build -p android --profile production"
     },
     "devDependencies": {
         "vite": "^5.0.0"

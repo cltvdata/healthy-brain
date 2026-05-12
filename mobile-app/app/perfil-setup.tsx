@@ -6,11 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { BioEconomy, genReferralCode } from '@/constants/BioEconomy';
 import { db, auth } from '@/constants/FirebaseConfig';
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, increment, serverTimestamp } from 'firebase/firestore';
 import { useLanguage } from '@/context/LanguageContext';
-import * as ImagePicker from 'expo-image-picker';
+import { BioCycleService, BioCycleState } from '@/services/BioCycleService';
+import { BioTwinService } from '@/services/BioTwinService';
 import BioAvatar3D from '@/components/BioAvatar3D';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +23,8 @@ export default function PerfilSetupScreen() {
   const [peso, setPeso] = useState('');
   const [altura, setAltura] = useState('');
   const [objetivo, setObjetivo] = useState('');
+  const [aguaMeta, setAguaMeta] = useState('2.5'); // Litros por día
+  const [currentHormonalPhase, setCurrentHormonalPhase] = useState('Folicular');
   
   const [isPublic, setIsPublic] = useState(false);
   const [shareStats, setShareStats] = useState(false);
@@ -30,6 +34,7 @@ export default function PerfilSetupScreen() {
   const [enableCycleTracking, setEnableCycleTracking] = useState(false);
   const [lastPeriodDate, setLastPeriodDate] = useState('');
   const [cycleLength, setCycleLength] = useState('28');
+  const [cycleState, setCycleState] = useState<BioCycleState | null>(null);
   
   const [parsingTwin, setParsingTwin] = useState(false);
   const [twinGenerated, setTwinGenerated] = useState(false);
@@ -87,6 +92,15 @@ export default function PerfilSetupScreen() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (enableCycleTracking && lastPeriodDate) {
+      const state = BioCycleService.calculateState(lastPeriodDate, parseInt(cycleLength) || 28);
+      setCycleState(state);
+    } else {
+      setCycleState(null);
+    }
+  }, [enableCycleTracking, lastPeriodDate, cycleLength]);
+
   const goalOptions = [
     { id: 'fat', label: 'Pérdida de Grasa', icon: 'flame' },
     { id: 'muscle', label: 'Ganancia Muscular', icon: 'barbell' },
@@ -103,6 +117,106 @@ export default function PerfilSetupScreen() {
 
   const bmi = calculateBMI();
   const level = Math.floor(ntkBalance / 1000) + 1;
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a tu galería para subir fotos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      handleImageAction(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para generar tu gemelo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      handleImageAction(result.assets[0].uri);
+    }
+  };
+
+  const handleImageAction = async (uri: string) => {
+    setParsingTwin(true);
+    setUploadProgress(0.1);
+    
+    try {
+      // Subir y crear el Gemelo IA
+      const twinId = await BioTwinService.uploadAndCreateTwin(uri, {
+        weight: peso ? parseFloat(peso) : undefined,
+        notes: 'Primera foto del Gemelo IA'
+      });
+
+      // Simulate AI Processing animation
+      setTimeout(() => setUploadProgress(0.4), 1000);
+      setTimeout(() => setUploadProgress(0.8), 2500);
+      
+      setTimeout(() => {
+        setUploadProgress(1);
+        setTwinGenerated(true);
+        setParsingTwin(false);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        
+        if (twinId) {
+          Alert.alert('🎉 Gemelo IA Instanciado', 'Tu Gemelo Cinético ha sido creado. ¡Sube fotos regularmente para trackear tu evolución física!');
+        }
+      }, 4000);
+    } catch (error) {
+      console.error("Error creating twin:", error);
+      setParsingTwin(false);
+      Alert.alert('Error', 'No se pudo crear el Gemelo IA. Intenta de nuevo.');
+    }
+  };
+
+  const updateTwinPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para actualizar tu gemelo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setParsingTwin(true);
+      setUploadProgress(0);
+      
+      const success = await BioTwinService.updateTwinWithNewPhoto(result.assets[0].uri, {
+        weight: peso ? parseFloat(peso) : undefined,
+        notes: `Actualización del Gemelo - Día ${new Date().toLocaleDateString()}`
+      });
+
+      if (success) {
+        Alert.alert('✅ Gemelo Actualizado', 'Tu foto de evolución ha sido guardada. ¡Sigue documentando tu progreso!');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      
+      setParsingTwin(false);
+    }
+  };
 
   return (
     <ScrollView style={AppStyles.body} contentContainerStyle={{ padding: 20 }}>
@@ -190,6 +304,83 @@ export default function PerfilSetupScreen() {
               />
           </View>
 
+          <View style={{ marginBottom: 25 }}>
+              <Text style={styles.inputLabel}>GÉNERO / IDENTIDAD BIOLÓGICA</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                {['MASCULINO', 'FEMENINO', 'OTRO'].map(g => (
+                  <TouchableOpacity 
+                    key={g}
+                    style={[
+                      styles.genderBtn,
+                      genero === g && { backgroundColor: 'rgba(0, 209, 255, 0.1)', borderColor: AppColors.primaryNeonBlue }
+                    ]}
+                    onPress={() => setGenero(g)}
+                  >
+                    <Text style={[styles.genderText, genero === g && { color: AppColors.primaryNeonBlue }]}>{g}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+          </View>
+
+          {genero === 'FEMENINO' && (
+            <View style={{ marginBottom: 25, padding: 15, backgroundColor: 'rgba(255, 138, 0, 0.05)', borderRadius: 20, borderWidth: 1, borderColor: AppColors.primaryOrange + '40' }}>
+               <View style={AppStyles.rowBetween}>
+                  <View>
+                    <Text style={[styles.sectionTitle, { fontSize: 16, color: AppColors.primaryOrange }]}>Protocolo Salud Hormonal</Text>
+                    <Text style={{ color: 'rgba(255,138,0,0.6)', fontSize: 10, fontWeight: 'bold' }}>INSPIRADO EN FLO HEALTH</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => {
+                    setEnableCycleTracking(!enableCycleTracking);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }}>
+                     <View style={[styles.toggleBg, enableCycleTracking && { backgroundColor: AppColors.primaryOrange }]}>
+                        <View style={[styles.toggleCircle, enableCycleTracking && { transform: [{ translateX: 14 }] }]} />
+                     </View>
+                  </TouchableOpacity>
+               </View>
+               <Text style={[styles.sectionDesc, { marginBottom: 15 }]}>Optimiza tu entrenamiento, nutrición y suplementación según tu fase biológica detectada por IA.</Text>
+               
+               {enableCycleTracking && (
+                 <View style={{ gap: 15 }}>
+                    <View style={styles.phaseIndicator}>
+                       <Ionicons name="moon" size={20} color={AppColors.primaryOrange} />
+                       <View>
+                          <Text style={styles.phaseTitle}>FASE DETECTADA: {currentHormonalPhase.toUpperCase()}</Text>
+                          <Text style={styles.phaseDesc}>Tu energía está subiendo. Ideal para fuerza máxima.</Text>
+                       </View>
+                    </View>
+
+                    <View>
+                      <Text style={styles.miniLabel}>FECHA ÚLTIMO PERIODO</Text>
+                      <TextInput 
+                        style={styles.premiumInput}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        value={lastPeriodDate}
+                        onChangeText={setLastPeriodDate}
+                      />
+                    </View>
+
+                    <View>
+                      <Text style={styles.miniLabel}>DURACIÓN DEL CICLO (DÍAS)</Text>
+                      <TextInput 
+                        style={styles.premiumInput}
+                        placeholder="28"
+                        keyboardType="number-pad"
+                        value={cycleLength}
+                        onChangeText={setCycleLength}
+                      />
+                    </View>
+
+                    <View style={styles.hormonalTips}>
+                        <Text style={styles.tipTitle}>💡 CONSEJO IA:</Text>
+                        <Text style={styles.tipText}>Durante esta fase, prioriza el consumo de fibra y grasas saludables para regular estrógenos.</Text>
+                    </View>
+                 </View>
+               )}
+            </View>
+          )}
+
           <View>
               <Text style={styles.inputLabel}>TU ENFOQUE ESTRATÉGICO</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -246,6 +437,19 @@ export default function PerfilSetupScreen() {
                     onChangeText={setAltura}
                   />
               </View>
+              <View style={{ marginTop: 10 }}>
+                  <Text style={[styles.miniLabel, { color: AppColors.primaryNeonBlue }]}>META DE HIDRATACIÓN DIARIA (LITROS)</Text>
+                  <View style={AppStyles.rowCentered}>
+                    <Ionicons name="water" size={24} color={AppColors.primaryNeonBlue} style={{ marginRight: 10 }} />
+                    <TextInput 
+                      style={[styles.premiumInput, { flex: 1 }]}
+                      placeholder="2.5"
+                      keyboardType="decimal-pad"
+                      value={aguaMeta}
+                      onChangeText={setAguaMeta}
+                    />
+                  </View>
+              </View>
           </View>
       </View>
 
@@ -261,7 +465,7 @@ export default function PerfilSetupScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity 
                 disabled={parsingTwin}
-                onPress={() => {/* Image Picker Logic preserved */}}
+                onPress={takePhoto}
                 style={[styles.uploadBtn, { borderColor: AppColors.primaryNeonBlue + '60' }]}
               >
                 {parsingTwin ? (
@@ -276,7 +480,7 @@ export default function PerfilSetupScreen() {
               
               <TouchableOpacity 
                 disabled={parsingTwin}
-                onPress={() => {/* Gallery Logic preserved */}}
+                onPress={pickImage}
                 style={[styles.uploadBtn, { borderColor: AppColors.primaryOrange + '60' }]}
               >
                  <Ionicons name="image" size={26} color={AppColors.primaryOrange} />
@@ -286,9 +490,32 @@ export default function PerfilSetupScreen() {
           ) : (
             <View style={{ alignItems: 'center', paddingVertical: 15 }}>
                <BioAvatar3D size={200} glowColor={AppColors.primaryBioGreen} intensity="high" />
-               <View style={styles.syncStatus}>
-                  <Ionicons name="checkmark-seal" size={20} color={AppColors.primaryBioGreen} />
-                  <Text style={styles.syncStatusText}>GEMELO INSTANCIADO</Text>
+               <View style={[styles.syncStatus, { backgroundColor: AppColors.primaryBioGreen + '20', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15 }]}>
+                  <Ionicons name="checkmark-seal" size={18} color={AppColors.primaryBioGreen} />
+                  <Text style={[styles.syncStatusText, { fontSize: 11 }]}>GEMELO INSTANCIADO</Text>
+               </View>
+               
+               {/* Botón de actualizar */}
+               <TouchableOpacity 
+                 onPress={updateTwinPhoto}
+                 style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: AppColors.primaryNeonBlue + '10', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25, borderWidth: 1, borderColor: AppColors.primaryNeonBlue + '30' }}
+               >
+                 <Ionicons name="refresh" size={18} color={AppColors.primaryNeonBlue} />
+                 <Text style={{ color: AppColors.primaryNeonBlue, fontWeight: 'bold', fontSize: 12 }}>Actualizar Evolución</Text>
+               </TouchableOpacity>
+
+               {/* Progreso del Gemelo */}
+               <View style={{ marginTop: 20, width: '100%' }}>
+                 <View style={[AppStyles.rowBetween, { marginBottom: 8 }]}>
+                   <Text style={{ color: AppColors.textGray, fontSize: 11 }}>Progreso de Documentación</Text>
+                   <Text style={{ color: AppColors.primaryBioGreen, fontSize: 11, fontWeight: 'bold' }}>3 fotos</Text>
+                 </View>
+                 <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+                   <View style={{ width: '30%', height: '100%', backgroundColor: AppColors.primaryBioGreen }} />
+                 </View>
+                 <Text style={{ color: AppColors.textGray, fontSize: 10, marginTop: 5, textAlign: 'center' }}>
+                   Sube más fotos para desbloquear logros de transformación
+                 </Text>
                </View>
             </View>
           )}
@@ -310,7 +537,26 @@ export default function PerfilSetupScreen() {
         disabled={syncing}
         onPress={async () => {
            setSyncing(true);
-           // ... logic update doc preserved ...
+           const user = auth.currentUser;
+           if (user) {
+             await updateDoc(doc(db, 'users', user.uid), {
+               userName,
+               genero,
+               edad,
+               peso,
+               altura,
+               objetivo,
+               enableCycleTracking,
+               lastPeriodDate,
+               cycleLength: parseInt(cycleLength) || 28,
+               aguaMeta: parseFloat(aguaMeta) || 2.5,
+               showInRanking,
+               shareBioScore,
+               shareNTK,
+               useAnonymousAlias,
+               updatedAt: serverTimestamp()
+             });
+           }
            setSyncing(false);
            router.push('/' as any);
         }}
@@ -521,5 +767,59 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     backgroundColor: 'white'
+  },
+  genderBtn: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center'
+  },
+  genderText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  phaseIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    backgroundColor: 'rgba(255, 138, 0, 0.1)',
+    padding: 15,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 138, 0, 0.2)'
+  },
+  phaseTitle: {
+    color: AppColors.primaryOrange,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  phaseDesc: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2
+  },
+  hormonalTips: {
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 15,
+    borderRadius: 15,
+    marginTop: 5
+  },
+  tipTitle: {
+    color: AppColors.primaryBioGreen,
+    fontSize: 9,
+    fontWeight: '900',
+    marginBottom: 5
+  },
+  tipText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+    lineHeight: 16
   }
 });
