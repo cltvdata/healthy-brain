@@ -41,7 +41,7 @@ export default function LoginScreen() {
           bioScore: 85,
           hrv: 60,
           userName: email.split('@')[0],
-          isProfileComplete: false,
+          profileCompleted: false,
           trialStartDate: serverTimestamp(),
           trialEndDate: trialEnd,
           bioShields: 0,

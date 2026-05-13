@@ -4,8 +4,9 @@ import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { LanguageProvider } from '@/context/LanguageContext';
-import { auth } from '@/constants/FirebaseConfig';
+import { auth, db } from '@/constants/FirebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { View, ActivityIndicator } from 'react-native';
 
 export const unstable_settings = {
@@ -17,13 +18,27 @@ export default function RootLayout() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const subscriber = onAuthStateChanged(auth, (user) => {
+    const subscriber = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      if (initializing) setInitializing(false);
       
-      if (!user) {
+      if (user) {
+        // Check if profile is completed
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (!data.profileCompleted) {
+              router.replace('/perfil-setup');
+            }
+          }
+        } catch (e) {
+          console.error("Error checking profile completion:", e);
+        }
+      } else {
         router.replace('/login');
       }
+
+      if (initializing) setInitializing(false);
     });
     return subscriber;
   }, [initializing]);

@@ -1,338 +1,305 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Animated, Easing, ActivityIndicator, Image } from 'react-native';
-import { AppStyles, AppColors } from '@/constants/AppStyles';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Animated } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import { AppStyles, AppColors } from '@/constants/AppStyles';
+import { auth, db } from '@/constants/FirebaseConfig';
+import { doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
+import GeminiVisionService, { GeminiAnalysisResult } from '@/services/GeminiVisionService';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { db, auth } from '@/constants/FirebaseConfig';
-import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { GeminiVisionService, GeminiAnalysisResult } from '@/services/GeminiVisionService';
 
 const { width, height } = Dimensions.get('window');
 
+type AppState = 'camera' | 'barcode' | 'analyzing' | 'results' | 'history';
+
 export default function NutricionIAScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<any>(null);
+  const [appState, setAppState] = useState<AppState>('camera');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [appState, setAppState] = useState<'camera' | 'analyzing' | 'results' | 'barcode'>('camera');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<GeminiAnalysisResult | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [analysisText, setAnalysisText] = useState('Identificando ingredientes...');
+  const [analysisText, setAnalysisText] = useState('Iniciando Bio-Scanner...');
   const [isSaving, setIsSaving] = useState(false);
   const [selectedAxioms, setSelectedAxioms] = useState<string[]>([]);
-  const [scannedProduct, setScannedProduct] = useState<any>(null);
-  const [analysisResult, setAnalysisResult] = useState<GeminiAnalysisResult | null>(null);
+  const [history, setHistory] = useState<GeminiAnalysisResult[]>([]);
+  const [isEliteUser, setIsEliteUser] = useState(false);
   
+  const [devTapCount, setDevTapCount] = useState(0);
+  
+  const cameraRef = useRef<any>(null);
   const scanAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (appState === 'camera') {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(scanAnim, {
-            toValue: 1,
-            duration: 2500,
-            easing: Easing.linear,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scanAnim, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
+      startScanAnimation();
     }
+    checkUserSeniority();
   }, [appState]);
 
-  const pickFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Se necesita permiso para acceder a la galería');
-      return;
-    }
+  const checkUserSeniority = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const userRef = doc(db, 'users', auth.currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        
+        // If already persistent elite, just set local state
+        if (data.isElite) {
+          setIsEliteUser(true);
+          return;
+        }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      startAnalysis();
+        if (data.createdAt) {
+          const createdDate = data.createdAt.toDate();
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+          
+          if (createdDate < sixMonthsAgo) {
+            setIsEliteUser(true);
+            // Persist to Firestore
+            await updateDoc(userRef, { isElite: true });
+            
+            // Elite Welcome Haptic & Alert
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            console.log("Elite status unlocked and persisted!");
+          }
+        }
+      }
+    } catch (e) {
+      console.log("Error checking seniority:", e);
     }
+  };
+
+  const startScanAnimation = () => {
+    scanAnim.setValue(0);
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
   };
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          base64: false,
-        });
-        setSelectedImage(photo.uri);
-        startAnalysis();
-      } catch (e) {
-        console.error("Camera error:", e);
-        alert("Error al capturar imagen");
-      }
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.5, base64: true });
+      setSelectedImage(photo.uri);
+      startAnalysis(photo.base64);
     }
   };
 
-  const handleBarcodeScan = ({ data }: { data: string }) => {
-    lookupBarcode(data);
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      startAnalysis(result.assets[0].base64 || "");
+    }
   };
 
-  const startAnalysis = async () => {
+  const startAnalysis = async (base64Data: string) => {
     setAppState('analyzing');
     setAnalysisProgress(0);
     
     const texts = [
-      "Identificando ingredientes...", 
-      "Consultando base de datos...", 
-      "Calculando macros...", 
-      "Generando veredicto IA..."
+      "Identificando estructuras moleculares...", 
+      "Consultando Bio-Cloud...", 
+      "Calculando impacto glucémico...", 
+      "Generando veredicto Bio-IA..."
     ];
     let step = 0;
 
-    // Simular progreso de análisis
     const progressInterval = setInterval(() => {
       setAnalysisProgress(prev => {
-        const newProgress = prev + 0.08;
+        const newProgress = prev + 0.05;
         if (newProgress > 0.25 && step === 0) { step = 1; setAnalysisText(texts[1]); }
         if (newProgress > 0.50 && step === 1) { step = 2; setAnalysisText(texts[2]); }
         if (newProgress > 0.75 && step === 2) { step = 3; setAnalysisText(texts[3]); }
         return Math.min(newProgress, 0.95);
       });
-    }, 100);
+    }, 150);
 
     try {
-      // Obtener contexto hormonal del usuario
       let cyclePhaseContext = '';
       if (auth.currentUser) {
         const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        const data = userDoc.data();
-        if (data?.currentHormonalPhase) {
-          cyclePhaseContext = data.currentHormonalPhase;
-        }
+        cyclePhaseContext = userDoc.data()?.currentHormonalPhase || '';
       }
 
-      // Si tenemos una imagen, analizarla con IA
-      if (selectedImage) {
-        // Por ahora usamos el mock hasta que se configure la API key real
-        const result = await GeminiVisionService.analyzeImage('', cyclePhaseContext);
-        setAnalysisResult(result);
-      } else {
-        // Datos por defecto si no hay imagen
-        setAnalysisResult({
-          name: 'Bowl de Proteína y Vegetales',
-          description: 'Bowl completo con pollo, quinoa, vegetales asados y aguacate',
-          calories: 520,
-          macros: { protein: 42, carbs: 48, fats: 18, fiber: 12 },
-          bioScore: 92,
-          ntkReward: 15,
-          type: 'food',
-          nutrients: { vitamins: ['Vitamina A', 'Vitamina C', 'Vitamina B6'], minerals: ['Hierro', 'Magnesio'], antioxidants: ['Licopeno'] },
-          warnings: { highSodium: false, highSugar: false, highSaturatedFat: false, lowProtein: false },
-          hormonalAdvice: '🥗 Excelente opción para cualquier fase del ciclo.',
-          recommendations: [
-            { title: 'Optimiza la absorción de hierro', description: 'Añade limón para aumentar absorción', priority: 'high' },
-            { title: 'Añade fermentos', description: 'Un poco de chucrut beneficiaría tu microbiota', priority: 'medium' },
-          ],
-          preparationSteps: ['Cocina el pollo a 165°F', 'Asa vegetales a 400°F por 20 min'],
-          pairingSuggestions: ['Agua con limón', 'Té verde'],
-          timingAdvice: 'Ideal para comida post-entrenamiento'
-        });
-      }
-
+      // Simulate network delay for realistic feel
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const result = await GeminiVisionService.analyzeImage(base64Data, cyclePhaseContext);
+      setAnalysisResult(result);
+      
       setAnalysisProgress(1);
       clearInterval(progressInterval);
-      setAppState('results');
-
-      // Guardar análisis en Firestore si hay imagen
-      if (selectedImage && analysisResult) {
-        await GeminiVisionService.saveAnalysisToFirestore(analysisResult, selectedImage);
-      }
+      setTimeout(() => setAppState('results'), 500);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     } catch (error) {
       console.error("Analysis error:", error);
       clearInterval(progressInterval);
-      setAppState('results');
+      setAppState('camera');
     }
   };
 
-  const translateY = scanAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, height * 0.4],
-  });
-
   const saveToDiary = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser || !analysisResult) return;
     setIsSaving(true);
-    
-    const result = analysisResult || {
-      name: "Bowl de Salmón y Quinoa",
-      calories: 680,
-      macros: { protein: 42, carbs: 55, fats: 30 }
-    };
     
     try {
       const userId = auth.currentUser.uid;
       const userRef = doc(db, 'users', userId);
       const logsRef = collection(userRef, 'logs');
 
-      // 1. Save to Unified Cloud Logs
       await addDoc(logsRef, {
-        type: 'diet',
-        category: 'nutrition',
-        foodName: result.name,
+        type: analysisResult.type === 'food' || analysisResult.type === 'beverage' ? 'diet' : 'health',
+        category: analysisResult.type,
+        name: analysisResult.name,
         imageUrl: selectedImage || "",
-        macros: {
-          protein: result.macros.protein,
-          carbs: result.macros.carbs,
-          fats: result.macros.fats
-        },
-        calories: result.calories,
+        macros: analysisResult.macros,
+        calories: analysisResult.calories,
         axioms: selectedAxioms,
+        healthData: analysisResult.healthData || null,
         timestamp: serverTimestamp()
       });
 
-      // 2. Update User Totals and NTK Balance
       const axiomBonus = selectedAxioms.length * 10;
-      const ntkReward = analysisResult?.ntkReward || 15;
+      const eliteBonus = isEliteUser ? 50 : 0;
+      const ntkReward = (analysisResult.ntkReward || 15) + axiomBonus + eliteBonus;
+      
       await updateDoc(userRef, {
-        ntkBalance: increment(ntkReward + axiomBonus), 
-        totalCalories: increment(result.calories),
-        protein: increment(result.macros.protein),
-        carbs: increment(result.macros.carbs),
-        fats: increment(result.macros.fats),
+        ntkBalance: increment(ntkReward), 
+        totalCalories: increment(analysisResult.calories || 0),
+        protein: increment(analysisResult.macros?.protein || 0),
+        carbs: increment(analysisResult.macros?.carbs || 0),
+        fats: increment(analysisResult.macros?.fats || 0),
         nutritionScans: increment(1)
       });
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push('/');
     } catch (error) {
-      console.error("Save Nutrition Error:", error);
+      console.error("Save Error:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const lookupBarcode = async (barcode: string) => {
-    setAppState('analyzing');
-    setAnalysisText("Consultando Bio-Cloud...");
-    
-    try {
-      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-      const data = await response.json();
-
-      if (data.status === 1) {
-        const product = data.product;
-        const nutrients = product.nutriments;
-        
-        setScannedProduct({
-          name: product.product_name || "Bio-Producto",
-          kcal: Math.round(nutrients['energy-kcal_100g'] || (nutrients.energy_100g / 4.184) || 0),
-          protein: Math.round(nutrients.proteins_100g || 0),
-          carbs: Math.round(nutrients.carbohydrates_100g || 0),
-          fats: Math.round(nutrients.fat_100g || 0),
-          advice: product.nutriscore_grade ? `Calificación Nutri-Score: ${product.nutriscore_grade.toUpperCase()}.` : "Producto analizado via Bio-Cloud."
-        });
-        
-        setAppState('results');
-      } else {
-        alert("Producto no encontrado");
-        setAppState('camera');
-      }
-    } catch (e) {
-      alert("Error de red");
-      setAppState('camera');
-    }
+  const loadHistory = async () => {
+    setAppState('history');
+    const historyData = await GeminiVisionService.getAnalysisHistory();
+    setHistory(historyData);
   };
 
-  if (!permission) {
-    return <View style={AppStyles.body} />;
-  }
-
+  if (!permission) return <View style={AppStyles.body} />;
   if (!permission.granted) {
     return (
       <View style={[AppStyles.body, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
-        <Text style={[AppStyles.textWhite, { textAlign: 'center', marginBottom: 20 }]}>Necesitamos permiso de cámara para escanear tus comidas.</Text>
-        <TouchableOpacity style={AppStyles.glowBtnOrange} onPress={requestPermission}>
-          <Text style={AppStyles.glowBtnOrangeText}>Dar Permiso</Text>
+        <Ionicons name="camera-outline" size={80} color={AppColors.primaryBioGreen} style={{ marginBottom: 20 }} />
+        <Text style={[AppStyles.textWhite, { textAlign: 'center', marginBottom: 30, fontSize: 16 }]}>
+          Para hackear tu nutrición, necesitamos acceso a la cámara.
+        </Text>
+        <TouchableOpacity style={AppStyles.glowBtnGreen} onPress={requestPermission}>
+          <Text style={AppStyles.glowBtnGreenText}>CONCEDER ACCESO</Text>
         </TouchableOpacity>
       </View>
     );
   }
+
+  const translateY = scanAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, height * 0.4],
+  });
 
   return (
     <View style={AppStyles.body}>
       {/* Header */}
       <View style={{ padding: 20, paddingTop: 50, zIndex: 10 }}>
         <View style={AppStyles.rowBetween}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => appState === 'camera' ? router.back() : setAppState('camera')} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <View style={styles.badge}>
-            <View style={styles.dot} />
-            <Text style={styles.badgeText}>MOTOR IA V4.0</Text>
+          <View style={[
+            styles.badge, 
+            isEliteUser && { borderColor: AppColors.primaryOrange, shadowColor: AppColors.primaryOrange, shadowOpacity: 0.5, shadowRadius: 10, elevation: 5 }
+          ]}>
+            <View style={[styles.dot, { backgroundColor: isEliteUser ? AppColors.primaryOrange : AppColors.primaryBioGreen }]} />
+            <Text style={[styles.badgeText, isEliteUser && { color: AppColors.primaryOrange }]}>
+              {isEliteUser ? 'BIO-ELITE ACCESS' : 'MOTOR IA V4.0'}
+            </Text>
           </View>
         </View>
-        <Text style={[AppStyles.textWhite, { fontSize: 24, fontWeight: 'bold', marginTop: 10 }]}>Nutrición <Text style={{ color: AppColors.primaryBioGreen }}>IA</Text></Text>
-        <Text style={[AppStyles.textGray, { fontSize: 12 }]}>Análisis instantáneo de macros y calorías</Text>
+        <TouchableOpacity 
+          activeOpacity={1}
+          onPress={() => {
+            setDevTapCount(prev => {
+              if (prev + 1 >= 5) {
+                setIsEliteUser(!isEliteUser);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                return 0;
+              }
+              return prev + 1;
+            });
+          }}
+        >
+          <View style={AppStyles.rowCentered}>
+            <Text style={[AppStyles.textWhite, { fontSize: 28, fontWeight: '900', marginTop: 10 }]}>
+              Bio-Scanner <Text style={{ color: isEliteUser ? AppColors.primaryOrange : AppColors.primaryBioGreen }}>{isEliteUser ? 'ELITE' : 'IA'}</Text>
+            </Text>
+            {isEliteUser && <Ionicons name="shield-checkmark" size={24} color={AppColors.primaryOrange} style={{ marginLeft: 10, marginTop: 10 }} />}
+          </View>
+        </TouchableOpacity>
       </View>
 
       {appState === 'camera' && (
         <View style={{ flex: 1, padding: 20 }}>
           <View style={styles.cameraContainer}>
-              <CameraView 
-               ref={cameraRef}
-               style={StyleSheet.absoluteFill} 
-               facing="back" 
-               barcodeScannerSettings={{
-                 barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"],
-               }}
-onBarcodeScanned={appState === 'barcode' ? handleBarcodeScan : undefined}
-               />
-              <LinearGradient 
-               colors={['transparent', 'rgba(19, 236, 91, 0.1)', 'transparent']} 
-               style={StyleSheet.absoluteFill} 
-              />
-              
-              {/* Scan line */}
-              <Animated.View style={[styles.scanLine, { transform: [{ translateY }] }]} />
-              
-              {/* Viewfinder corners */}
-              <View style={[styles.corner, { top: 20, left: 20, borderTopWidth: 4, borderLeftWidth: 4 }]} />
-              <View style={[styles.corner, { top: 20, right: 20, borderTopWidth: 4, borderRightWidth: 4 }]} />
-              <View style={[styles.corner, { bottom: 20, left: 20, borderBottomWidth: 4, borderLeftWidth: 4 }]} />
-              <View style={[styles.corner, { bottom: 20, right: 20, borderBottomWidth: 4, borderRightWidth: 4 }]} />
-
-              <View style={styles.cameraOverlay}>
-                 <View style={styles.focusBadge}>
-                   <Ionicons name="scan" size={14} color={AppColors.primaryBioGreen} />
-                   <Text style={styles.focusText}>AUTO-ENFOQUE MÚLTIPLE</Text>
-                 </View>
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+            <Animated.View style={[styles.scanLine, { transform: [{ translateY }] }]} />
+            
+            <View style={styles.cameraOverlay}>
+              <View style={styles.focusBadge}>
+                <ActivityIndicator size="small" color={AppColors.primaryBioGreen} />
+                <Text style={styles.focusText}>IA EN TIEMPO REAL: DETECTANDO...</Text>
               </View>
+            </View>
 
-                <View style={styles.cameraActions}>
-                 <TouchableOpacity style={[styles.scanBtn, AppStyles.glassCardInteractive]} onPress={pickFromGallery}>
-                   <Ionicons name="image-outline" size={24} color="white" />
-                   <Text style={styles.btnSubText}>GALERÍA</Text>
-                 </TouchableOpacity>
-                 <TouchableOpacity style={[styles.captureBtn, AppStyles.glowBtnGreen]} onPress={takePicture}>
-                   <Ionicons name="camera" size={32} color={AppColors.backgroundDark} />
-                   <Text style={[styles.btnSubText, { color: AppColors.backgroundDark }]}>CAPTURAR</Text>
-                 </TouchableOpacity>
-                 <TouchableOpacity style={[styles.scanBtn, AppStyles.glassCardInteractive]} onPress={() => setAppState('barcode')}>
-                   <Ionicons name={appState === 'barcode' ? "barcode" : "barcode-outline"} size={24} color={appState === 'barcode' ? AppColors.primaryBioGreen : "white"} />
-                   <Text style={[styles.btnSubText, appState === 'barcode' && { color: AppColors.primaryBioGreen }]}>BARRAS</Text>
-                 </TouchableOpacity>
-               </View>
-              </View>
-
+            <View style={styles.cameraActions}>
+              <TouchableOpacity style={styles.scanBtn} onPress={pickImage}>
+                <Ionicons name="document-text" size={24} color={AppColors.primaryNeonBlue} />
+                <Text style={styles.btnSubText}>REPORTES</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.captureBtn} onPress={takePicture}>
+                <View style={styles.innerCaptureBtn} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.scanBtn} onPress={loadHistory}>
+                <Ionicons name="time" size={24} color="white" />
+                <Text style={styles.btnSubText}>HISTORIAL</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -340,174 +307,123 @@ onBarcodeScanned={appState === 'barcode' ? handleBarcodeScan : undefined}
       {appState === 'analyzing' && (
         <View style={styles.fullCenter}>
           <View style={styles.analyzingCircle}>
-             <Ionicons name="hardware-chip" size={50} color={AppColors.primaryBioGreen} />
-             <Animated.View style={[styles.orbit, { transform: [{ rotate: scanAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }]}>
-                <View style={styles.orbitDot} />
-             </Animated.View>
+             <Animated.View style={[styles.orbit, { transform: [{ rotate: '0deg' }] }]} />
+             <Ionicons name="scan" size={50} color={AppColors.primaryBioGreen} />
           </View>
-          <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold' }]}>Desglosando Matriz Nutricional</Text>
+          <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold', textAlign: 'center' }]}>{analysisText}</Text>
           <View style={styles.progressBarBg}>
-             <View style={[styles.progressBarFill, { width: `${analysisProgress * 100}%` }]} />
+            <View style={[styles.progressBarFill, { width: `${analysisProgress * 100}%` }]} />
           </View>
-          <Text style={styles.analyzingText}>{analysisText}</Text>
+          <Text style={styles.analyzingText}>{Math.round(analysisProgress * 100)}% COMPLETADO</Text>
         </View>
       )}
 
-      {appState === 'results' && (
+      {appState === 'results' && analysisResult && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-          {/* Imagen capturada */}
-          {selectedImage && (
-            <View style={[AppStyles.glassCard, { marginBottom: 20, padding: 0, overflow: 'hidden' }]}>
-              <Image source={{ uri: selectedImage }} style={{ width: '100%', height: 200, borderTopLeftRadius: 24, borderTopRightRadius: 24 }} />
+          <View style={[AppStyles.glassCard, { padding: 0, overflow: 'hidden', marginBottom: 20 }]}>
+            {selectedImage && <Image source={{ uri: selectedImage }} style={{ width: '100%', height: 200 }} />}
+            <View style={{ padding: 20 }}>
+              <View style={AppStyles.rowBetween}>
+                <Text style={[AppStyles.textWhite, { fontSize: 20, fontWeight: 'bold' }]}>{analysisResult.name}</Text>
+                <View style={[styles.bioScoreBadge, { backgroundColor: analysisResult.bioScore > 80 ? 'rgba(19, 236, 91, 0.2)' : 'rgba(255, 165, 0, 0.2)' }]}>
+                  <Text style={{ color: analysisResult.bioScore > 80 ? AppColors.primaryBioGreen : AppColors.primaryOrange, fontWeight: 'bold' }}>{analysisResult.bioScore} BS</Text>
+                </View>
+              </View>
+              <Text style={[AppStyles.textGray, { marginTop: 5 }]}>{analysisResult.description}</Text>
+            </View>
+          </View>
+
+          {/* Health Data (Reports/Accessories) */}
+          {analysisResult.healthData && (
+            <View style={[AppStyles.glassCard, { padding: 0, marginBottom: 20, borderColor: AppColors.primaryNeonBlue, borderWidth: 1.5 }]}>
+               <LinearGradient 
+                 colors={['rgba(0, 209, 255, 0.2)', 'transparent']} 
+                 style={{ padding: 20 }}
+                 start={{ x: 0, y: 0 }}
+                 end={{ x: 1, y: 1 }}
+               >
+                 <View style={[AppStyles.rowBetween, { marginBottom: 15 }]}>
+                    <View style={AppStyles.rowCentered}>
+                      <Ionicons name="pulse" size={24} color={AppColors.primaryNeonBlue} />
+                      <Text style={[AppStyles.textWhite, { fontSize: 16, fontWeight: '900', marginLeft: 10, letterSpacing: 1 }]}>
+                        BIO-DATA SYNC
+                      </Text>
+                    </View>
+                    <View style={styles.liveBadge}>
+                      <Text style={styles.liveText}>DATA STABLE</Text>
+                    </View>
+                 </View>
+                 
+                 <View style={styles.healthMetricRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[AppStyles.textGray, { fontSize: 10, fontWeight: 'bold' }]}>{analysisResult.healthData.metricName.toUpperCase()}</Text>
+                      <Text style={[AppStyles.textWhite, { fontSize: 36, fontWeight: '900', color: AppColors.primaryNeonBlue }]}>
+                        {analysisResult.healthData.value}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1.5, backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 12 }}>
+                      <Text style={[AppStyles.textWhite, { fontSize: 12, lineHeight: 18, fontStyle: 'italic' }]}>
+                        "{analysisResult.healthData.interpretation}"
+                      </Text>
+                    </View>
+                 </View>
+                 
+                 <View style={styles.adviceBox}>
+                    <View style={AppStyles.rowCentered}>
+                      <Ionicons name="flash" size={14} color={AppColors.primaryNeonBlue} />
+                      <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 10, fontWeight: '900', marginLeft: 5 }}>BIO-HACK RECOMENDADO</Text>
+                    </View>
+                    <Text style={[AppStyles.textWhite, { fontSize: 13, marginTop: 6, fontWeight: '500' }]}>
+                      {analysisResult.healthData.actionableAdvice}
+                    </Text>
+                 </View>
+               </LinearGradient>
             </View>
           )}
 
-          <View style={[AppStyles.glassCard, { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 20, borderColor: AppColors.primaryBioGreen }]}>
-             <View style={styles.checkCircle}>
-                <Ionicons name="checkmark" size={24} color={AppColors.primaryBioGreen} />
-             </View>
-             <View>
-                <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Análisis Completado</Text>
-                <Text style={[AppStyles.textGray, { fontSize: 11 }]}>Detectado: <Text style={{ color: AppColors.primaryBioGreen }}>{scannedProduct?.name || analysisResult?.name || "Bowl de Salmón y Quinoa"}</Text></Text>
-             </View>
-             <View style={{ backgroundColor: AppColors.primaryBioGreen + '20', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 'auto' }}>
-                <Text style={{ color: AppColors.primaryBioGreen, fontWeight: 'bold', fontSize: 12 }}>{analysisResult?.bioScore || 92}/100</Text>
-             </View>
-          </View>
-
-          {/* Macro Chart */}
-          <View style={[AppStyles.glassCard, { padding: 25, alignItems: 'center', marginBottom: 20 }]}>
-              <Text style={styles.sectionLabel}>ESTIMACIÓN CALÓRICA Y MACROS</Text>
-              <View style={styles.donutContainer}>
-                <View style={[styles.donutInner, { borderColor: AppColors.primaryBioGreen, borderWidth: 8, shadowColor: AppColors.primaryBioGreen }]}>
-                   <Text style={styles.calText}>{analysisResult?.calories || 680}</Text>
-                   <Text style={styles.calSubText}>KCAL TOTALES</Text>
-                </View>
-              </View>
-              
-              <View style={[AppStyles.rowBetween, { width: '100%', marginTop: 25 }]}>
-                <View style={styles.macroStat}>
-                   <View style={[styles.macroDot, { backgroundColor: AppColors.accentBlue }]} />
-                   <Text style={[styles.macroVal, { color: AppColors.accentBlue }]}>{analysisResult?.macros.protein || 42}g</Text>
+          {/* Macros (Only for food/beverage) */}
+          {(analysisResult.type === 'food' || analysisResult.type === 'beverage') && (
+            <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20 }]}>
+              <View style={AppStyles.rowBetween}>
+                <View style={styles.macroItem}>
+                   <Text style={[styles.macroVal, { color: AppColors.primaryBioGreen }]}>{analysisResult.macros.protein}g</Text>
                    <Text style={styles.macroLabel}>PROTEÍNA</Text>
                 </View>
-                <View style={styles.macroStat}>
-                   <View style={[styles.macroDot, { backgroundColor: AppColors.primaryBioGreen }]} />
-                   <Text style={[styles.macroVal, { color: AppColors.primaryBioGreen }]}>{analysisResult?.macros.carbs || 55}g</Text>
+                <View style={styles.macroItem}>
+                   <Text style={[styles.macroVal, { color: AppColors.primaryNeonBlue }]}>{analysisResult.macros.carbs}g</Text>
                    <Text style={styles.macroLabel}>CARBOS</Text>
                 </View>
-                <View style={styles.macroStat}>
-                   <View style={[styles.macroDot, { backgroundColor: AppColors.primaryOrange }]} />
-                   <Text style={[styles.macroVal, { color: AppColors.primaryOrange }]}>{analysisResult?.macros.fats || 30}g</Text>
+                <View style={styles.macroItem}>
+                   <Text style={[styles.macroVal, { color: AppColors.primaryOrange }]}>{analysisResult.macros.fats}g</Text>
                    <Text style={styles.macroLabel}>GRASAS</Text>
                 </View>
+                <View style={styles.macroItem}>
+                   <Text style={[styles.macroVal, { color: 'white' }]}>{analysisResult.calories}</Text>
+                   <Text style={styles.macroLabel}>KCAL</Text>
+                </View>
               </View>
-          </View>
-
-          {/* Recomendaciones y Consejos IA */}
-          <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20, borderColor: 'rgba(255,255,255,0.1)' }]}>
-             <View style={[AppStyles.rowCentered, { gap: 10, marginBottom: 15 }]}>
-               <Ionicons name="bulb-outline" size={20} color={AppColors.primaryBioGreen} />
-               <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Recomendaciones IA</Text>
-             </View>
-
-             {/* Consejo Hormonal */}
-             {analysisResult?.hormonalAdvice && (
-               <View style={[styles.verdictCard, { backgroundColor: 'rgba(19, 236, 91, 0.1)' }]}>
-                  <Ionicons name="heart" size={20} color={AppColors.primaryBioGreen} />
-                  <View style={{ flex: 1 }}>
-                     <Text style={styles.verdictTitle}>Consejo Hormonal</Text>
-                     <Text style={styles.verdictDesc}>{analysisResult.hormonalAdvice}</Text>
-                  </View>
-               </View>
-             )}
-
-             {/* Recomendaciones personalizadas */}
-             {analysisResult?.recommendations?.map((rec, index) => (
-               <View key={index} style={[styles.verdictCard, AppStyles.glassCardInteractive, { borderColor: rec.priority === 'high' ? AppColors.primaryOrange : rec.priority === 'medium' ? AppColors.primaryNeonBlue : AppColors.textGray }]}>
-                <Ionicons name={rec.priority === 'high' ? 'alert-circle' : rec.priority === 'medium' ? 'information-circle' : 'checkmark-circle'} 
-                  size={20} 
-                  color={rec.priority === 'high' ? AppColors.primaryOrange : rec.priority === 'medium' ? AppColors.primaryNeonBlue : AppColors.primaryBioGreen} />
-                <View style={{ flex: 1 }}>
-                   <Text style={styles.verdictTitle}>{rec.title}</Text>
-                   <Text style={styles.verdictDesc}>{rec.description}</Text>
-                </View>
-               </View>
-             ))}
-
-             {/* Alertas de nutrientes */}
-             {analysisResult?.warnings && (
-               <View style={{ marginTop: 15 }}>
-                 {(analysisResult.warnings.highSodium || analysisResult.warnings.highSugar || analysisResult.warnings.highSaturatedFat) && (
-                   <View style={[styles.verdictCard, { borderColor: AppColors.primaryOrange }]}>
-                      <Ionicons name="warning" size={20} color={AppColors.primaryOrange} />
-                      <View style={{ flex: 1 }}>
-                         <Text style={styles.verdictTitle}>⚠️ Precaución Nutricional</Text>
-                         <Text style={styles.verdictDesc}>
-                           {analysisResult.warnings.highSodium && 'Alto contenido de sodio. '}
-                           {analysisResult.warnings.highSugar && 'Alto contenido de azúcar. '}
-                           {analysisResult.warnings.highSaturatedFat && 'Alto contenido de grasas saturadas. '}
-                         </Text>
-                      </View>
-                   </View>
-                 )}
-               </View>
-             )}
-          </View>
-
-          {/* Procedimientos y Preparación */}
-          {analysisResult?.preparationSteps && analysisResult.preparationSteps.length > 0 && (
-            <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20 }]}>
-               <View style={[AppStyles.rowCentered, { gap: 10, marginBottom: 15 }]}>
-                 <Ionicons name="restaurant" size={20} color={AppColors.accentBlue} />
-                 <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Procedimientos de Preparación</Text>
-               </View>
-               {analysisResult.preparationSteps.map((step, index) => (
-                 <View key={index} style={{ flexDirection: 'row', marginBottom: 10, alignItems: 'flex-start' }}>
-                   <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: AppColors.accentBlue + '20', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-                     <Text style={{ color: AppColors.accentBlue, fontWeight: 'bold', fontSize: 12 }}>{index + 1}</Text>
-                   </View>
-                   <Text style={[AppStyles.textWhite, { flex: 1, fontSize: 13 }]}>{step}</Text>
-                 </View>
-               ))}
             </View>
           )}
 
-          {/* Timing y Combinaciones */}
-          {(analysisResult?.timingAdvice || analysisResult?.pairingSuggestions) && (
-            <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20 }]}>
-              {analysisResult.timingAdvice && (
-                <View style={{ marginBottom: 15 }}>
-                  <View style={[AppStyles.rowCentered, { gap: 8, marginBottom: 10 }]}>
-                    <Ionicons name="time" size={18} color={AppColors.primaryBioGreen} />
-                    <Text style={[AppStyles.textWhite, { fontWeight: 'bold', fontSize: 14 }]}>Mejor Momento</Text>
-                  </View>
-                  <Text style={[AppStyles.textGray, { fontSize: 13 }]}>{analysisResult.timingAdvice}</Text>
-                </View>
-              )}
-              
-              {analysisResult.pairingSuggestions && analysisResult.pairingSuggestions.length > 0 && (
-                <View>
-                  <View style={[AppStyles.rowCentered, { gap: 8, marginBottom: 10 }]}>
-                    <Ionicons name="add-circle" size={18} color={AppColors.primaryNeonBlue} />
-                    <Text style={[AppStyles.textWhite, { fontWeight: 'bold', fontSize: 14 }]}>Combinaciones Sugeridas</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {analysisResult.pairingSuggestions.map((item, index) => (
-                      <View key={index} style={{ backgroundColor: AppColors.primaryNeonBlue + '10', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, borderWidth: 1, borderColor: AppColors.primaryNeonBlue + '30' }}>
-                        <Text style={{ color: AppColors.primaryNeonBlue, fontSize: 12 }}>{item}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
+          {/* Hormonal & Recommendations */}
+          <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20 }]}>
+            <View style={[AppStyles.rowCentered, { gap: 10, marginBottom: 15 }]}>
+               <Ionicons name="flask" size={20} color={AppColors.primaryBioGreen} />
+               <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>Contexto Bio-Hormonal</Text>
             </View>
-          )}
+            <Text style={[AppStyles.textWhite, { fontSize: 14, marginBottom: 15, lineHeight: 20 }]}>{analysisResult.hormonalAdvice}</Text>
+            
+            {analysisResult.recommendations.map((rec, i) => (
+              <View key={i} style={[styles.recCard, { borderLeftColor: rec.priority === 'high' ? AppColors.primaryOrange : AppColors.primaryNeonBlue }]}>
+                <Text style={styles.recTitle}>{rec.title}</Text>
+                <Text style={styles.recDesc}>{rec.description}</Text>
+              </View>
+            ))}
+          </View>
 
-          {/* Bio-Axioms (Inchauspé Protocol) */}
-          <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20, backgroundColor: 'rgba(19, 236, 91, 0.05)', borderColor: 'rgba(19, 236, 91, 0.2)' }]}>
+          {/* Bio-Axioms */}
+          <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20, backgroundColor: 'rgba(19, 236, 91, 0.05)' }]}>
              <Text style={[AppStyles.textWhite, { fontSize: 14, fontWeight: 'bold', marginBottom: 15 }]}>Bio-Axiomas (Control Glucémico)</Text>
-             
              {[
                { id: 'veggies', text: 'Vegetales primero (Fibra protectora)' },
                { id: 'vinegar', text: 'Vinagre antes de comer (Buffer de glucosa)' },
@@ -515,50 +431,55 @@ onBarcodeScanned={appState === 'barcode' ? handleBarcodeScan : undefined}
              ].map((axiom) => (
                <TouchableOpacity 
                  key={axiom.id} 
-                 style={[
-                   AppStyles.glassCardInteractive, 
-                   { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, padding: 10, borderColor: AppColors.borderGlass }
-                 ]}
+                 style={styles.axiomRow}
                  onPress={() => {
-                   // Tracking-only state (Informational as requested)
-                   // @ts-ignore
+                   Haptics.selectionAsync();
                    setSelectedAxioms(prev => prev.includes(axiom.id) ? prev.filter(a => a !== axiom.id) : [...prev, axiom.id]);
                  }}
                >
                  <Ionicons 
-                   // @ts-ignore
                    name={selectedAxioms.includes(axiom.id) ? "checkbox" : "square-outline"} 
                    size={22} 
-                   // @ts-ignore
                    color={selectedAxioms.includes(axiom.id) ? AppColors.primaryBioGreen : AppColors.textGray} 
                  />
-                 <Text style={[AppStyles.textWhite, { fontSize: 12 }]}>{axiom.text}</Text>
+                 <Text style={[AppStyles.textWhite, { fontSize: 13 }]}>{axiom.text}</Text>
                </TouchableOpacity>
              ))}
-              <Text style={{ color: AppColors.textGray, fontSize: 10, fontStyle: 'italic', marginTop: 5 }}>
-                * Protocolos basados en Glucose Revolution (+10 NTK c/u).
-              </Text>
           </View>
 
           <TouchableOpacity 
-            style={[AppStyles.glowBtnBlue, { marginTop: 10, opacity: isSaving ? 0.6 : 1 }]} 
+            style={[isEliteUser ? AppStyles.glowBtnOrange : AppStyles.glowBtnBlue, { marginBottom: 15, opacity: isSaving ? 0.7 : 1 }]} 
             onPress={saveToDiary}
             disabled={isSaving}
           >
-             {isSaving ? (
-               <ActivityIndicator color="white" size="small" />
-             ) : (
-               <Text style={AppStyles.glowBtnBlueText}>
-                 AÑADIR AL DIARIO (+{50 + selectedAxioms.length * 10} NTK)
-               </Text>
-             )}
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[AppStyles.highContrastInput, { marginTop: 10, alignItems: 'center' }]} onPress={() => setAppState('camera')}>
-             <Text style={AppStyles.textWhite}>Re-Escanear</Text>
+            {isSaving ? <ActivityIndicator color="white" /> : <Text style={isEliteUser ? AppStyles.glowBtnOrangeText : AppStyles.glowBtnBlueText}>GUARDAR EN BIO-DIARIO (+{(analysisResult.ntkReward || 15) + (selectedAxioms.length * 10) + (isEliteUser ? 50 : 0)} NTK)</Text>}
           </TouchableOpacity>
 
-          <View style={{ height: 40 }} />
+          <TouchableOpacity style={[AppStyles.highContrastInput, { alignItems: 'center' }]} onPress={() => setAppState('camera')}>
+            <Text style={AppStyles.textWhite}>DESCARTAR Y RE-ESCANEAR</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 50 }} />
+        </ScrollView>
+      )}
+
+      {appState === 'history' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+          <Text style={[AppStyles.textWhite, { fontSize: 18, fontWeight: 'bold', marginBottom: 20 }]}>Historial de Bio-Scanner</Text>
+          {history.length === 0 ? (
+            <Text style={AppStyles.textGray}>No hay registros previos.</Text>
+          ) : (
+            history.map((item, index) => (
+              <TouchableOpacity key={index} style={[AppStyles.glassCard, { padding: 15, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }]}>
+                {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={{ width: 50, height: 50, borderRadius: 10, marginRight: 15 }} /> : <View style={{ width: 50, height: 50, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', marginRight: 15, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="image-outline" size={24} color={AppColors.textGray} /></View>}
+                <View style={{ flex: 1 }}>
+                  <Text style={[AppStyles.textWhite, { fontWeight: 'bold' }]}>{item.name}</Text>
+                  <Text style={[AppStyles.textGray, { fontSize: 11 }]}>{item.type.toUpperCase()} • {item.bioScore} BioScore</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={AppColors.textGray} />
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
       )}
     </View>
@@ -594,9 +515,10 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.primaryBioGreen
   },
   badgeText: {
-    color: AppColors.textGray,
-    fontSize: 10,
-    fontWeight: 'bold'
+    color: 'white',
+    fontSize: 9,
+    fontWeight: 'bold',
+    letterSpacing: 1
   },
   cameraContainer: {
     flex: 1,
@@ -605,13 +527,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(19, 236, 91, 0.2)'
-  },
-  corner: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderColor: AppColors.primaryBioGreen,
-    opacity: 0.8
   },
   scanLine: {
     position: 'absolute',
@@ -629,7 +544,7 @@ const styles = StyleSheet.create({
   },
   cameraOverlay: {
     position: 'absolute',
-    top: 40,
+    top: 30,
     left: 0,
     right: 0,
     alignItems: 'center'
@@ -637,48 +552,60 @@ const styles = StyleSheet.create({
   focusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    gap: 6
+    borderColor: 'rgba(19, 236, 91, 0.3)',
+    gap: 8
   },
   focusText: {
     color: 'white',
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold'
   },
   cameraActions: {
     position: 'absolute',
     bottom: 30,
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    gap: 15
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 20
   },
   scanBtn: {
-    flex: 1,
-    backgroundColor: 'rgba(25, 25, 25, 0.9)',
-    borderRadius: 20,
-    padding: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)'
   },
   captureBtn: {
-    flex: 1,
-    backgroundColor: AppColors.primaryBioGreen,
-    borderRadius: 20,
-    padding: 20,
-    alignItems: 'center'
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(19, 236, 91, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: AppColors.primaryBioGreen
+  },
+  innerCaptureBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'white'
   },
   btnSubText: {
-    marginTop: 5,
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: 'white'
+    fontSize: 8,
+    color: 'white',
+    marginTop: 2,
+    fontWeight: 'bold'
   },
   fullCenter: {
     flex: 1,
@@ -690,7 +617,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: AppColors.surfaceGlass,
+    backgroundColor: 'rgba(19, 236, 91, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -699,29 +626,21 @@ const styles = StyleSheet.create({
   },
   orbit: {
     position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)'
-  },
-  orbitDot: {
-    position: 'absolute',
-    top: 0,
-    left: 71,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: AppColors.primaryBioGreen
+    borderColor: 'rgba(19, 236, 91, 0.2)',
+    borderStyle: 'dashed'
   },
   progressBarBg: {
-    width: '80%',
-    height: 4,
+    width: '100%',
+    height: 6,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 20,
-    marginBottom: 10
+    borderRadius: 3,
+    marginTop: 30,
+    marginBottom: 10,
+    overflow: 'hidden'
   },
   progressBarFill: {
     height: '100%',
@@ -729,91 +648,79 @@ const styles = StyleSheet.create({
   },
   analyzingText: {
     color: AppColors.textGray,
-    fontSize: 11,
-    fontWeight: 'bold'
-  },
-  checkCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(19, 236, 91, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(19, 236, 91, 0.3)'
-  },
-  sectionLabel: {
-    color: AppColors.textGray,
     fontSize: 10,
     fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 25
+    letterSpacing: 1
   },
-  donutContainer: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    justifyContent: 'center',
+  bioScoreBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  macroItem: {
     alignItems: 'center'
-  },
-  donutInner: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: AppColors.surfaceDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10
-  },
-  calText: {
-    color: 'white',
-    fontSize: 42,
-    fontWeight: 'bold'
-  },
-  calSubText: {
-    color: AppColors.textGray,
-    fontSize: 10,
-    fontWeight: 'bold'
-  },
-  macroStat: {
-    alignItems: 'center'
-  },
-  macroDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginBottom: 8
   },
   macroVal: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold'
   },
   macroLabel: {
-    fontSize: 8,
+    fontSize: 9,
     color: AppColors.textGray,
     fontWeight: 'bold',
     marginTop: 2
   },
-  verdictCard: {
-    flexDirection: 'row',
-    gap: 15,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+  recCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
     padding: 12,
-    borderRadius: 15,
+    borderRadius: 12,
+    borderLeftWidth: 3,
     marginBottom: 10
   },
-  verdictTitle: {
+  recTitle: {
     color: 'white',
     fontSize: 13,
     fontWeight: 'bold'
   },
-  verdictDesc: {
+  recDesc: {
     color: AppColors.textGray,
     fontSize: 11,
     marginTop: 2
+  },
+  axiomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
+  healthMetricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  adviceBox: {
+    backgroundColor: 'rgba(10, 132, 255, 0.1)',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(10, 132, 255, 0.2)'
+  },
+  liveBadge: {
+    backgroundColor: 'rgba(19, 236, 91, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(19, 236, 91, 0.3)'
+  },
+  liveText: {
+    color: AppColors.primaryBioGreen,
+    fontSize: 8,
+    fontWeight: '900'
   }
 });

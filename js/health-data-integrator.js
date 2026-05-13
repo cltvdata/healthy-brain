@@ -6,6 +6,17 @@ class HealthDataIntegrator {
     this.userProfile = this.loadUserProfile();
     this.dataSources = this.initializeDataSources();
     this.syncStatus = { lastSync: null, sources: {} };
+    this.firebaseInitialized = false;
+    this.initFirebase();
+  }
+
+  async initFirebase() {
+    if (window.hb_db && window.hb_auth) {
+      this.db = window.hb_db;
+      this.auth = window.hb_auth;
+      this.firebaseInitialized = true;
+      console.log('[HealthIntegrator] Firebase integration ready');
+    }
   }
 
   loadUserProfile() {
@@ -227,6 +238,70 @@ class HealthDataIntegrator {
     // Update user profile with biomarkers
     this.userProfile.biomarkers = { ...this.userProfile.biomarkers, ...biomarkers };
     this.updateProfile({ biomarkers: this.userProfile.biomarkers });
+    
+    // Reward for CSV import
+    this.applyReward(15, 'Importación de CSV');
+  }
+
+  // === REWARDS SYSTEM (NTK) ===
+  async applyReward(amount, reason) {
+    const user = this.auth?.currentUser;
+    if (!user || !this.firebaseInitialized) return;
+
+    try {
+      const userRef = this.db.collection('users').doc(user.uid);
+      const userDoc = await userRef.get();
+      const userData = userDoc.data();
+
+      let finalAmount = amount;
+      
+      // VETERAN BONUS: +15 NTK if account older than 6 months
+      if (userData && userData.createdAt) {
+        const registrationDate = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        
+        if (registrationDate < sixMonthsAgo) {
+          finalAmount += 15;
+          console.log(`[HealthIntegrator] Veteran Bonus Applied (+15 NTK) for ${reason}`);
+        }
+      }
+
+      await userRef.update({
+        ntkBalance: window.firebase.firestore.FieldValue.increment(finalAmount),
+        totalNTKEarned: window.firebase.firestore.FieldValue.increment(finalAmount),
+        lastRewardAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+        lastRewardReason: reason
+      });
+
+      // Log reward
+        isVeteranBonus: finalAmount > amount,
+        timestamp: window.firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log(`[HealthIntegrator] Reward applied: ${finalAmount} NTK for ${reason}`);
+      this.showRewardToast(finalAmount, reason);
+    } catch (error) {
+      console.error('[HealthIntegrator] Reward error:', error);
+    }
+  }
+
+  showRewardToast(amount, reason) {
+    const toast = document.createElement('div');
+    toast.className = 'smart-notification-toast';
+    toast.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary">token</span>
+        </div>
+        <div>
+          <p class="text-white font-bold text-sm">+${amount} NTK Ganados</p>
+          <p class="text-white/60 text-xs">${reason}</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
   }
 
   // === SCREENSHOT PROCESSING ===
@@ -244,6 +319,9 @@ class HealthDataIntegrator {
       ...extractedData 
     };
     this.updateProfile({ biomarkers: this.userProfile.biomarkers });
+
+    // Reward for Screenshot
+    await this.applyReward(10, 'Análisis de Captura de Pantalla');
 
     return {
       success: true,

@@ -150,13 +150,18 @@ export default function SaludConexionesScreen() {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.8,
+        base64: true,
       });
 
       if (!result.canceled) {
         await HealthConnectService.processManualEntry({
           type: 'screenshot',
-          data: { imageUri: result.assets[0].uri, timestamp: new Date() },
-          analyzedByAI: false
+          data: { 
+            imageUri: result.assets[0].uri, 
+            base64: result.assets[0].base64,
+            timestamp: new Date() 
+          },
+          analyzedByAI: true
         });
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

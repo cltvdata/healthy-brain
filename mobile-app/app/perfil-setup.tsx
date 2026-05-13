@@ -554,6 +554,7 @@ export default function PerfilSetupScreen() {
                shareBioScore,
                shareNTK,
                useAnonymousAlias,
+               profileCompleted: true,
                updatedAt: serverTimestamp()
              });
            }

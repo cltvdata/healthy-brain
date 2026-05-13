@@ -346,13 +346,37 @@ export class HealthConnectService {
       let analyzedData: any = entry.data;
       
       if (entry.type === 'screenshot' || entry.type === 'text') {
-        // Aquí iría la llamada a GeminiVisionService para analizar
-        // Por ahora análisis básico
-        analyzedData = {
-          ...entry.data,
-          aiAnalysis: this.generateMockAIAnalysis(entry.data),
-          analyzedByAI: true
-        };
+        try {
+          // Si es screenshot o texto, usamos Gemini para análisis real si hay datos base64 o texto
+          const context = `Análisis de métricas de salud desde ${entry.type === 'screenshot' ? 'captura de pantalla' : 'entrada de texto'}.`;
+          
+          if (entry.type === 'screenshot' && entry.data.base64) {
+            const aiResult = await GeminiVisionService.analyzeImage(entry.data.base64, context);
+            analyzedData = {
+              ...entry.data,
+              ...aiResult.healthData,
+              aiAnalysis: aiResult.description,
+              analyzedByAI: true,
+              // Mapear métricas de Gemini a campos conocidos con extracción robusta de números
+              steps: aiResult.healthData?.metricName.toLowerCase().includes('pasos') ? this.extractNumber(aiResult.healthData.value) : undefined,
+              hrv: aiResult.healthData?.metricName.toLowerCase().includes('hrv') ? this.extractNumber(aiResult.healthData.value) : undefined,
+              sleep: aiResult.healthData?.metricName.toLowerCase().includes('sueño') ? this.extractNumber(aiResult.healthData.value) : undefined,
+            };
+          } else {
+            analyzedData = {
+              ...entry.data,
+              aiAnalysis: this.generateMockAIAnalysis(entry.data),
+              analyzedByAI: true
+            };
+          }
+        } catch (e) {
+          console.error("Error analyzing with Gemini:", e);
+          analyzedData = {
+            ...entry.data,
+            aiAnalysis: "Error en análisis de IA. Procesado como datos manuales.",
+            analyzedByAI: false
+          };
+        }
       }
 
       // Actualizar entrada con análisis
@@ -375,10 +399,34 @@ export class HealthConnectService {
         }
       }
 
-      // Recompensa por entrada manual
-      const reward = entry.type === 'screenshot' ? 10 : entry.type === 'csv' ? 15 : 5;
+      // Recompensa por entrada manual + Bono Veterano
+      let reward = entry.type === 'screenshot' ? 10 : entry.type === 'csv' ? 15 : 5;
+      
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const userData = userDoc.data();
+      // VETERAN BONUS: +15 NTK if account older than 6 months
+      if (userData?.createdAt) {
+        let registrationDate: Date;
+        if (userData.createdAt instanceof Date) {
+          registrationDate = userData.createdAt;
+        } else if (typeof userData.createdAt.toDate === 'function') {
+          registrationDate = userData.createdAt.toDate();
+        } else {
+          registrationDate = new Date(userData.createdAt);
+        }
+
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        
+        if (registrationDate < sixMonthsAgo) {
+          reward += 15;
+          console.log(`[HealthConnectService] Veteran Bonus Applied (+15 NTK) for manual entry`);
+        }
+      }
+
       await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-        ntkBalance: increment(reward)
+        ntkBalance: increment(reward),
+        totalNTKEarned: increment(reward)
       });
 
       return true;
@@ -386,6 +434,15 @@ export class HealthConnectService {
       console.error("[HealthConnect] Manual entry error:", error);
       return false;
     }
+  }
+
+  /**
+   * Extraer número de un string de forma robusta (ej: "65ms" -> 65)
+   */
+  private static extractNumber(value: string): number {
+    if (!value) return 0;
+    const match = value.match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : 0;
   }
 
   /**

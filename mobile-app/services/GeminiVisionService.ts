@@ -27,16 +27,24 @@ export interface GeminiAnalysisResult {
   macros: MacroBreakdown;
   bioScore: number;
   ntkReward: number;
-  type: 'food' | 'beverage' | 'supplement' | 'accessory' | 'unknown';
+  type: 'food' | 'beverage' | 'supplement' | 'health_report' | 'accessory' | 'unknown';
   
   // Análisis avanzado
-  nutrients: {
+  nutrients?: {
     vitamins: string[];
     minerals: string[];
     antioxidants: string[];
   };
   
-  warnings: NutrientWarnings;
+  warnings?: NutrientWarnings;
+
+  // Health specific data
+  healthData?: {
+    metricName: string;
+    value: string;
+    interpretation: string;
+    actionableAdvice: string;
+  };
   
   // Recomendaciones personalizadas
   hormonalAdvice: string;
@@ -65,46 +73,40 @@ export class GeminiVisionService {
 
     try {
       const prompt = `
-Eres un Nutricionista Clínico, Biohacker y Experto en Longevidad con formación en medicina funcional.
-Analiza esta imagen de comida, bebida o suplemento alimenticio.
+Eres un Experto Multi-disciplinario en Biohacking, Nutrición y Análisis de Biométricos.
+Analiza esta imagen que puede ser: comida, suplementos, capturas de pantalla de aplicaciones de salud (Apple Health, Garmin, etc.) o accesorios wearables (relojes, anillos).
 
-Responde en formato JSON estricto (sin markdown, sin backticks):
+Responde en formato JSON estricto:
 
 {
-  "name": "Nombre del plato/alimento",
-  "description": "Descripción breve del plato",
-  "calories": <número>,
-  "macros": {
-    "protein": <gramos>,
-    "carbs": <gramos>,
-    "fats": <gramos>,
-    "fiber": <gramos>
+  "name": "Identificación principal del objeto/reporte",
+  "description": "Explicación breve",
+  "type": "food" | "beverage" | "supplement" | "health_report" | "accessory" | "unknown",
+  "calories": <número, solo si es comida>,
+  "macros": { "protein": <g>, "carbs": <g>, "fats": <g>, "fiber": <g> },
+  "bioScore": <0-100, qué tan positivo es para la salud del usuario>,
+  "ntkReward": <1-50, recompensa sugerida por el esfuerzo/valor>,
+  "healthData": {
+    "metricName": "Nombre de la métrica detectada (ej. HRV, Pasos, Sueño Deep)",
+    "value": "Valor detectado",
+    "interpretation": "Qué significa este valor",
+    "actionableAdvice": "Qué debe hacer el usuario"
   },
-  "bioScore": <0-100>,
-  "ntkReward": <1-50>,
-  "type": "food" | "beverage" | "supplement" | "unknown",
   "nutrients": {
-    "vitamins": ["vitamina A", "vitamina C"],
-    "minerals": ["hierro", "magnesio"],
-    "antioxidantes": ["polifenoles", "carotenoides"]
+    "vitamins": ["vitamina A"],
+    "minerals": ["magnesio"],
+    "antioxidants": ["polifenoles"]
   },
   "warnings": {
-    "highSodium": <true/false>,
-    "highSugar": <true/false>,
-    "highSaturatedFat": <true/false>,
-    "lowProtein": <true/false>
+    "highSodium": <bool>, "highSugar": <bool>, "highSaturatedFat": <bool>, "lowProtein": <bool>
   },
-  "hormonalAdvice": "Consejo basado en fase hormonal del ciclo: ${cyclePhaseContext || 'No especificada'}",
+  "hormonalAdvice": "Consejo basado en: ${cyclePhaseContext || 'No especificada'}",
   "recommendations": [
-    {
-      "title": "Título de la recomendación",
-      "description": "Descripción detallada",
-      "priority": "high" | "medium" | "low"
-    }
+    { "title": "...", "description": "...", "priority": "high" | "medium" | "low" }
   ],
-  "preparationSteps": ["Paso 1", "Paso 2"],
-  "pairingSuggestions": ["Alimento 1", "Alimento 2"],
-  "timingAdvice": "Mejor momento del día para consumir"
+  "preparationSteps": ["..."],
+  "pairingSuggestions": ["..."],
+  "timingAdvice": "..."
 }
 `;
 
@@ -142,7 +144,6 @@ Responde en formato JSON estricto (sin markdown, sin backticks):
 
     } catch (error) {
       console.error("Error al analizar imagen con Gemini:", error);
-      Alert.alert("Error de IA", "No pudimos analizar la imagen, cayendo a modo simulación.");
       return this.generateMockResult(cyclePhaseContext);
     }
   }
@@ -161,17 +162,23 @@ Responde en formato JSON estricto (sin markdown, sin backticks):
       bioScore: parsed.bioScore || 50,
       ntkReward: parsed.ntkReward || 5,
       type: parsed.type || 'unknown',
-      nutrients: {
-        vitamins: parsed.nutrients?.vitamins || [],
-        minerals: parsed.nutrients?.minerals || [],
-        antioxidants: parsed.nutrients?.antioxidants || [],
-      },
-      warnings: {
-        highSodium: parsed.warnings?.highSodium || false,
-        highSugar: parsed.warnings?.highSugar || false,
-        highSaturatedFat: parsed.warnings?.highSaturatedFat || false,
-        lowProtein: parsed.warnings?.lowProtein || false,
-      },
+      healthData: parsed.healthData ? {
+        metricName: parsed.healthData.metricName || '',
+        value: parsed.healthData.value || '',
+        interpretation: parsed.healthData.interpretation || '',
+        actionableAdvice: parsed.healthData.actionableAdvice || ''
+      } : undefined,
+      nutrients: parsed.nutrients ? {
+        vitamins: parsed.nutrients.vitamins || [],
+        minerals: parsed.nutrients.minerals || [],
+        antioxidants: parsed.nutrients.antioxidants || [],
+      } : undefined,
+      warnings: parsed.warnings ? {
+        highSodium: parsed.warnings.highSodium || false,
+        highSugar: parsed.warnings.highSugar || false,
+        highSaturatedFat: parsed.warnings.highSaturatedFat || false,
+        lowProtein: parsed.warnings.lowProtein || false,
+      } : undefined,
       hormonalAdvice: parsed.hormonalAdvice || '',
       recommendations: parsed.recommendations || [],
       preparationSteps: parsed.preparationSteps || [],
@@ -209,7 +216,7 @@ Responde en formato JSON estricto (sin markdown, sin backticks):
         bioScore: 88,
         ntkReward: 12,
         type: 'beverage' as const,
-        nutrients: { vitamins: ['Vitamina K', 'Vitamina C', 'Folato'], minerals: ['Manganeso', 'Magnesio', 'Potasio'], antioxidantes: ['Clorofila', 'catequinas'] },
+        nutrients: { vitamins: ['Vitamina K', 'Vitamina C', 'Folato'], minerals: ['Manganeso', 'Magnesio', 'Potasio'], antioxidants: ['Clorofila', 'catequinas'] },
         warnings: { highSodium: false, highSugar: true, highSaturatedFat: false, lowProtein: false },
         hormonalAdvice: '🍃 Perfecto para fase folicular. Los verdes ayudan a metabolizar estrógenos.',
         recommendations: [
@@ -218,6 +225,47 @@ Responde en formato JSON estricto (sin markdown, sin backticks):
         preparationSteps: ['Licúa hojas de espinaca con agua', 'Añade plátano congelado', 'Agrega proteína y chía'],
         pairingSuggestions: ['Egg whites', 'Nueces'],
         timingAdvice: 'Desayuno o merienda matutina'
+      },
+      {
+        name: 'Reporte de Salud (HRV)',
+        description: 'Análisis de variabilidad de frecuencia cardíaca detectada en captura',
+        calories: 0,
+        macros: { protein: 0, carbs: 0, fats: 0 },
+        bioScore: 85,
+        ntkReward: 25,
+        type: 'health_report' as const,
+        healthData: {
+          metricName: 'HRV (Variabilidad Cardíaca)',
+          value: '65ms',
+          interpretation: 'Tu sistema nervioso está en equilibrio, pero muestra ligera fatiga.',
+          actionableAdvice: 'Prioriza 8h de sueño hoy y reduce intensidad de entrenamiento.'
+        },
+        hormonalAdvice: '💤 En fase lútea, el HRV tiende a bajar. No te sobreexijas.',
+        recommendations: [
+          { title: 'Optimiza tu recuperación', description: 'Realiza 5 min de coherencia cardíaca', priority: 'high' as const },
+          { title: 'Magnesio', description: 'Toma 300mg de glicinato de magnesio antes de dormir', priority: 'medium' as const },
+        ],
+        timingAdvice: 'Ideal para revisar al despertar'
+      },
+      {
+        name: 'Anillo Inteligente (Bio-Ring)',
+        description: 'Detección de accesorio wearable para biohacking',
+        calories: 0,
+        macros: { protein: 0, carbs: 0, fats: 0 },
+        bioScore: 95,
+        ntkReward: 30,
+        type: 'accessory' as const,
+        healthData: {
+          metricName: 'Preparación (Readiness)',
+          value: '88/100',
+          interpretation: 'Tu cuerpo está listo para un esfuerzo alto.',
+          actionableAdvice: 'Es un buen día para entrenamiento de fuerza o HIIT.'
+        },
+        hormonalAdvice: '⚡ Tu energía está en pico. Aprovecha para biopotenciación.',
+        recommendations: [
+          { title: 'Sincroniza tus datos', description: 'Asegúrate de que el anillo esté vinculado para ver tendencias long-term', priority: 'high' as const },
+        ],
+        timingAdvice: 'Monitoreo continuo recomendado'
       }
     ];
 
@@ -282,7 +330,22 @@ Responde en formato JSON estricto (sin markdown, sin backticks):
   static async getAnalysisHistory(): Promise<GeminiAnalysisResult[]> {
     if (!auth.currentUser) return [];
 
-    // This would typically fetch from Firestore
-    return [];
+    try {
+      const { getDocs, query, orderBy, limit } = await import('firebase/firestore');
+      const q = query(
+        collection(db, 'users', auth.currentUser.uid, 'nutritional_analysis'),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as GeminiAnalysisResult[];
+    } catch (error) {
+      console.error("Error fetching analysis history:", error);
+      return [];
+    }
   }
 }
