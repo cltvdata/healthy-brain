@@ -66,6 +66,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#0a0a0a"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.20"
+          }
+        }
       ]
     ],
     "experiments": {
