@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, router } from 'expo-router';
+import { Stack, router, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { LanguageProvider } from '@/context/LanguageContext';
@@ -16,19 +16,28 @@ export const unstable_settings = {
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    const subscriber = onAuthStateChanged(auth, async (user) => {
+    const subscriber = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      
+      if (initializing) setInitializing(false);
+    });
+    return subscriber;
+  }, []);
+
+  useEffect(() => {
+    if (initializing || !navigationState?.key) return;
+
+    const checkRedirect = async () => {
       if (user) {
-        // Check if profile is completed
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
             if (!data.profileCompleted) {
               router.replace('/perfil-setup');
+              return;
             }
           }
         } catch (e) {
@@ -37,11 +46,10 @@ export default function RootLayout() {
       } else {
         router.replace('/login');
       }
+    };
 
-      if (initializing) setInitializing(false);
-    });
-    return subscriber;
-  }, [initializing]);
+    checkRedirect();
+  }, [user, initializing, navigationState?.key]);
 
   if (initializing) {
     return (
