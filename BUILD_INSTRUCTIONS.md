@@ -54,11 +54,11 @@ eas build -p android --profile production
 # Generate android folder
 npx expo prebuild --platform android
 
-# Build APK
+# Build APK (Release version for production)
 cd android
-./gradlew assembleDebug
+./gradlew assembleRelease
 
-# APK output: android/app/build/outputs/apk/debug/app-debug.apk
+# APK output: android/app/build/outputs/apk/release/app-release.apk
 ```
 
 ## Build Scripts
@@ -85,7 +85,7 @@ npx expo build:android
 
 ## APK Installation (Android)
 
-1. Build完成后，APK在: `mobile-app/android/app/build/outputs/apk/`
+1. Build完成后，APK在: `mobile-app/android/app/build/outputs/apk/release/`
 2. Transfer APK到手机
 3. 安装前需启用"允许安装未知来源应用"
 4. 安装并测试

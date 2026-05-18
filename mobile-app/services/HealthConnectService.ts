@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, updateDoc, getDoc, setDoc, collection, addDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { GeminiVisionService } from '@/services/GeminiVisionService';
 
 export type HealthProvider = 'apple_health' | 'google_health_connect' | 'none';
 

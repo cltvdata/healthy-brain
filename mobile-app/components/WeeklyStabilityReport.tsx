@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
-import { BlurView } from 'expo-blur';
+
 import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,7 +41,7 @@ export const WeeklyStabilityReport: React.FC<WeeklyStabilityReportProps> = ({ vi
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill}>
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.8)' }]}>
         <View style={styles.centeredView}>
           <LinearGradient
             colors={['rgba(20, 20, 25, 0.95)', 'rgba(10, 10, 15, 0.98)']}
@@ -76,7 +76,7 @@ export const WeeklyStabilityReport: React.FC<WeeklyStabilityReportProps> = ({ vi
                     fill="transparent"
                   />
                 </G>
-                <View style={StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', top: size/4 }}>
+                <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', top: size/4 }]}>
                     <Text style={[styles.gradeText, { color: gradeColor }]}>{data.grade}</Text>
                     <Text style={styles.stabilityVal}>{data.stability}%</Text>
                     <Text style={styles.stabilityLabel}>ESTABILIDAD</Text>
@@ -118,7 +118,7 @@ export const WeeklyStabilityReport: React.FC<WeeklyStabilityReportProps> = ({ vi
             </TouchableOpacity>
           </LinearGradient>
         </View>
-      </BlurView>
+      </View>
     </Modal>
   );
 };

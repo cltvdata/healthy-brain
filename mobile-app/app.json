@@ -21,7 +21,10 @@
         "NSHealthUpdateUsageDescription": "Sincronizamos tus datos de salud para calcular tu Bio-Score de longevidad.",
         "NSCameraUsageDescription": "HEALTHY + BRAIN necesita acceso a la cámara para generar tu Gemelo IA y analizar nutrición.",
         "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tus fotos para que puedas subir imágenes de tu progreso y nutrición.",
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -48,7 +51,6 @@
     },
     "plugins": [
       "expo-router",
-      "expo-haptics",
       [
         "expo-image-picker",
         {
@@ -74,7 +76,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "healthy-brain-unified"
+        "projectId": ""
       }
     }
   }

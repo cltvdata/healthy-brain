@@ -3,3 +3,6 @@ node_modules/.cache/
 .gradle/
 android/app/build/
 android/.gradle/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

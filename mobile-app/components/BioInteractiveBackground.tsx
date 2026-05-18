@@ -43,11 +43,11 @@ export const BioInteractiveBackground: React.FC<BioInteractiveBackgroundProps> =
     try {
       switch (type) {
         case 'brain':
-          return require('../assets/images/placeholder_brain.png'); // Default if not found
+          return require('../assets/anatomy/brain.jpg');
         case 'lungs':
-          return require('../assets/images/placeholder_lungs.png');
+          return require('../assets/anatomy/respiratory.jpg');
         case 'muscles':
-          return require('../assets/images/placeholder_muscles.png');
+          return require('../assets/anatomy/torso.jpg');
         default:
           return null;
       }

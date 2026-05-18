@@ -210,17 +210,16 @@ export class BioWellnessService {
 
       // Configurar audio
       await Audio.setAudioModeAsync({
-        allowsRecording: false,
-        playsInSilentMode: true,
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
         staysActiveInBackground: false,
       });
 
-      // Map sounds to files
+      // Map sounds to files (commented out until physical assets are present in assets/)
       const soundFiles: Record<string, any> = {
-        harmonicas: require('../assets/Harmonic_Frequencies_DEFAULT_MusicGPT.mp3'),
-        deep_sleep: require('../assets/Deep_Sleep_Transition_DEFAULT_MusicGPT.mp3'),
-        alpha_flow: require('../assets/Alpha_Flow_Pulse.mp3'),
-        // Fallback sounds would go here
+        // harmonicas: require('../assets/Harmonic_Frequencies_DEFAULT_MusicGPT.mp3'),
+        // deep_sleep: require('../assets/Deep_Sleep_Transition_DEFAULT_MusicGPT.mp3'),
+        // alpha_flow: require('../assets/Alpha_Flow_Pulse.mp3'),
       };
 
       const soundSource = soundFiles[soundName];

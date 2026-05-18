@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 // 3D Assets generated in Phase 12
 const ASSETS = {
-  brain: require('../assets/anatomy/brain.png'),
-  respiratory: require('../assets/anatomy/respiratory.png'),
-  torso: require('../assets/anatomy/torso.png'),
+  brain: require('../assets/anatomy/brain.jpg'),
+  respiratory: require('../assets/anatomy/respiratory.jpg'),
+  torso: require('../assets/anatomy/torso.jpg'),
 };
 
 type Layer = 'skeletal' | 'muscular' | 'organs' | 'brain' | 'respiratory';
@@ -108,7 +108,6 @@ export default function AtlasOrganico({ score = 85, hrv = 60 }: AtlasOrganicoPro
                   <View style={[styles.scanGlow, { backgroundColor: statusColor + '20' }]} />
                </Animated.View>
             </Animated.View>
-         </View>
 
          {/* Layer Controls */}
          <View style={styles.controls}>

@@ -7,8 +7,8 @@ echo.
 echo [1/3] Instalando dependencias...
 npm install
 echo.
-echo [2/3] Generando Android...
-npx expo run:android
+echo [2/3] Generando Android (Release)...
+npx expo run:android --variant release
 echo.
 echo ========================================
 echo   BUILD COMPLETO

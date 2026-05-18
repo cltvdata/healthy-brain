@@ -8,8 +8,8 @@ import { auth, db } from '@/constants/FirebaseConfig';
 import { doc, getDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import GeminiVisionService, { GeminiAnalysisResult } from '@/services/GeminiVisionService';
-import { BlurView } from 'expo-blur';
+import { GeminiVisionService, GeminiAnalysisResult } from '@/services/GeminiVisionService';
+
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
