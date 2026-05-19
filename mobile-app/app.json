@@ -66,7 +66,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0a0a0a"
         }
-      ]
+      ],
+      "./plugins/withKotlinVersion"
     ],
     "experiments": {
       "typedRoutes": true
