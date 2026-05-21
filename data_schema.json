@@ -1,0 +1,139 @@
+{
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "analyze_biological_input",
+          "description": "Analiza imágenes (alimentos, suplementos, reportes de salud, wearables) y devuelve un análisis detallado del impacto biológico, nutricional y recomendaciones hiper-personalizadas basadas en la fisiología humana.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "name": {
+                "type": "STRING",
+                "description": "Identificación principal del objeto o tipo de reporte."
+              },
+              "description": {
+                "type": "STRING",
+                "description": "Explicación breve del contenido evaluado."
+              },
+              "type": {
+                "type": "STRING",
+                "enum": ["food", "beverage", "supplement", "health_report", "accessory", "unknown"],
+                "description": "Categoría taxonómica del objeto evaluado."
+              },
+              "calories": {
+                "type": "INTEGER",
+                "description": "Estimación calórica (Solo aplica si el tipo es food o beverage)."
+              },
+              "macros": {
+                "type": "OBJECT",
+                "description": "Desglose de macronutrientes en gramos.",
+                "properties": {
+                  "protein": { "type": "INTEGER" },
+                  "carbs": { "type": "INTEGER" },
+                  "fats": { "type": "INTEGER" },
+                  "fiber": { "type": "INTEGER" }
+                }
+              },
+              "bioScore": {
+                "type": "INTEGER",
+                "description": "Métrica de 0 a 100 que indica qué tan positivo es este elemento para el sistema biológico."
+              },
+              "ntkReward": {
+                "type": "INTEGER",
+                "description": "Recompensa económica neuro-simulada (Neuro-Token) de 1 a 50 sugerida por el esfuerzo/valor saludable."
+              },
+              "healthData": {
+                "type": "OBJECT",
+                "description": "Datos extraídos de un reporte o wearable.",
+                "properties": {
+                  "metricName": { "type": "STRING" },
+                  "value": { "type": "STRING" },
+                  "interpretation": { "type": "STRING" },
+                  "actionableAdvice": { "type": "STRING" }
+                }
+              },
+              "nutrients": {
+                "type": "OBJECT",
+                "description": "Micronutrientes detectados.",
+                "properties": {
+                  "vitamins": { "type": "ARRAY", "items": { "type": "STRING" } },
+                  "minerals": { "type": "ARRAY", "items": { "type": "STRING" } },
+                  "antioxidants": { "type": "ARRAY", "items": { "type": "STRING" } }
+                }
+              },
+              "warnings": {
+                "type": "OBJECT",
+                "description": "Banderas rojas inflamatorias o catabólicas.",
+                "properties": {
+                  "highSodium": { "type": "BOOLEAN" },
+                  "highSugar": { "type": "BOOLEAN" },
+                  "highSaturatedFat": { "type": "BOOLEAN" },
+                  "lowProtein": { "type": "BOOLEAN" }
+                }
+              },
+              "hormonalAdvice": {
+                "type": "STRING",
+                "description": "Consejo basado en la fase del ciclo hormonal (si aplica)."
+              },
+              "recommendations": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "OBJECT",
+                  "properties": {
+                    "title": { "type": "STRING" },
+                    "description": { "type": "STRING" },
+                    "priority": { "type": "STRING", "enum": ["high", "medium", "low"] }
+                  }
+                }
+              },
+              "preparationSteps": {
+                "type": "ARRAY",
+                "items": { "type": "STRING" },
+                "description": "Pasos para preparar/ejecutar el protocolo."
+              },
+              "pairingSuggestions": {
+                "type": "ARRAY",
+                "items": { "type": "STRING" },
+                "description": "Sugerencias biológicas complementarias (ej. alimentos sinérgicos)."
+              },
+              "timingAdvice": {
+                "type": "STRING",
+                "description": "El mejor momento circadiano para consumir el alimento o realizar la acción."
+              }
+            },
+            "required": ["name", "description", "type", "bioScore", "ntkReward", "hormonalAdvice", "recommendations"]
+          }
+        },
+        {
+          "name": "evaluate_bio_readiness",
+          "description": "Evalúa el estado biológico total del usuario basado en sus métricas de salud (HRV, Sueño, etc.) para entregar un Score de Preparación (Readiness).",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "readinessScore": {
+                "type": "INTEGER",
+                "description": "Puntuación ponderada de 0 a 100 evaluando la capacidad biológica del usuario para ejecutar esfuerzo físico/mental."
+              },
+              "status": {
+                "type": "STRING",
+                "enum": ["OPTIMAL", "MODERATE", "REST_ADVISED"],
+                "description": "Estado de alerta del sistema nervioso central y muscular."
+              },
+              "primaryAdvise": {
+                "type": "STRING",
+                "description": "Instrucción principal para el usuario basada en su Score (ej. 'Estado de Alerta Catabólica. Descanso total')."
+              },
+              "bioNotes": {
+                "type": "ARRAY",
+                "items": { "type": "STRING" },
+                "description": "Notas patológicas o clínicas específicas detectadas (ej. 'Fatiga sistémica detectada')."
+              }
+            },
+            "required": ["readinessScore", "status", "primaryAdvise", "bioNotes"]
+          }
+        }
+      ]
+    }
+  ]
+}

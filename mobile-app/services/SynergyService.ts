@@ -5,7 +5,7 @@ import { BioEconomy } from '@/constants/BioEconomy';
 import { runTransaction } from 'firebase/firestore';
 import { SquadMiningService } from './SquadMiningService';
 
-export type SynergyType = 'workout' | 'steps' | 'focus' | 'nutrition' | 'challenge';
+export type SynergyType = 'workout' | 'steps' | 'focus' | 'nutrition' | 'challenge' | 'discovery' | 'redemption';
 
 export interface Synergy {
   id?: string;

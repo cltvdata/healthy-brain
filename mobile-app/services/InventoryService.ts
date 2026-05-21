@@ -19,7 +19,7 @@ export class InventoryService {
    * Redeems an item using NTK or Rank requirements.
    */
   static async redeemItem(userId: string, item: Partial<InventoryItem>, costNtk: number, requiredRank?: string) {
-    const userRef = doc(doc(db, 'users', userId));
+    const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) throw new Error("Usuario no encontrado");
