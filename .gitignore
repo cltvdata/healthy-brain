@@ -6,5 +6,8 @@ mingit/
 .vercel/
 .gemini/
 .agents/
-
-.vercel
+dist/
+serviceAccountKey.json
+.firebase/
+*.key
+credentials.json

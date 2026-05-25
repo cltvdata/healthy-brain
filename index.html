@@ -328,6 +328,29 @@
         syncData();
         window.addEventListener('focus', syncData);
     </script>
+
+    <!-- Firebase SDK + Auth Guard -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const auth = window.hb_auth;
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                } else {
+                    const greeting = document.getElementById('greeting');
+                    const hour = new Date().getHours();
+                    let greetText = 'Buenos días';
+                    if (hour >= 12 && hour < 18) greetText = 'Buenas tardes';
+                    if (hour >= 18) greetText = 'Buenas noches';
+                    greeting.innerText = `${greetText}, ${user.email?.split('@')[0] || 'Guerrero'}`;
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

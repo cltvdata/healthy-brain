@@ -183,11 +183,33 @@
 
     </div>
 
+    <!-- Firebase SDK + Auth -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+
     <script>
         // Referral System
-        const userCode = localStorage.getItem('hb_referral_code') || generateCode();
+        let userCode = localStorage.getItem('hb_referral_code') || generateCode();
         document.getElementById('referral-code').textContent = userCode;
         localStorage.setItem('hb_referral_code', userCode);
+
+        // Sync referral code with Firestore if logged in
+        async function syncReferralCode() {
+            const auth = window.hb_auth;
+            const db = window.hb_db;
+            const user = auth?.currentUser;
+            if (user && db) {
+                try {
+                    await db.collection('users').doc(user.uid).update({
+                        referralCode: userCode,
+                        referralLink: `https://healthy-brain-id.web.app/register?ref=${userCode}`
+                    });
+                } catch (e) { /* user doc may not exist yet */ }
+            }
+        }
+        syncReferralCode();
 
         function generateCode() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
