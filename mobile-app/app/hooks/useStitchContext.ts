@@ -25,6 +25,13 @@ export interface StitchContext {
   hour: number;
 }
 
+const getTimeOfDay = (hour: number) => {
+  if (hour >= 5 && hour < 12) return 'dawn';
+  if (hour >= 12 && hour < 17) return 'noon';
+  if (hour >= 17 && hour < 21) return 'dusk';
+  return 'night';
+};
+
 export function useStitchContext() {
   const systemColorScheme = useColorScheme();
   const [context, setContext] = useState<StitchContext>({
@@ -43,13 +50,6 @@ export function useStitchContext() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
-
-  const getTimeOfDay = (hour: number) => {
-    if (hour >= 5 && hour < 12) return 'dawn';
-    if (hour >= 12 && hour < 17) return 'noon';
-    if (hour >= 17 && hour < 21) return 'dusk';
-    return 'night';
-  };
 
   const updateContext = () => {
     const hour = new Date().getHours();

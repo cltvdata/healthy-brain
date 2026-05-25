@@ -44,7 +44,7 @@ export default function SaludConexionesScreen() {
     try {
       const status = await HealthConnectService.getSyncStatus();
       setCurrentProvider(status.provider);
-      setConnectedDevices(status.connectedDevices);
+      setConnectedDevices(typeof status.connectedDevices === 'number' ? [] : status.connectedDevices);
       setLastSync(status.lastSync);
       setPermissions(status.permissions);
       
@@ -161,7 +161,8 @@ export default function SaludConexionesScreen() {
             base64: result.assets[0].base64,
             timestamp: new Date() 
           },
-          analyzedByAI: true
+          analyzedByAI: true,
+          createdAt: new Date()
         });
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

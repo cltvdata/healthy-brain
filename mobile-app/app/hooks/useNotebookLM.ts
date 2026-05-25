@@ -51,8 +51,8 @@ export function useNotebookLM() {
       score: calculateRelevance(prompt, s) * s.weight
     }));
 
-    if (priorityTypes?.length > 0) {
-      results = results.filter(r => priorityTypes.includes(r.type));
+    if (priorityTypes && priorityTypes.length > 0) {
+      results = results.filter(r => priorityTypes!.includes(r.type));
     }
 
     return results.sort((a, b) => b.score - a.score).slice(0, 5);

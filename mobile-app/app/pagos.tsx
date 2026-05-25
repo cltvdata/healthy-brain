@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { BioEconomy, NTK_PACKS } from '@/constants/BioEconomy';
 import { db, auth } from '@/constants/FirebaseConfig';
-import { onSnapshot, doc } from 'firebase/firestore';
+import { onSnapshot, doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function PagosScreen() {
   const [selectedPackId, setSelectedPackId] = useState<string>(NTK_PACKS[1].id);
@@ -210,7 +210,6 @@ export default function PagosScreen() {
                 <TouchableOpacity 
                   onPress={async () => {
                     try {
-                      const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
                       if (auth.currentUser) {
                         await addDoc(collection(db, 'tx_validation'), {
                           userId: auth.currentUser.uid,

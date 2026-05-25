@@ -66,7 +66,7 @@ const TRANSLATIONS = {
     
     sec2Title: "📷 CAMERA AND IMAGE ANALYSIS",
     sec2p1: "By using camera functions (nutritional scanning, AI Twin, screenshots), you authorize the app to process images for analysis. These images are stored securely and used exclusively for requested services.",
-    sh2p2: "AI food image analysis is an estimate and may not be accurate. Do not use this data as the sole source of nutritional information if you have medical dietary restrictions.",
+    sec2p2: "AI food image analysis is an estimate and may not be accurate. Do not use this data as the sole source of nutritional information if you have medical dietary restrictions.",
     sec2p3: "The AI Twin is a visual tracking tool and does NOT represent a medical diagnosis or professional physical assessment.",
     
     sec3Title: "🏥 HEALTH CONNECTED - APPLE HEALTH & GOOGLE HEALTH CONNECT",
@@ -181,7 +181,7 @@ export default function LegalDisclaimerScreen() {
         {/* Sección 1: IA */}
         <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 15 }]}>
           <View style={[AppStyles.rowCentered, { marginBottom: 10 }]}>
-            <Ionicons name="robot" size={20} color={AppColors.primaryNeonBlue} style={{ marginRight: 8 }} />
+            <Ionicons name="code-slash" size={20} color={AppColors.primaryNeonBlue} style={{ marginRight: 8 }} />
             <Text style={[AppStyles.textWhite, { fontWeight: 'bold', fontSize: 15 }]}>{t.sec1Title}</Text>
           </View>
           <Text style={[AppStyles.textGray, { fontSize: 12, lineHeight: 18 }]}>{t.sec1p1}</Text>
@@ -224,7 +224,7 @@ export default function LegalDisclaimerScreen() {
         {/* Sección 5: Responsabilidad */}
         <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 15 }]}>
           <View style={[AppStyles.rowCentered, { marginBottom: 10 }]}>
-            <Ionicons name="alert-triangle" size={20} color="#ffcc00" style={{ marginRight: 8 }} />
+            <Ionicons name="warning" size={20} color="#ffcc00" style={{ marginRight: 8 }} />
             <Text style={[AppStyles.textWhite, { fontWeight: 'bold', fontSize: 15 }]}>{t.sec5Title}</Text>
           </View>
           <Text style={[AppStyles.textGray, { fontSize: 12, lineHeight: 18, marginBottom: 8 }]}>{t.sec5p1}</Text>

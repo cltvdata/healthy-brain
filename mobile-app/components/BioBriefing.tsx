@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BioProjection, BioForecasting } from '@/services/BioForecasting';
 import { db, auth } from '@/constants/FirebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { BioNotificationService } from '@/services/NotificationService';
 
 interface Props {
   visible: boolean;
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export default function BioBriefing({ visible, onClose, userId }: Props) {
-  const [notifications, setNotifications] = useState<BioNotification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<{ hrvTrend: number; consistency: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [fadeAnim] = useState(new Animated.Value(0));

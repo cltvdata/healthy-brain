@@ -92,6 +92,11 @@ export const AppStyles = StyleSheet.create({
     letterSpacing: 1,
   },
   
+  glowBtnBioGreenText: {
+    color: AppColors.textBlack,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
   glowBtnBioGreen: {
     backgroundColor: AppColors.primaryBioGreen,
     shadowColor: AppColors.primaryBioGreen,

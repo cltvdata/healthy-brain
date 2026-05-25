@@ -366,7 +366,7 @@ export default function ProgresoScreen() {
 
         {showManualSync && (
           <View style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 15, padding: 20, marginTop: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
-             <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', marginBottom: 15, color: AppColors.textGray }}>Inserta los datos como figuran en tu pulsera inteligente:</Text>
+             <Text style={{ color: AppColors.textGray, fontSize: 10, fontWeight: 'bold', marginBottom: 15 }}>Inserta los datos como figuran en tu pulsera inteligente:</Text>
              <View style={{ flexDirection: 'row', gap: 10 }}>
                <View style={{ flex: 1 }}>
                  <Text style={styles.legendText}>Pasos hoy</Text>

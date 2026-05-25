@@ -10,6 +10,7 @@ import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, incr
 import { useLanguage } from '@/context/LanguageContext';
 import { BioCycleService, BioCycleState } from '@/services/BioCycleService';
 import { BioTwinService } from '@/services/BioTwinService';
+import * as ImagePicker from 'expo-image-picker';
 import BioAvatar3D from '@/components/BioAvatar3D';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -491,7 +492,7 @@ export default function PerfilSetupScreen() {
             <View style={{ alignItems: 'center', paddingVertical: 15 }}>
                <BioAvatar3D size={200} glowColor={AppColors.primaryBioGreen} intensity="high" />
                <View style={[styles.syncStatus, { backgroundColor: AppColors.primaryBioGreen + '20', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15 }]}>
-                  <Ionicons name="checkmark-seal" size={18} color={AppColors.primaryBioGreen} />
+                  <Ionicons name="checkmark-circle" size={18} color={AppColors.primaryBioGreen} />
                   <Text style={[styles.syncStatusText, { fontSize: 11 }]}>GEMELO INSTANCIADO</Text>
                </View>
                

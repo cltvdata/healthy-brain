@@ -31,6 +31,11 @@ export interface BioUser {
   ntkBalance?: number;
   photoPrivacy?: 'public' | 'private';
   statsPrivacy?: 'public' | 'private';
+  activeBoost?: {
+    title: string;
+    multiplier: number;
+    expiresAt: number;
+  };
 }
 
 export class SynergyService {

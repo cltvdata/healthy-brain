@@ -1,7 +1,7 @@
 // services/GeminiVisionService.ts
 import { Alert } from 'react-native';
 import { db, auth } from '@/constants/FirebaseConfig';
-import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, getDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY";
 
@@ -331,7 +331,6 @@ Responde en formato JSON estricto:
     if (!auth.currentUser) return [];
 
     try {
-      const { getDocs, query, orderBy, limit } = await import('firebase/firestore');
       const q = query(
         collection(db, 'users', auth.currentUser.uid, 'nutritional_analysis'),
         orderBy('createdAt', 'desc'),

@@ -44,7 +44,9 @@ export function useHaptics() {
     if (!pattern) return;
 
     for (let i = 0; i < pattern.repeat; i++) {
-      await Haptics.impactAsync(pattern.type);
+      if (typeof pattern.type === 'string' && 'impactAsync' in Haptics) {
+        await Haptics.impactAsync(pattern.type as Haptics.ImpactFeedbackStyle);
+      }
       if (pattern.delay > 0 && i < pattern.repeat - 1) {
         await new Promise(r => setTimeout(r, pattern.delay));
       }

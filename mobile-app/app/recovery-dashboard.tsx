@@ -35,7 +35,7 @@ export default function RecoveryDashboard() {
 
   if (loading) {
     return (
-      <View style={[AppStyles.body, AppStyles.centered]}>
+      <View style={[AppStyles.body, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={AppColors.primaryNeonBlue} />
         <Text style={{ color: 'white', marginTop: 10 }}>SINCRONIZANDO BIOMETRÍA...</Text>
       </View>

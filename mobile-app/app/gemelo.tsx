@@ -255,7 +255,7 @@ export default function GemeloScreen() {
             {/* Insight IA */}
             <View style={[AppStyles.glassCard, { padding: 20, marginBottom: 20, backgroundColor: AppColors.primaryBioGreen + '10', borderColor: AppColors.primaryBioGreen + '30' }]}>
               <View style={[AppStyles.rowCentered, { gap: 10, marginBottom: 15 }]}>
-                <Ionicons name="brain" size={22} color={AppColors.primaryBioGreen} />
+                <Ionicons name="bulb" size={22} color={AppColors.primaryBioGreen} />
                 <Text style={[AppStyles.textWhite, { fontWeight: 'bold', fontSize: 15 }]}>Insight IA</Text>
               </View>
               <Text style={[AppStyles.textGray, { lineHeight: 22 }]}>{insight}</Text>

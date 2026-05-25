@@ -25,7 +25,7 @@ export default function AnalisisSueño() {
   const totalMin = metrics.sleepHours * 60;
   
   return (
-    <View style={[AppStyles.container, { paddingTop: 60 }]}>
+    <View style={[AppStyles.body, { paddingTop: 60 }]}>
       <View style={[AppStyles.rowBetween, { paddingHorizontal: 20, marginBottom: 30 }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="white" />

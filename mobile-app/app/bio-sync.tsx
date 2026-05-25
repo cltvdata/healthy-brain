@@ -4,7 +4,7 @@ import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { db, auth } from '@/constants/FirebaseConfig';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 
 export default function BioSyncScreen() {
   const [inputText, setInputText] = useState('');

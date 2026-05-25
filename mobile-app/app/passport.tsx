@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { auth, db } from '@/constants/FirebaseConfig';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { BioPassportCard } from '@/components/BioPassportCard';
+import BioPassportCard from '@/components/BioPassportCard';
 import { ReferralService, ReferralStats } from '@/services/ReferralService';
 import { BioScoreService } from '@/services/BioScoreService';
 import * as Haptics from 'expo-haptics';

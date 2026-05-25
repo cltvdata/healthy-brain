@@ -220,8 +220,8 @@ export default function NutricionIAScreen() {
         <Text style={[AppStyles.textWhite, { textAlign: 'center', marginBottom: 30, fontSize: 16 }]}>
           Para hackear tu nutrición, necesitamos acceso a la cámara.
         </Text>
-        <TouchableOpacity style={AppStyles.glowBtnGreen} onPress={requestPermission}>
-          <Text style={AppStyles.glowBtnGreenText}>CONCEDER ACCESO</Text>
+        <TouchableOpacity style={AppStyles.glowBtnBioGreen} onPress={requestPermission}>
+          <Text style={AppStyles.glowBtnBioGreenText}>CONCEDER ACCESO</Text>
         </TouchableOpacity>
       </View>
     );

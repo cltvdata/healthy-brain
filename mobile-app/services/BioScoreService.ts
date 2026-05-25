@@ -1,4 +1,6 @@
 import { BioMetrics } from './NativeHealthService';
+import { db } from '@/constants/FirebaseConfig';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 export interface BioImpactReport {
   score: number;
@@ -202,5 +204,22 @@ export class BioScoreService {
       task: 'Finaliza el día con una ducha de contraste.',
       reward: 75
     };
+  }
+
+  static async getScoreHistory(userId: string, days: number = 7): Promise<{ score: number; date: string }[]> {
+    try {
+      const q = query(
+        collection(db, 'users', userId, 'logs'),
+        orderBy('createdAt', 'desc'),
+        limit(days)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({
+        score: d.data().bioScore || d.data().score || 85,
+        date: d.data().createdAt?.toDate?.()?.toISOString?.() || new Date().toISOString()
+      }));
+    } catch {
+      return [];
+    }
   }
 }

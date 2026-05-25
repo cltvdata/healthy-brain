@@ -4,7 +4,7 @@ import { AppStyles, AppColors } from '@/constants/AppStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { db, auth } from '@/constants/FirebaseConfig';
-import { doc, onSnapshot, runTransaction } from 'firebase/firestore';
+import { doc, onSnapshot, runTransaction, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Share, Clipboard } from 'react-native';
 import { BioEconomy } from '@/constants/BioEconomy';
 
@@ -67,7 +67,6 @@ export default function RecompensasScreen() {
       });
 
       // Log to Bio-Cloud History
-      const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
       await addDoc(collection(db, 'users', auth.currentUser.uid, 'logs'), {
         type: type === 'boost' ? 'boost_activate' : 'redeem',
         category: 'market',

@@ -123,7 +123,7 @@ export default function AnalisisLongevidad() {
              </View>
 
              {/* Bio-Twin 2050 Projection (NEW) */}
-             <View style={[AppStyles.glassCard, { padding: 25, marginBottom: 25, borderStyle: 'dashed', borderDashArray: [10, 5], borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }]}>
+             <View style={[AppStyles.glassCard, { padding: 25, marginBottom: 25, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }]}>
                  <View style={AppStyles.rowBetween}>
                     <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Bio-Twin 🧬 2050</Text>
                     <View style={{ backgroundColor: 'rgba(0, 209, 255, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
