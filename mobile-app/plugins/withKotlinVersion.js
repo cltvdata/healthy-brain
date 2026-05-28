@@ -1,14 +1,21 @@
-const { withAppBuildGradle } = require('@expo/config-plugins')
+const { withAppBuildGradle, withProjectBuildGradle } = require('@expo/config-plugins')
 
-const withFixEnableBundleCompression = (config) => {
+module.exports = function withKotlinVersion(config) {
   config = withAppBuildGradle(config, (config) => {
-    let contents = config.modResults.contents
-    contents = contents.replace(/enableBundleCompression/g, '// removed: ')
-    config.modResults.contents = contents
+    config.modResults.contents = config.modResults.contents.replace(
+      /enableBundleCompression/g,
+      '// removed: '
+    )
+    return config
+  })
+
+  config = withProjectBuildGradle(config, (config) => {
+    config.modResults.contents = config.modResults.contents.replace(
+      /ext\.kotlinVersion\s*=\s*"[\d.]+"/,
+      'ext.kotlinVersion = "2.0.0"'
+    )
     return config
   })
 
   return config
 }
-
-module.exports = withFixEnableBundleCompression
