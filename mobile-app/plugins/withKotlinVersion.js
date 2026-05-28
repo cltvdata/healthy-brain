@@ -1,9 +1,7 @@
 const {
   withProjectBuildGradle,
-  withDangerousMod,
+  withAppBuildGradle,
 } = require('@expo/config-plugins')
-const fs = require('fs')
-const path = require('path')
 
 const KOTLIN_VERSION = '2.0.20'
 
@@ -27,24 +25,14 @@ const withKotlinVersion = (config) => {
     return config
   })
 
-  config = withDangerousMod(config, [
-    'android',
-    (config) => {
-      const appBuildGradle = path.join(
-        config.modRequest.platformProjectRoot,
-        'app',
-        'build.gradle'
-      )
+  config = withAppBuildGradle(config, (config) => {
+    let contents = config.modResults.contents
 
-      if (fs.existsSync(appBuildGradle)) {
-        let content = fs.readFileSync(appBuildGradle, 'utf-8')
-        content = content.replace(/enableBundleCompression/g, '// removed: ')
-        fs.writeFileSync(appBuildGradle, content)
-      }
+    contents = contents.replace(/enableBundleCompression/g, '// removed: ')
 
-      return config
-    },
-  ])
+    config.modResults.contents = contents
+    return config
+  })
 
   return config
 }

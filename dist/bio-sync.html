@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HEALTHY + BRAIN - Bio-Sync</title>
+    <title>HEALTHY + BRAIN - Bio-Sync AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
@@ -12,332 +12,154 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#ff8a00', neon: '#00d1ff', dark: '#0a0a0a', surface: '#121212' },
-                    fontFamily: { sans: ['Outfit', 'sans-serif'] }
+                    colors: {
+                        primary: '#ff8a00',
+                        neon: '#00d1ff',
+                        dark: '#0a0a0a',
+                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .pulse-glow { animation: pulseGlow 2s infinite; }
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(19, 236, 91, 0.2); }
-            50% { box-shadow: 0 0 40px rgba(19, 236, 91, 0.6); }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            -webkit-tap-highlight-color: transparent;
+            background-image:
+                radial-gradient(circle at 50% 10%, rgba(0, 209, 255, 0.03) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
         }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
+  <link rel="stylesheet" crossorigin href="/assets/design-system-0uwJ9bPg.css">
 </head>
 
-<body class="bg-dark text-white min-h-screen">
-    <div class="w-full max-w-md mx-auto min-h-screen p-6 pb-24">
-        
-        <!-- Header -->
-        <header class="flex items-center justify-between mb-8">
-            <a href="index.html" class="w-10 h-10 rounded-full bg-surface border border-white/10 flex items-center justify-center">
-                <span class="material-symbols-outlined">arrow_back</span>
+<body class="text-white min-h-screen">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden bg-dark border-x border-white/5 shadow-2xl">
+        <header class="flex items-center gap-4 p-6 pb-4 bg-dark/80 backdrop-blur-xl sticky top-0 z-40">
+            <a href="index.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all shrink-0">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </a>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                <span class="text-xs font-bold text-gray-400">AI Bio-Sync</span>
+            <div>
+                <h1 class="text-xl font-black tracking-tighter uppercase italic leading-tight">Bio-<span class="text-neon">Sync AI</span></h1>
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-0.5">Importa tus Datos</p>
             </div>
         </header>
 
-        <!-- Title -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-black mb-2">Sincroniza tu <span class="text-primary">Biología</span></h1>
-            <p class="text-sm text-gray-400">Automatiza tus datos desde otras apps o analiza tus métricas</p>
-        </div>
+        <main class="flex-1 px-6 pb-24 overflow-y-auto no-scrollbar">
+            <section class="py-6">
+                <div class="glass-card p-6 border-white/5 mb-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-neon/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-neon text-2xl">sync</span>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg">Sincronización Universal</h2>
+                            <p class="text-[10px] text-text-gray">Conecta tus apps de salud</p>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Quick Import Section -->
-        <section class="mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Importar desde otras apps</h2>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="document.getElementById('screenshot-input').click()" 
-                    class="p-4 bg-surface border border-white/10 rounded-2xl flex flex-col items-center gap-2 hover:border-primary/50 transition-all">
-                    <span class="material-symbols-outlined text-primary text-2xl">screenshot</span>
-                    <span class="text-xs font-bold">Subir Screenshot</span>
-                    <span class="text-[10px] text-gray-500 text-center">Apple Health, Samsung Health, Fitbit</span>
-                </button>
-                <input type="file" id="screenshot-input" class="hidden" accept="image/*" onchange="processScreenshot(this)">
+                <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Apps Soportadas</h3>
                 
-                <button onclick="openCameraSync()" 
-                    class="p-4 bg-surface border border-white/10 rounded-2xl flex flex-col items-center gap-2 hover:border-primary/50 transition-all">
-                    <span class="material-symbols-outlined text-neon text-2xl">photo_camera</span>
-                    <span class="text-xs font-bold">Escanear Métricas</span>
-                    <span class="text-[10px] text-gray-500 text-center">Analiza tus datos en tiempo real</span>
-                </button>
-                
-                <button onclick="connectHealthApp()" 
-                    class="p-4 bg-surface border border-white/10 rounded-2xl flex flex-col items-center gap-2 hover:border-primary/50 transition-all">
-                    <span class="material-symbols-outlined text-green-400 text-2xl">link</span>
-                    <span class="text-xs font-bold">Conectar Apps</span>
-                    <span class="text-[10px] text-gray-500 text-center">Health Connect, Google Fit</span>
-                </button>
+                <div class="space-y-3">
+                    <button onclick="connectApp('apple')" class="w-full glass-card p-4 flex items-center justify-between border-white/5 hover:border-neon/30 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">apple</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-sm">Apple Health</p>
+                                <p class="text-[9px] text-text-gray">FC, Pasos, Sueño</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-text-gray group-hover:text-neon">chevron_right</span>
+                    </button>
 
-                <button onclick="showManualInput()" 
-                    class="p-4 bg-surface border border-white/10 rounded-2xl flex flex-col items-center gap-2 hover:border-primary/50 transition-all">
-                    <span class="material-symbols-outlined text-gray-400 text-2xl">edit_note</span>
-                    <span class="text-xs font-bold">Entrada Manual</span>
-                    <span class="text-[10px] text-gray-500 text-center">Ingresa tus métricas</span>
-                </button>
-            </div>
-        </section>
+                    <button onclick="connectApp('google')" class="w-full glass-card p-4 flex items-center justify-between border-white/5 hover:border-neon/30 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">fitbit</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-sm">Google Fit</p>
+                                <p class="text-[9px] text-text-gray">Actividad, Calorías</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-text-gray group-hover:text-neon">chevron_right</span>
+                    </button>
 
-        <!-- Current Profile -->
-        <section class="mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Tu Perfil Biométrico</h2>
-            
-            <div id="profile-card" class="bg-surface border border-white/10 rounded-3xl p-6">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                        <span class="material-symbols-outlined text-primary text-3xl">person</span>
-                    </div>
-                    <div>
-                        <p class="text-lg font-black">Guerrero</p>
-                        <p class="text-sm text-gray-400">Perfil no configurado</p>
-                    </div>
+                    <button onclick="connectApp('whoop')" class="w-full glass-card p-4 flex items-center justify-between border-white/5 hover:border-neon/30 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">monitor_heart</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-sm">Whoop</p>
+                                <p class="text-[9px] text-text-gray">HRV, Recovery</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-text-gray group-hover:text-neon">chevron_right</span>
+                    </button>
+
+                    <button onclick="connectApp('ouraring')" class="w-full glass-card p-4 flex items-center justify-between border-white/5 hover:border-neon/30 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">bedtime</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-sm">Oura Ring</p>
+                                <p class="text-[9px] text-text-gray">Sueño, Readiness</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-text-gray group-hover:text-neon">chevron_right</span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-dark/50 p-4 rounded-2xl">
-                        <p class="text-xs text-gray-500 uppercase mb-1">Edad</p>
-                        <p id="profile-age" class="text-xl font-black text-primary">--</p>
-                    </div>
-                    <div class="bg-dark/50 p-4 rounded-2xl">
-                        <p class="text-xs text-gray-500 uppercase mb-1">HRV</p>
-                        <p id="profile-hrv" class="text-xl font-black text-neon">--</p>
-                    </div>
-                    <div class="bg-dark/50 p-4 rounded-2xl">
-                        <p class="text-xs text-gray-500 uppercase mb-1">Sueño</p>
-                        <p id="profile-sleep" class="text-xl font-black">--</p>
-                    </div>
-                    <div class="bg-dark/50 p-4 rounded-2xl">
-                        <p class="text-xs text-gray-500 uppercase mb-1">Pasos</p>
-                        <p id="profile-steps" class="text-xl font-black">--</p>
+                <div class="mt-10">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Importar Archivo</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="importCSV()" class="glass-card p-4 flex flex-col items-center gap-2 border-white/5 hover:border-primary/30 transition-all">
+                            <span class="material-symbols-outlined text-primary text-2xl">upload_file</span>
+                            <span class="text-[10px] font-bold uppercase">CSV</span>
+                        </button>
+                        
+                        <button onclick="importManual()" class="glass-card p-4 flex flex-col items-center gap-2 border-white/5 hover:border-neon/30 transition-all">
+                            <span class="material-symbols-outlined text-neon text-2xl">edit_note</span>
+                            <span class="text-[10px] font-bold uppercase">Manual</span>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- AI Recommendations -->
-        <section class="mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Recomendaciones IA</h2>
-            
-            <div id="ai-recommendations" class="space-y-3">
-                <div class="bg-surface border border-white/10 rounded-2xl p-4 flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-primary text-sm">auto_awesome</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold">Configura tu perfil</p>
-                        <p class="text-xs text-gray-400 mt-1">Ingresa tu edad y métricas para recibir recomendaciones personalizadas</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Protocolos por Edad -->
-        <section class="mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Protocolos de Longevidad</h2>
-            
-            <div id="protocols-container" class="space-y-3">
-                <div class="bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-black text-primary">40+ AÑOS</span>
-                        <span class="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">Activo</span>
-                    </div>
-                    <p class="text-xs text-gray-400 mb-3">Protocolo de prevención y longevidad</p>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="text-[10px] bg-white/5 px-2 py-1 rounded">NMN 500mg</span>
-                        <span class="text-[10px] bg-white/5 px-2 py-1 rounded">Resveratrol 500mg</span>
-                        <span class="text-[10px] bg-white/5 px-2 py-1 rounded">Magnesio 500mg</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+            </section>
+        </main>
     </div>
 
-    <!-- Camera Overlay -->
-    <div id="camera-overlay" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
-        <video id="sync-camera" class="flex-1 object-cover" autoplay playsinline></video>
-        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-            <div class="flex gap-4">
-                <button onclick="closeCameraSync()" class="flex-1 py-4 bg-white/10 border border-white/20 rounded-2xl text-white font-bold">Cancelar</button>
-                <button onclick="captureMetrics()" class="flex-1 py-4 bg-primary text-black font-black rounded-2xl flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">photo_camera</span> Analizar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/ai-insights-engine.js"></script>
     <script>
-        let cameraStream = null;
-
-        async function init() {
-            await window.AIInsightsEngine.init();
-            updateProfileDisplay();
-            generateRecommendations();
+        function connectApp(app) {
+            alert('📲 Conectando con ' + app.toUpperCase() + '...\n\nEsta función se integrará con la API de ' + app + ' en la próxima actualización.');
         }
-
-        function updateProfileDisplay() {
-            const profile = window.AIInsightsEngine.userProfile;
-            document.getElementById('profile-age').textContent = profile.age || '--';
-            document.getElementById('profile-hrv').textContent = profile.hrv || '--';
-            document.getElementById('profile-sleep').textContent = profile.sleepHours || '--';
-            document.getElementById('profile-steps').textContent = profile.steps || '--';
-        }
-
-        async function processScreenshot(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const result = await window.AIInsightsEngine.processHealthScreenshot(file);
-            
-            // Update profile with extracted data
-            window.AIInsightsEngine.updateProfileFromData(result);
-            updateProfileDisplay();
-            generateRecommendations();
-            
-            showToast('Datos extraídos del screenshot');
-            input.value = '';
-        }
-
-        function generateRecommendations() {
-            const insights = window.AIInsightsEngine.generateInsights();
-            const container = document.getElementById('ai-recommendations');
-            
-            let html = '';
-            
-            // Protocol based on age
-            const protocol = insights.protocol;
-            html += `
-                <div class="bg-surface border border-white/10 rounded-2xl p-4 flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-primary text-sm">fitness_center</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold">Focus: ${protocol.focus}</p>
-                        <p class="text-xs text-gray-400 mt-1">Proteína: ${protocol.proteinPerKg}g/kg • Sueño: ${protocol.sleepTarget}h</p>
-                    </div>
-                </div>
-            `;
-
-            // Exercise tips
-            insights.exerciseTips.forEach(tip => {
-                html += `
-                    <div class="bg-surface border border-white/10 rounded-2xl p-4 flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-neon/20 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-neon text-sm">directions_run</span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold">${tip.title}</p>
-                            <p class="text-xs text-gray-400 mt-1">${tip.description}</p>
-                            <p class="text-[10px] text-primary mt-2">${tip.duration} • ${tip.frequency}</p>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Alerts
-            insights.alerts.forEach(alert => {
-                html += `
-                    <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-red-400 text-sm">warning</span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-red-400">${alert.message}</p>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        async function openCameraSync() {
-            const overlay = document.getElementById('camera-overlay');
-            const video = document.getElementById('sync-camera');
-            
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' },
-                    audio: false
-                });
-                video.srcObject = cameraStream;
-                overlay.classList.remove('hidden');
-            } catch (err) {
-                console.error('[Camera] Error:', err);
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    showToast('⚠️ Cámara denegada. Permite acceso en configuración del navegador.');
-                } else if (err.name === 'NotFoundError') {
-                    showToast('📷 No se detectó cámara en este dispositivo.');
-                } else if (err.name === 'NotReadableError') {
-                    showToast('📷 La cámara está en uso por otra aplicación.');
-                } else {
-                    showToast('No se pudo acceder a la cámara: ' + err.message);
+        
+        function importCSV() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    alert('📄 Archivo seleccionado: ' + file.name + '\n\nProcesando datos...');
                 }
-            }
-        }
-
-        function closeCameraSync() {
-            const overlay = document.getElementById('camera-overlay');
-            overlay.classList.add('hidden');
-            
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-        }
-
-        function captureMetrics() {
-            closeCameraSync();
-            
-            // Simulate biometric analysis
-            const mockData = {
-                hrv: Math.floor(Math.random() * 20) + 50,
-                sleepHours: Math.floor(Math.random() * 2) + 6.5,
-                steps: Math.floor(Math.random() * 4000) + 6000,
-                restingHR: Math.floor(Math.random() * 15) + 55
             };
-            
-            window.AIInsightsEngine.updateProfileFromData(mockData);
-            updateProfileDisplay();
-            generateRecommendations();
-            
-            // Calculate metrics
-            const metrics = window.AIInsightsEngine.calculateMetrics(mockData);
-            showToast(`HRV: ${mockData.hrv}ms • Sueño: ${mockData.sleepHours}h`);
+            input.click();
         }
-
-        function connectHealthApp() {
-            showToast('Conectando con Health Connect...');
-            // In production: use Health Connect API
+        
+        function importManual() {
+            window.location.href = 'index.html';
         }
-
-        function showManualInput() {
-            const age = prompt('Ingresa tu edad:');
-            if (age) {
-                window.AIInsightsEngine.userProfile.age = parseInt(age);
-                window.AIInsightsEngine.save();
-                updateProfileDisplay();
-                generateRecommendations();
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-surface border border-white/10 px-6 py-3 rounded-2xl text-xs font-bold text-white shadow-2xl z-[200]';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        init();
     </script>
 </body>
-
 </html>

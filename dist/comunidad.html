@@ -1,21 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Comunidad Bio - HEALTHY + BRAIN</title>
+    <title>HEALTHY + BRAIN - Comunidad</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <!-- Scripts Core -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- Firebase SDK v8 -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="js/firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script>
         tailwind.config = {
             theme: {
@@ -31,1138 +23,125 @@
         }
     </script>
     <style>
-        body { font-family: 'Outfit', sans-serif; background-color: #0a0a0a; color: white; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; transition: all 0.3s ease; overflow: hidden; }
+        body { font-family: 'Outfit', sans-serif; background-color: #0a0a0a; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .avatar-border { border: 2px solid rgba(0, 209, 255, 0.3); }
-        .rank-gold { color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-        #network-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .network-container { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 24px; overflow: hidden; }
-        .bio-radar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent, rgba(10,10,10,0.8)); pointer-events: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-  <link rel="stylesheet" crossorigin href="/assets/design-system-DAJncz4I.css">
+  <link rel="stylesheet" crossorigin href="/assets/design-system-0uwJ9bPg.css">
 </head>
-<body class="bg-mesh min-h-screen">
-    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col pb-32">
-        
-        <!-- Header -->
-        <header class="p-6 flex items-center justify-between sticky top-0 bg-dark/60 backdrop-blur-xl z-50">
-            <a href="index.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+
+<body class="text-white min-h-screen">
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col overflow-x-hidden bg-dark border-x border-white/5 shadow-2xl">
+        <header class="flex items-center gap-4 p-6 pb-4 bg-dark/80 backdrop-blur-xl sticky top-0 z-40">
+            <a href="index.html" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all shrink-0">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </a>
-            <h1 class="text-xl font-black uppercase italic tracking-tighter">Bio <span class="text-neon text-2xl">Network</span></h1>
-            <div class="w-10"></div>
+            <div>
+                <h1 class="text-xl font-black tracking-tighter uppercase italic leading-tight">Bio-<span class="text-neon">Squad</span></h1>
+                <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-0.5">Comunidad</p>
+            </div>
         </header>
 
-        <main class="flex-1 px-6 pt-4 overflow-y-auto no-scrollbar">
-            
-            <!-- Bio-Network 3D Constellation -->
-            <section class="mb-10 text-center">
-                <div class="flex items-center justify-between mb-6 px-1">
-                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Red Neuronal de Sinergia</h3>
-                    <button onclick="toggleView()" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10">
-                        <span class="material-symbols-outlined text-[18px]" id="view-icon">query_stats</span>
-                    </button>
-                </div>
-                
-                <div class="network-container glass-card border-neon/20 bg-neon/5 relative group cursor-crosshair" id="main-display">
-                    <!-- Three.js Canvas -->
-                    <div id="network-3d" class="absolute inset-0"></div>
-                    
-                    <!-- Radar Overlay (Initially Hidden) -->
-                    <div id="radar-overlay" class="absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-500 flex items-center justify-center p-6 bg-dark/80 backdrop-blur-md">
-                        <canvas id="bioRadar"></canvas>
-                    </div>
-
-                    <div class="absolute bottom-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                        <div class="w-2 h-2 rounded-full bg-neon animate-pulse shadow-[0_0_8px_#00d1ff]"></div>
-                        <span class="text-[9px] font-black uppercase text-white/70 italic"><span id="active-nodes">0</span> Nodos Bio-Activos</span>
-                    </div>
-                </div>
-
-                <p class="mt-4 text-[10px] text-white/40 font-medium uppercase tracking-widest" id="network-status">
-                    Estás orbitando el <span class="text-neon font-black italic">TOP 12%</span> de la red local
-                </p>
-                
-                <div class="mt-6 flex justify-center">
-                    <button onclick="findBioMatch()" class="px-6 py-3 bg-neon text-black font-black uppercase tracking-widest rounded-xl shadow-[0_0_15px_rgba(0,209,255,0.4)] hover:shadow-[0_0_25px_rgba(0,209,255,0.6)] transition-all flex items-center gap-2" id="btn-find-match">
-                        <span class="material-symbols-outlined">radar</span> Buscar Bio-Match
-                    </button>
-                </div>
-            </section>
-
-            <!-- Community Leaderboard -->
-            <section class="mb-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Ranking de Soberanía (Individual)</h3>
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 bg-neon text-black text-[9px] font-black rounded-full uppercase">Global</button>
-                    </div>
-                </div>
-
-                <div class="space-y-3" id="leaderboard-container"></div>
-            </section>
-
-            <!-- Squad Wars (Growth & Competition) -->
-            <section class="mb-10">
-                <div class="flex justify-between items-center mb-6 px-1">
-                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Squad Wars: Top Escuadrones</h3>
-                    <span class="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded text-[8px] font-black">EN VIVO</span>
-                </div>
-                
-                <div class="glass-card border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent overflow-hidden">
-                    <table class="w-full text-left text-[10px]">
-                        <thead class="border-b border-white/5 text-white/40 uppercase font-black">
-                            <tr>
-                                <th class="p-4">Escuadrón</th>
-                                <th class="p-4">Miembros</th>
-                                <th class="p-4 text-right">Total NTK</th>
-                            </tr>
-                        </thead>
-                        <tbody id="squad-ranking-body">
-                            <!-- Populated by JS -->
-                            <tr>
-                                <td colspan="3" class="p-8 text-center text-white/20 uppercase font-bold italic">Cargando Alianzas...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Viral Referral System -->
-            <section class="mb-10">
-                <div class="glass-card p-6 border-neon/30 bg-neon/5 relative overflow-hidden group">
-                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-neon/10 rounded-full blur-3xl group-hover:bg-neon/20 transition-all"></div>
-                    
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-neon text-black flex items-center justify-center">
-                                <span class="material-symbols-outlined font-black">person_add</span>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-black uppercase text-white">Expande la Red</h4>
-                                <p class="text-[9px] text-neon font-bold uppercase tracking-widest">+250 NTK por Invitado</p>
-                            </div>
-                        </div>
-                        
-                        <p class="text-[10px] text-white/60 mb-6 leading-relaxed">Tu enlace único activa el **Bio-Bono** de bienvenida para nuevos guerreros y acelera la soberanía de tu escuadrón.</p>
-                        
-                        <div class="flex gap-2">
-                            <input id="referral-link" type="text" readonly value="https://healthybrain.app/join?ref=BRAIN_01" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white/60 font-bold outline-none">
-                            <button onclick="copyReferralLink()" class="px-4 py-3 bg-neon text-black font-black rounded-xl active:scale-95 transition-all">
-                                <span class="material-symbols-outlined text-sm">content_copy</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Social Feed / Live Activity -->
-            <section class="mb-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Actividad en Vivo</h3>
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neon/10 border border-neon/20">
-                        <div class="w-1.5 h-1.5 rounded-full bg-neon animate-pulse shadow-[0_0_6px_#00d1ff]"></div>
-                        <span class="text-[8px] font-black text-neon uppercase">Real-Time</span>
-                    </div>
-                </div>
-                
-                <div class="space-y-3" id="activity-feed">
-                    <!-- Populated by JS -->
-                    <div class="glass-card p-3 flex gap-3 items-center animate-pulse">
-                        <div class="w-8 h-8 rounded-full bg-white/5"></div>
-                        <div class="flex-1 space-y-1.5">
-                            <div class="h-2.5 w-32 bg-white/5 rounded"></div>
-                            <div class="h-2 w-20 bg-white/5 rounded"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Weekly Tournament -->
-            <section class="mb-10">
-                <div class="flex justify-between items-center mb-4 px-1">
+        <main class="flex-1 px-6 pb-24 overflow-y-auto no-scrollbar">
+            <div class="glass-card p-4 border-neon/20 mb-6">
+                <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-[11px] font-black text-white uppercase tracking-[0.3em]">Torneo Semanal</h3>
-                        <p class="text-[8px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Bio-Sovereignty Challenge</p>
+                        <p class="text-[10px] text-text-gray uppercase tracking-widest">Tu Ranking Global</p>
+                        <h2 class="text-2xl font-black text-neon">#42</h2>
                     </div>
-                    <span class="material-symbols-outlined text-primary/60 text-xl">emoji_events</span>
+                    <div class="text-right">
+                        <p class="text-[10px] text-text-gray uppercase tracking-widest">Top</p>
+                        <p class="text-lg font-bold text-primary">12%</p>
+                    </div>
                 </div>
+            </div>
 
-                <div class="glass-card p-5 border-primary/20 bg-primary/5 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-2xl font-black">trophy</span>
-                        </div>
+            <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Top Guerreros</h3>
+            
+            <div class="space-y-2 mb-6">
+                <div class="glass-card p-3 flex items-center justify-between border-yellow-500/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-black text-yellow-400 w-6">1</span>
+                        <div class="w-8 h-8 rounded-full bg-yellow-500/20"></div>
                         <div>
-                            <h4 class="text-sm font-black uppercase italic text-white">Desafío Metabólico</h4>
-                            <p class="text-[9px] text-white/50 font-bold uppercase">Mejora tu Bio-Score +10 pts en 7 días</p>
+                            <p class="font-bold text-sm">@neuro_guerrero</p>
+                            <p class="text-[9px] text-text-gray">12,450 NTK</p>
                         </div>
                     </div>
-
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-[9px] text-white/40 font-bold uppercase">Tiempo restante</span>
-                        <span id="tournament-timer" class="text-sm font-black text-primary italic">--:--:--</span>
-                    </div>
-                    <div class="h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
-                        <div id="tournament-progress" class="h-full bg-gradient-to-r from-primary to-neon rounded-full transition-all" style="width: 0%"></div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="py-2 rounded-lg bg-white/5">
-                            <p class="text-[8px] text-white/40 font-bold uppercase">1er Lugar</p>
-                            <p class="text-xs font-black text-primary">500 NTK</p>
-                        </div>
-                        <div class="py-2 rounded-lg bg-white/5">
-                            <p class="text-[8px] text-white/40 font-bold uppercase">2do Lugar</p>
-                            <p class="text-xs font-black text-neon">250 NTK</p>
-                        </div>
-                        <div class="py-2 rounded-lg bg-white/5">
-                            <p class="text-[8px] text-white/40 font-bold uppercase">3er Lugar</p>
-                            <p class="text-xs font-black text-white/60">100 NTK</p>
-                        </div>
-                    </div>
-
-                    <button onclick="joinTournament()" id="btn-join-tourney" class="w-full mt-4 py-3 bg-primary text-black font-black uppercase tracking-widest rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 text-xs">
-                        <span class="material-symbols-outlined text-base">bolt</span> Unirme al Torneo
-                    </button>
+                    <span class="material-symbols-outlined text-yellow-400">emoji_events</span>
                 </div>
-            </section>
 
+                <div class="glass-card p-3 flex items-center justify-between border-gray-400/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-black text-gray-300 w-6">2</span>
+                        <div class="w-8 h-8 rounded-full bg-gray-500/20"></div>
+                        <div>
+                            <p class="font-bold text-sm">@bio_hacker</p>
+                            <p class="text-[9px] text-text-gray">11,200 NTK</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-300">emoji_events</span>
+                </div>
+
+                <div class="glass-card p-3 flex items-center justify-between border-amber-700/30">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-black text-amber-700 w-6">3</span>
+                        <div class="w-8 h-8 rounded-full bg-amber-700/20"></div>
+                        <div>
+                            <p class="font-bold text-sm">@BrainMaster</p>
+                            <p class="text-[9px] text-text-gray">10,880 NTK</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-amber-700">emoji_events</span>
+                </div>
+            </div>
+
+            <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Tu Escuadrón</h3>
+            
+            <div class="glass-card p-4 border-white/5 mb-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="material-symbols-outlined text-neon">groups</span>
+                    <p class="font-bold">Los Biológicos</p>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-primary/20"></div>
+                            <span class="text-sm font-bold">Tú</span>
+                        </div>
+                        <span class="text-xs text-primary font-bold">1,250 NTK</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-neon/20"></div>
+                            <span class="text-sm">@neuro_elite</span>
+                        </div>
+                        <span class="text-xs text-text-gray">980 NTK</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-green-500/20"></div>
+                            <span class="text-sm">@brain_fit</span>
+                        </div>
+                        <span class="text-xs text-text-gray">720 NTK</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full glass-card p-4 flex items-center justify-center gap-2 border-white/10 hover:border-neon/30 transition-all">
+                <span class="material-symbols-outlined text-neon">share</span>
+                <span class="font-bold text-sm">Invitar Guerreros</span>
+            </button>
+
+            <div class="mt-6 p-4 bg-white/5 rounded-xl">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-primary">campaign</span>
+                    <p class="font-bold text-sm">Próximo Evento</p>
+                </div>
+                <p class="text-[10px] text-text-gray">🏆 Competencia Mensual - Inicia en 3 días</p>
+                <p class="text-[9px] text-text-gray mt-1">Premio: 5,000 NTK + Kit Premium</p>
+            </div>
         </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 z-50 bg-dark/80 backdrop-blur-xl border-t border-white/5">
-            <div class="max-w-md mx-auto flex justify-around items-center py-3 px-4">
-                <a href="index.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white/60 transition-colors">
-                    <span class="material-symbols-outlined text-xl">home</span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Inicio</span>
-                </a>
-                <a href="soberania-biologica.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white/60 transition-colors">
-                    <span class="material-symbols-outlined text-xl">query_stats</span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Bio-Data</span>
-                </a>
-                <a href="comunidad.html" class="flex flex-col items-center gap-1 text-neon">
-                    <span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1">groups</span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Red</span>
-                </a>
-                <a href="recompensas.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white/60 transition-colors">
-                    <span class="material-symbols-outlined text-xl">toll</span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">NTK</span>
-                </a>
-                <a href="perfil-setup.html" class="flex flex-col items-center gap-1 text-white/30 hover:text-white/60 transition-colors">
-                    <span class="material-symbols-outlined text-xl">person</span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Bio-ID</span>
-                </a>
-            </div>
-        </nav>
-        
-        <!-- Match Modal -->
-        <div id="match-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
-            <div class="glass-card w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 relative overflow-hidden" id="match-modal-content">
-                <!-- Scanning Effect -->
-                <div id="scanning-effect" class="absolute inset-0 bg-neon/10 animate-pulse pointer-events-none"></div>
-                
-                <div class="flex justify-between items-center mb-6 relative z-10">
-                    <h3 class="text-lg font-black uppercase italic" id="match-title">Sinergia Detectada</h3>
-                    <button onclick="closeMatchModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all">
-                        <span class="material-symbols-outlined text-[18px]">close</span>
-                    </button>
-                </div>
-                
-                <div class="text-center mb-6 relative z-10 hidden" id="match-found-details">
-                    <div class="w-20 h-20 rounded-full avatar-border overflow-hidden mx-auto mb-4 relative">
-                        <img id="match-avatar" src="" class="w-full h-full object-cover">
-                    </div>
-                    <h4 id="match-name" class="text-xl font-black uppercase text-neon italic mb-1">...</h4>
-                    <p class="text-xs text-white/70 mb-4">Soberanía: <span id="match-score" class="font-bold text-white">...</span></p>
-                    <p class="text-[10px] text-white/50 uppercase tracking-widest mb-4">Compatibilidad Biométrica: <span class="text-neon">98%</span></p>
-                    
-                    <button onclick="initiateDuel()" id="btn-duel" class="w-full py-3 bg-neon text-black font-black uppercase tracking-widest rounded-xl hover:bg-[#00b8e6] transition-all flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined">swords</span> Retar a Duelo (10 NTK)
-                    </button>
-                </div>
-                
-                <div class="text-center py-10 relative z-10" id="match-searching">
-                    <span class="material-symbols-outlined text-neon text-5xl animate-spin mb-4">refresh</span>
-                    <p class="text-sm font-bold uppercase tracking-widest animate-pulse">Escaneando red neuronal...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Duel Result Modal -->
-        <div id="duel-result-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[105] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
-            <div class="glass-card w-full max-w-sm p-8 text-center transform scale-95 transition-transform duration-300 border-t-4" id="duel-result-content">
-                <span id="duel-icon" class="material-symbols-outlined text-6xl mb-4"></span>
-                <h2 id="duel-result-title" class="text-3xl font-black uppercase italic mb-2">...</h2>
-                <p id="duel-result-msg" class="text-white/70 text-sm mb-6">...</p>
-                <div class="text-2xl font-black text-neon mb-6" id="duel-reward"></div>
-                <button onclick="closeDuelModal()" class="w-full py-3 bg-white/10 text-white font-black uppercase rounded-xl hover:bg-white/20 transition-all">
-                    Continuar
-                </button>
-            </div>
-        </div>
-
-        <!-- Gift Modal -->
-        <div id="gift-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
-            <div class="glass-card w-full max-w-sm p-6 transform scale-95 transition-transform duration-300" id="gift-modal-content">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-black uppercase italic">Premiar Sinergia</h3>
-                    <button onclick="closeGiftModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all">
-                        <span class="material-symbols-outlined text-[18px]">close</span>
-                    </button>
-                </div>
-                
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 rounded-full bg-primary/20 mx-auto flex items-center justify-center mb-3">
-                        <span class="material-symbols-outlined text-primary text-3xl">featured_seasonal_and_gifts</span>
-                    </div>
-                    <p class="text-sm text-white/70">Reconoce la <span class="text-primary font-bold">Soberanía</span> de <br><strong id="gift-target-name" class="text-white text-lg italic">User</strong></p>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3 mb-6 relative z-10">
-                    <button onclick="selectGiftAmount(10)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">10 NTK</button>
-                    <button onclick="selectGiftAmount(50)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">50 NTK</button>
-                    <button onclick="selectGiftAmount(100)" class="gift-btn py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-black hover:border-primary hover:text-primary transition-all">100 NTK</button>
-                </div>
-
-                <button id="confirm-gift-btn" onclick="confirmGift()" class="w-full py-3 bg-primary text-black font-black uppercase tracking-widest rounded-xl hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all relative z-10" disabled>
-                    Regalar
-                </button>
-            </div>
-        </div>
-
-        <!-- Toast -->
-        <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-primary text-black font-black rounded-full shadow-2xl transition-all scale-0 opacity-0 z-[110] uppercase italic text-xs flex items-center gap-3 whitespace-nowrap">
-            <span class="material-symbols-outlined font-black">check_circle</span>
-            <span id="toast-message">Transacción Exitosa</span>
-        </div>
     </div>
-
-    <script>
-        // --- Bio-Network 3D Engine ---
-        let networkScene, networkCamera, networkRenderer, atoms = [];
-        let viewMode = '3d'; // '3d' or 'radar'
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        function initNetwork() {
-            const container = document.getElementById('network-3d');
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-            networkScene = new THREE.Scene();
-            networkCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-            networkRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            networkRenderer.setSize(width, height);
-            networkRenderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(networkRenderer.domElement);
-
-            // Particles Geometry (Stars)
-            const starGeo = new THREE.BufferGeometry();
-            const starPositions = [];
-            for(let i=0; i<300; i++) {
-                starPositions.push((Math.random() - 0.5) * 50);
-                starPositions.push((Math.random() - 0.5) * 50);
-                starPositions.push((Math.random() - 0.5) * 50);
-            }
-            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
-            const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.3 });
-            const stars = new THREE.Points(starGeo, starMat);
-            networkScene.add(stars);
-
-            networkCamera.position.z = 8;
-            animateNetwork();
-            
-            // Initial sync
-            initFirebaseCommunity();
-        }
-
-        function animateNetwork() {
-            requestAnimationFrame(animateNetwork);
-            networkScene.rotation.y += 0.001;
-            networkRenderer.render(networkScene, networkCamera);
-        }
-
-        function createNode(userId, x, y, z, color = 0x00d1ff) {
-            const geo = new THREE.IcosahedronGeometry(0.3, 0);
-            const mat = new THREE.MeshPhongMaterial({ 
-                color: color, 
-                wireframe: true, 
-                emissive: color,
-                emissiveIntensity: 0.5 
-            });
-            const node = new THREE.Mesh(geo, mat);
-            node.position.set(x, y, z);
-            node.userData = { id: userId };
-            networkScene.add(node);
-            
-            // Add Glow
-            const spriteMat = new THREE.SpriteMaterial({
-                map: createGlowTexture(color),
-                color: color,
-                transparent: true,
-                opacity: 0.4,
-                blending: THREE.AdditiveBlending
-            });
-            const sprite = new THREE.Sprite(spriteMat);
-            sprite.scale.set(1.5, 1.5, 1.5);
-            node.add(sprite);
-            
-            return node;
-        }
-
-        function createGlowTexture(color) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const context = canvas.getContext('2d');
-            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, 'white');
-            gradient.addColorStop(0.2, 'rgba(255,255,255,0.5)');
-            gradient.addColorStop(0.4, 'rgba(0,209,255,0.2)');
-            gradient.addColorStop(1, 'transparent');
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, 64, 64);
-            const texture = new THREE.Texture(canvas);
-            texture.needsUpdate = true;
-            return texture;
-        }
-
-        function toggleView() {
-            const radar = document.getElementById('radar-overlay');
-            const viewIcon = document.getElementById('view-icon');
-            
-            if (viewMode === '3d') {
-                viewMode = 'radar';
-                radar.classList.remove('opacity-0', 'pointer-events-none');
-                viewIcon.innerText = 'hub';
-                // Sync radar with current local data
-                syncRadar();
-            } else {
-                viewMode = '3d';
-                radar.classList.add('opacity-0', 'pointer-events-none');
-                viewIcon.innerText = 'query_stats';
-            }
-        }
-
-        // --- Firebase Cloud Community ---
-        async function initFirebaseCommunity() {
-            auth.onAuthStateChanged(async (user) => {
-                if (!user) {
-                    await auth.signInAnonymously();
-                    return; // The listener will fire again upon successful sign in
-                }
-                
-                // Ensure user document exists (Auto-Seeding)
-                const userRef = db.collection('users').doc(user.uid);
-                const doc = await userRef.get();
-                
-                if (!doc.exists) {
-                    console.log("Seeding new community profile...");
-                    let initialStats = [74, 82, 65, 88, 70];
-                    try {
-                        const stored = JSON.parse(localStorage.getItem('hb_bio_stats'));
-                        if (Array.isArray(stored) && stored.length === 5) {
-                            initialStats = stored;
-                        }
-                    } catch(e) {}
-                    const bioScore = initialStats.reduce((a,b) => a+b, 0) / initialStats.length / 10;
-                    
-                    await userRef.set({
-                        displayName: "Guerrero_" + user.uid.substring(0, 4),
-                        ntkBalance: parseInt(localStorage.getItem('hb_token_balance')) || 450,
-                        bioScore: bioScore,
-                        bioStats: initialStats,
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-                
-                listenToCommunity(user.uid);
-            });
-        }
-
-        function listenToCommunity(currentUid) {
-            // Ranking Global (Order by bioScore)
-            db.collection('users').orderBy('bioScore', 'desc').limit(15).onSnapshot(snapshot => {
-                renderLeaderboard(snapshot.docs, currentUid);
-                updateNetwork3D(snapshot.docs, currentUid);
-            });
-
-            // Real-Time Activity Feed (Sinergias)
-            db.collection('sinergias').orderBy('timestamp', 'desc').limit(20).onSnapshot(snapshot => {
-                renderActivityFeed(snapshot.docs);
-            });
-
-            // Squad Wars Ranking
-            db.collection('squads').orderBy('totalPoints', 'desc').limit(5).onSnapshot(snapshot => {
-                renderSquadRanking(snapshot.docs);
-            });
-        }
-
-        function renderSquadRanking(docs) {
-            const body = document.getElementById('squad-ranking-body');
-            body.innerHTML = '';
-            
-            docs.forEach((doc, index) => {
-                const data = doc.data();
-                const rank = index + 1;
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-white/5 hover:bg-white/[0.02] transition-all";
-                tr.innerHTML = `
-                    <td class="p-4 flex items-center gap-3">
-                        <span class="font-black ${rank === 1 ? 'text-primary' : 'text-white/20'}">${rank}</span>
-                        <div class="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-[14px] text-primary">groups</span>
-                        </div>
-                        <span class="font-bold uppercase tracking-wider text-white">${data.name || 'Escuadrón'}</span>
-                    </td>
-                    <td class="p-4 text-white/40 font-bold">${(data.members || []).length}</td>
-                    <td class="p-4 text-right font-black text-neon italic">${(data.totalPoints || 0).toLocaleString()}</td>
-                `;
-                body.appendChild(tr);
-            });
-        }
-
-        function copyReferralLink() {
-            const link = document.getElementById('referral-link');
-            const uid = auth.currentUser ? auth.currentUser.uid : 'BRAIN_ID';
-            const referralUrl = `https://healthybrain.app/join?ref=${uid.substring(0, 6)}`;
-            
-            navigator.clipboard.writeText(referralUrl);
-            showToast("Bio-Enlace Copiado");
-            link.value = referralUrl;
-        }
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return str.toString().replace(/[&<>'"]/g, 
-                tag => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    "'": '&#39;',
-                    '"': '&quot;'
-                }[tag])
-            );
-        }
-
-        function renderLeaderboard(docs, currentUid) {
-            const container = document.getElementById('leaderboard-container');
-            container.innerHTML = '';
-
-            docs.forEach((doc, index) => {
-                const data = doc.data();
-                const isMe = doc.id === currentUid;
-                const rank = index + 1;
-                
-                const safeName = escapeHTML(data.displayName || 'BioHacker_' + doc.id.substring(0,4));
-                const safeId = escapeHTML(doc.id);
-                
-                const card = document.createElement('div');
-                card.className = `glass-card p-4 flex gap-4 items-center ${rank === 1 ? 'border-neon/30 bg-neon/10' : ''} ${isMe ? 'border-primary/30 bg-primary/5' : ''}`;
-                
-                card.innerHTML = `
-                    <div class="w-8 h-8 flex items-center justify-center font-black ${rank === 1 ? 'text-neon rank-gold' : 'text-white/40'} text-lg">${rank}</div>
-                    <div class="w-12 h-12 rounded-xl overflow-hidden ${rank === 1 ? 'avatar-border' : 'border border-white/10'}">
-                        <img src="https://i.pravatar.cc/150?u=${safeId}" class="w-full h-full object-cover" alt="User" onerror="this.src='./assets/images/bg_tech.png'">
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-[12px] font-black uppercase italic">${safeName}</h4>
-                        <p class="text-[10px] ${rank === 1 ? 'text-neon/60' : 'text-white/40'} font-medium italic">${(data.bioScore || 0).toFixed(1)} SOBERANÍA</p>
-                    </div>
-                    <div class="text-right flex flex-col items-end gap-1">
-                        <span class="text-xs font-black text-white italic">${escapeHTML(data.ntkBalance || 0)} NTK</span>
-                        ${!isMe ? `
-                        <button onclick="openGiftModal('${safeId}', '${safeName.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-all" title="Regalar NTK">
-                            <span class="material-symbols-outlined text-[16px]">featured_seasonal_and_gifts</span>
-                        </button>` : ''}
-                    </div>
-                `;
-                container.appendChild(card);
-                
-                if (isMe) {
-                    localStorage.setItem('hb_token_balance', data.ntkBalance);
-                    localStorage.setItem('hb_bio_stats', JSON.stringify(data.bioStats || [60,60,60,60,60]));
-                    document.getElementById('network-status').innerHTML = `Eres el Nodo <span class="text-neon font-black italic">#${rank}</span> de la soberanía global`;
-                }
-            });
-        }
-
-        function updateNetwork3D(docs, currentUid) {
-            // Clean previous nodes
-            atoms.forEach(atom => networkScene.remove(atom));
-            atoms = [];
-
-            docs.forEach((doc, index) => {
-                const data = doc.data();
-                const isMe = doc.id === currentUid;
-                
-                // Spiral distribution
-                const angle = index * 0.8;
-                const r = index * 0.5 + 2;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
-                const z = (index - 7) * 0.5;
-                
-                const node = createNode(doc.id, x, y, z, isMe ? 0xff8a00 : 0x00d1ff);
-                atoms.push(node);
-            });
-            
-            document.getElementById('active-nodes').innerText = docs.length;
-        }
-
-        function syncRadar() {
-            let bioStats = [70, 70, 70, 70, 70];
-            try {
-                const stored = JSON.parse(localStorage.getItem('hb_bio_stats'));
-                if (Array.isArray(stored) && stored.length === 5) bioStats = stored;
-            } catch(e) {}
-
-            const ctx = document.getElementById('bioRadar');
-            if (window.radarChart) {
-                window.radarChart.data.datasets[0].data = bioStats;
-                window.radarChart.update();
-            } else {
-                window.radarChart = new Chart(ctx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['Dopamina', 'HRV', 'Metabolismo', 'Músculo', 'Focus'],
-                        datasets: [{
-                            label: 'Tú',
-                            data: bioStats,
-                            fill: true,
-                            backgroundColor: 'rgba(0, 209, 255, 0.2)',
-                            borderColor: '#00d1ff',
-                            pointBackgroundColor: '#00d1ff',
-                            pointBorderColor: '#fff',
-                            tension: 0.4
-                        }, {
-                            label: 'Promedio Global',
-                            data: [70, 68, 72, 65, 75],
-                            fill: true,
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                            pointBackgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            pointBorderColor: '#fff',
-                        }]
-                    },
-                    options: {
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            r: {
-                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                                pointLabels: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 9, family: 'Outfit', weight: 'bold' } },
-                                ticks: { display: false },
-                                suggestedMin: 0, suggestedMax: 100
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        // --- Gifting Logic (Cloud) ---
-        let currentGiftTargetId = '';
-        let currentGiftTargetName = '';
-        let currentGiftAmount = 0;
-
-        function openGiftModal(id, name) {
-            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
-            if (id === currentUid) {
-                showToast("Bio-Denegado: No puedes enviarte recompensas a ti mismo.");
-                return;
-            }
-            currentGiftTargetId = id;
-            currentGiftTargetName = name;
-            document.getElementById('gift-target-name').innerText = name;
-            currentGiftAmount = 0;
-            document.getElementById('confirm-gift-btn').disabled = true;
-            document.getElementById('confirm-gift-btn').innerText = `Regalar NTK`;
-            
-            document.querySelectorAll('.gift-btn').forEach(btn => {
-                btn.classList.remove('border-primary', 'text-primary', 'bg-primary/10');
-                btn.classList.add('border-white/10', 'bg-white/5');
-            });
-
-            const modal = document.getElementById('gift-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                document.getElementById('gift-modal-content').classList.remove('scale-95');
-                document.getElementById('gift-modal-content').classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeGiftModal() {
-            const modal = document.getElementById('gift-modal');
-            modal.classList.add('opacity-0');
-            document.getElementById('gift-modal-content').classList.remove('scale-100');
-            document.getElementById('gift-modal-content').classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 300);
-        }
-
-        function selectGiftAmount(amount) {
-            currentGiftAmount = amount;
-            document.getElementById('confirm-gift-btn').disabled = false;
-            document.getElementById('confirm-gift-btn').innerText = `ENVIAR ${amount} NTK`;
-            
-            document.querySelectorAll('.gift-btn').forEach(btn => {
-                if (btn.innerText.includes(amount.toString())) {
-                    btn.classList.add('border-primary', 'text-primary', 'bg-primary/10');
-                    btn.classList.remove('border-white/10', 'bg-white/5');
-                } else {
-                    btn.classList.remove('border-primary', 'text-primary', 'bg-primary/10');
-                    btn.classList.add('border-white/10', 'bg-white/5');
-                }
-            });
-        }
-
-        async function confirmGift() {
-            const currentUid = auth.currentUser.uid;
-            if (!currentUid) return;
-
-            const senderRef = db.collection('users').doc(currentUid);
-            const receiverRef = db.collection('users').doc(currentGiftTargetId);
-
-            try {
-                await db.runTransaction(async (transaction) => {
-                    const senderDoc = await transaction.get(senderRef);
-                    const receiverDoc = await transaction.get(receiverRef);
-
-                    if (!senderDoc.exists) throw "Usuario no encontrado";
-                    
-                    const senderData = senderDoc.data();
-                    const senderBalance = senderData.ntkBalance || 0;
-                    if (senderBalance < currentGiftAmount) {
-                        throw "NTK Insuficiente";
-                    }
-
-                    // --- ANTI-FRAUD: Límite Diario ---
-                    const MAX_DAILY_GIFT = 500;
-                    const today = new Date().toISOString().split('T')[0];
-                    const dailyRecord = senderData.dailyGiftRecord || { date: today, totalAmount: 0 };
-                    
-                    if (dailyRecord.date !== today) {
-                        dailyRecord.date = today;
-                        dailyRecord.totalAmount = 0;
-                    }
-                    
-                    if (dailyRecord.totalAmount + currentGiftAmount > MAX_DAILY_GIFT) {
-                        throw "Límite Diario Alcanzado";
-                    }
-                    
-                    dailyRecord.totalAmount += currentGiftAmount;
-                    // ---------------------------------
-
-                    transaction.update(senderRef, { 
-                        ntkBalance: senderBalance - currentGiftAmount,
-                        dailyGiftRecord: dailyRecord
-                    });
-                    transaction.update(receiverRef, { ntkBalance: (receiverDoc.data().ntkBalance || 0) + currentGiftAmount });
-                });
-
-                showToast(`${currentGiftAmount} NTK ENVIADOS A ${currentGiftTargetName}`);
-                closeGiftModal();
-                
-                // Visual effect on 3D node
-                const targetNode = atoms.find(a => a.userData.id === currentGiftTargetId);
-                if (targetNode) {
-                    targetNode.scale.set(3, 3, 3);
-                    setTimeout(() => targetNode.scale.set(1, 1, 1), 500);
-                }
-
-            } catch (error) {
-                console.error("Gifting error:", error);
-                if (error === "NTK Insuficiente") {
-                   alert("NTK Insuficiente. ¡Adquiere más en el Bio-Market!");
-                   window.location.href = 'recompensas.html';
-                } else if (error === "Límite Diario Alcanzado") {
-                   alert("Has alcanzado el límite diario de generosidad (500 NTK). ¡Vuelve mañana!");
-                } else {
-                    alert("Error en la sinergia: " + error);
-                }
-                closeGiftModal();
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = msg;
-            toast.classList.remove('scale-0', 'opacity-0');
-            toast.classList.add('scale-100', 'opacity-100');
-            setTimeout(() => {
-                toast.classList.remove('scale-100', 'opacity-100');
-                toast.classList.add('scale-0', 'opacity-0');
-            }, 3000);
-        }
-
-        // --- Matchmaking & Duels ---
-        let currentMatchOpponent = null;
-
-        function findBioMatch() {
-            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
-            if (!currentUid) return;
-
-            // Show searching modal
-            const modal = document.getElementById('match-modal');
-            const searchingDiv = document.getElementById('match-searching');
-            const detailsDiv = document.getElementById('match-found-details');
-            
-            searchingDiv.classList.remove('hidden');
-            detailsDiv.classList.add('hidden');
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                document.getElementById('match-modal-content').classList.remove('scale-95');
-                document.getElementById('match-modal-content').classList.add('scale-100');
-            }, 10);
-
-            // Get current user bioScore to find similar users
-            db.collection('users').doc(currentUid).get().then(doc => {
-                if(!doc.exists) return;
-                const myScore = doc.data().bioScore || 50;
-                
-                // Query users within +/- 15 points
-                db.collection('users')
-                  .where('bioScore', '>=', myScore - 15)
-                  .where('bioScore', '<=', myScore + 15)
-                  .limit(10)
-                  .get()
-                  .then(snapshot => {
-                      const potentialMatches = snapshot.docs.filter(d => d.id !== currentUid);
-                      
-                      setTimeout(() => {
-                          if (potentialMatches.length > 0) {
-                              const matchDoc = potentialMatches[Math.floor(Math.random() * potentialMatches.length)];
-                              currentMatchOpponent = { id: matchDoc.id, data: matchDoc.data() };
-                              
-                              document.getElementById('match-name').innerText = escapeHTML(currentMatchOpponent.data.displayName || 'BioHacker');
-                              document.getElementById('match-score').innerText = (currentMatchOpponent.data.bioScore || 0).toFixed(1);
-                              document.getElementById('match-avatar').src = `https://i.pravatar.cc/150?u=${escapeHTML(matchDoc.id)}`;
-                              
-                              searchingDiv.classList.add('hidden');
-                              detailsDiv.classList.remove('hidden');
-                          } else {
-                              searchingDiv.innerHTML = `<p class="text-sm font-bold uppercase text-primary">No se encontró sinergia en este rango.</p>`;
-                              setTimeout(closeMatchModal, 2000);
-                          }
-                      }, 1500); // Fake search delay
-                  });
-            });
-        }
-
-        function closeMatchModal() {
-            const modal = document.getElementById('match-modal');
-            modal.classList.add('opacity-0');
-            document.getElementById('match-modal-content').classList.remove('scale-100');
-            document.getElementById('match-modal-content').classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 300);
-        }
-
-        async function initiateDuel() {
-            if(!currentMatchOpponent) return;
-            const currentUid = auth.currentUser.uid;
-            
-            const btn = document.getElementById('btn-duel');
-            btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...`;
-
-            const meRef = db.collection('users').doc(currentUid);
-            const opRef = db.collection('users').doc(currentMatchOpponent.id);
-            const betAmount = 10;
-
-            try {
-                let isWinner = false;
-                await db.runTransaction(async (transaction) => {
-                    const meDoc = await transaction.get(meRef);
-                    const opDoc = await transaction.get(opRef);
-
-                    if (!meDoc.exists || !opDoc.exists) throw "Participante no encontrado";
-                    
-                    const meData = meDoc.data();
-                    const opData = opDoc.data();
-                    
-                    if ((meData.ntkBalance || 0) < betAmount) throw "NTK_INSUFICIENTE";
-
-                    // Simple Duel Logic (50/50 + bioScore advantage)
-                    const myScore = meData.bioScore || 50;
-                    const opScore = opData.bioScore || 50;
-                    const advantage = (myScore - opScore) * 0.01; // e.g. 5 points diff = 5% advantage
-                    const winChance = 0.5 + advantage;
-                    
-                    isWinner = Math.random() < winChance;
-
-                    if (isWinner) {
-                        transaction.update(meRef, { ntkBalance: (meData.ntkBalance || 0) + betAmount });
-                        transaction.update(opRef, { ntkBalance: Math.max(0, (opData.ntkBalance || 0) - betAmount) });
-                    } else {
-                        transaction.update(meRef, { ntkBalance: (meData.ntkBalance || 0) - betAmount });
-                        transaction.update(opRef, { ntkBalance: (opData.ntkBalance || 0) + betAmount });
-                    }
-                });
-
-                closeMatchModal();
-                showDuelResult(isWinner, betAmount);
-
-            } catch(e) {
-                if (e === "NTK_INSUFICIENTE") {
-                    alert("No tienes los 10 NTK necesarios para iniciar un duelo.");
-                } else {
-                    console.error(e);
-                    alert("Error en el duelo.");
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span class="material-symbols-outlined">swords</span> Retar a Duelo (10 NTK)`;
-            }
-        }
-
-        function showDuelResult(isWinner, amount) {
-            const modal = document.getElementById('duel-result-modal');
-            const content = document.getElementById('duel-result-content');
-            
-            if (isWinner) {
-                content.className = 'glass-card w-full max-w-sm p-8 text-center transform scale-95 transition-transform duration-300 border-t-4 border-t-neon bg-neon/5';
-                document.getElementById('duel-icon').innerText = 'emoji_events';
-                document.getElementById('duel-icon').className = 'material-symbols-outlined text-6xl mb-4 text-neon';
-                document.getElementById('duel-result-title').innerText = '¡VICTORIA!';
-                document.getElementById('duel-result-title').className = 'text-3xl font-black uppercase italic mb-2 text-neon';
-                document.getElementById('duel-result-msg').innerText = 'Has superado a tu oponente en eficiencia metabólica.';
-                document.getElementById('duel-reward').innerText = `+${amount} NTK`;
-                document.getElementById('duel-reward').className = 'text-2xl font-black text-neon mb-6';
-            } else {
-                content.className = 'glass-card w-full max-w-sm p-8 text-center transform scale-95 transition-transform duration-300 border-t-4 border-t-primary bg-primary/5';
-                document.getElementById('duel-icon').innerText = 'sentiment_dissatisfied';
-                document.getElementById('duel-icon').className = 'material-symbols-outlined text-6xl mb-4 text-primary';
-                document.getElementById('duel-result-title').innerText = 'DERROTA';
-                document.getElementById('duel-result-title').className = 'text-3xl font-black uppercase italic mb-2 text-primary';
-                document.getElementById('duel-result-msg').innerText = 'Tu oponente demostró mayor soberanía biológica.';
-                document.getElementById('duel-reward').innerText = `-${amount} NTK`;
-                document.getElementById('duel-reward').className = 'text-2xl font-black text-primary mb-6';
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
-            }, 10);
-        }
-
-        function closeDuelModal() {
-            const modal = document.getElementById('duel-result-modal');
-            const content = document.getElementById('duel-result-content');
-            modal.classList.add('opacity-0');
-            content.classList.remove('scale-100');
-            content.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 300);
-        }
-
-        // --- Live Activity Feed ---
-        const activityTypes = [
-            { icon: 'bolt', color: 'text-neon', msg: 'completó un protocolo HRV' },
-            { icon: 'local_fire_department', color: 'text-primary', msg: 'ganó un duelo biométrico' },
-            { icon: 'featured_seasonal_and_gifts', color: 'text-primary', msg: 'regaló NTK a la red' },
-            { icon: 'star', color: 'text-yellow-400', msg: 'alcanzó Bio-Score 90+' },
-            { icon: 'fitness_center', color: 'text-neon', msg: 'registró entrenamiento' },
-            { icon: 'bedtime', color: 'text-indigo-400', msg: 'optimizó ciclo de sueño' },
-            { icon: 'water_drop', color: 'text-blue-400', msg: 'optimizó hidratación H2O' },
-            { icon: 'wb_sunny', color: 'text-yellow-500', msg: 'sincronizó ritmo circadiano' },
-            { icon: 'footprint', color: 'text-green-500', msg: 'superó meta de pasos' },
-            { icon: 'restaurant', color: 'text-neon', msg: 'escaneó nutrición IA' },
-        ];
-
-        function renderActivityFeed(docs) {
-            const feed = document.getElementById('activity-feed');
-            if (!feed) return;
-            feed.innerHTML = '';
-
-            // Use real docs if available
-            if (docs && docs.length > 0) {
-                docs.forEach(doc => {
-                    const d = doc.data();
-                    const name = escapeHTML(d.userName || 'BioHacker');
-                    const activityType = activityTypes.find(t => t.icon === d.icon) || activityTypes[0];
-                    const timestamp = d.timestamp ? d.timestamp.toDate() : new Date();
-                    feed.appendChild(createActivityCard(name, activityType, doc.id, d.userId, timestamp, d.glows || 0, d.glowedBy || [], d));
-                });
-            } else {
-                // Demo seed data
-                const demoNames = ['Guerrero_a3f1', 'NeuraPilot', 'BioHacker_X', 'SynapseK', 'AxonFlow'];
-                demoNames.forEach((name, i) => {
-                    const type = activityTypes[i % activityTypes.length];
-                    feed.appendChild(createActivityCard(name, type, 'demo-' + i));
-                });
-            }
-        }
-
-        function createActivityCard(name, type, activityId, uid, timestamp, glows, glowedBy, d) {
-            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
-            const hasGlowed = glowedBy.includes(currentUid);
-            
-            const card = document.createElement('div');
-            card.className = 'glass-card p-3 flex gap-3 items-center hover:bg-white/[0.02] transition-all relative overflow-hidden';
-            
-            const diffMs = new Date() - timestamp;
-            const diffMins = Math.max(0, Math.floor(diffMs / 60000));
-            const timeStr = diffMins === 0 ? 'Ahora' : `Hace ${diffMins} min`;
-
-            card.innerHTML = `
-                <div class="w-8 h-8 rounded-full overflow-hidden border border-white/10 shrink-0">
-                    <img src="https://i.pravatar.cc/64?u=${escapeHTML(uid)}" class="w-full h-full object-cover" onerror="this.src='./assets/images/bg_tech.png'">
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-[10px] font-bold text-white/80 truncate"><span class="font-black text-white">${name}</span> ${type.msg}</p>
-                    ${d && d.foodName ? `<p class="text-[9px] text-neon font-black italic mt-0.5 truncate">${escapeHTML(d.foodName)} · Score: ${d.metabolicScore || '8.5'}</p>` : ''}
-                    <p class="text-[8px] text-white/30 font-bold uppercase mt-0.5">${timeStr}</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="glowActivity('${activityId}', this)" 
-                        class="flex items-center gap-1 px-2 py-1 rounded-lg border ${hasGlowed ? 'border-primary/50 bg-primary/10 text-primary' : 'border-white/5 bg-white/5 text-white/40'} transition-all hover:border-primary/30"
-                        ${hasGlowed ? 'disabled' : ''}>
-                        <span class="material-symbols-outlined text-sm ${hasGlowed ? 'filled' : ''}" style="${hasGlowed ? "font-variation-settings: 'FILL' 1" : ""}">bolt</span>
-                        <span class="text-[9px] font-black">${glows}</span>
-                    </button>
-                    <span class="material-symbols-outlined ${type.color} text-base shrink-0">${type.icon}</span>
-                </div>
-            `;
-            return card;
-        }
-
-        async function glowActivity(activityId, btn) {
-            const user = auth.currentUser;
-            if (!user) return;
-
-            btn.disabled = true;
-            btn.classList.add('animate-pulse');
-
-            try {
-                const activityRef = db.collection('sinergias').doc(activityId);
-                const activityDoc = await activityRef.get();
-                if (!activityDoc.exists) return;
-                
-                const data = activityDoc.data();
-                const receiverUid = data.userId;
-                
-                if (receiverUid === user.uid) {
-                    showToast("No puedes brillar tu propia sinergia.");
-                    btn.disabled = false;
-                    btn.classList.remove('animate-pulse');
-                    return;
-                }
-
-                if (data.glowedBy && data.glowedBy.includes(user.uid)) return;
-
-                await db.runTransaction(async (transaction) => {
-                    // Update Activity
-                    transaction.update(activityRef, {
-                        glows: firebase.firestore.FieldValue.increment(1),
-                        glowedBy: firebase.firestore.FieldValue.arrayUnion(user.uid)
-                    });
-
-                    // Reward Receiver (+2 NTK)
-                    const receiverRef = db.collection('users').doc(receiverUid);
-                    transaction.update(receiverRef, {
-                        ntkBalance: firebase.firestore.FieldValue.increment(2)
-                    });
-
-                    // Reward Giver (+1 NTK - Social Mining Incentive)
-                    const giverRef = db.collection('users').doc(user.uid);
-                    transaction.update(giverRef, {
-                        ntkBalance: firebase.firestore.FieldValue.increment(1)
-                    });
-                });
-
-                showToast("¡Sinergia Brillada! +1 NTK");
-            } catch (e) {
-                console.error("Glow error:", e);
-                btn.disabled = false;
-                btn.classList.remove('animate-pulse');
-            }
-        }
-
-        // --- Tournament Timer ---
-        function initTournamentTimer() {
-            function getNextSunday() {
-                const now = new Date();
-                const day = now.getDay();
-                const diff = 7 - day;
-                const next = new Date(now);
-                next.setDate(now.getDate() + diff);
-                next.setHours(23, 59, 59, 0);
-                return next;
-            }
-
-            const endDate = getNextSunday();
-            const startDate = new Date(endDate);
-            startDate.setDate(startDate.getDate() - 7);
-            const totalMs = endDate - startDate;
-
-            setInterval(() => {
-                const now = new Date();
-                const remaining = endDate - now;
-                if (remaining <= 0) return;
-
-                const h = Math.floor(remaining / 3600000);
-                const m = Math.floor((remaining % 3600000) / 60000);
-                const s = Math.floor((remaining % 60000) / 1000);
-
-                const el = document.getElementById('tournament-timer');
-                if (el) el.innerText = `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-
-                const elapsed = totalMs - remaining;
-                const pct = Math.min(100, (elapsed / totalMs) * 100);
-                const bar = document.getElementById('tournament-progress');
-                if (bar) bar.style.width = pct + '%';
-            }, 1000);
-        }
-
-        async function joinTournament() {
-            const user = auth.currentUser;
-            if (!user) return;
-            const btn = document.getElementById('btn-join-tourney');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-base">refresh</span> Registrando...';
-
-            try {
-                await db.collection('users').doc(user.uid).update({
-                    tournamentJoined: true,
-                    tournamentJoinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                btn.innerHTML = '<span class="material-symbols-outlined text-base">check</span> Inscrito';
-                btn.className = btn.className.replace('bg-primary', 'bg-neon/20').replace('hover:bg-orange-500', '');
-                btn.classList.add('text-neon', 'border', 'border-neon/30');
-                btn.classList.remove('text-black');
-                showToast('¡Inscrito en el Torneo Semanal!');
-            } catch(e) {
-                console.error(e);
-                btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-base">bolt</span> Unirme al Torneo';
-            }
-        }
-
-        // Initialize
-        window.onload = () => {
-            initNetwork();
-            initTournamentTimer();
-            renderActivityFeed(null); // Seed demo data initially
-        };
-    </script>
 </body>
 </html>
