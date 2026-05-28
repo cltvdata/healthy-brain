@@ -83,6 +83,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => <AnimatedIcon name="camera" color={color} focused={focused} />,
         }}
       />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Comunidad',
+          tabBarIcon: ({ color, focused }) => <AnimatedIcon name="globe" color={color} focused={focused} />,
+        }}
+      />
     </Tabs>
   );
 }

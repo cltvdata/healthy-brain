@@ -25,28 +25,29 @@ export class StreakService {
     const data = userSnap.data() as StreakState;
     const today = new Date().toISOString().split('T')[0];
     
-    // Prevent multiple updates on the same day
-    if (data.lastScoreDate === today && !data.isProtected) return data;
-
     const currentStreak = data.currentStreak || 0;
     
+    // If already processed today and has active shield, preserve it
+    if (data.lastScoreDate === today) {
+      if (data.isProtected) return data;
+      return data;
+    }
+
     if (score >= BioEconomy.STREAK_TARGET_SCORE) {
       const newStreak = currentStreak + 1;
-      const updates: Partial<StreakState> = {
+      const updates: any = {
         currentStreak: newStreak,
         lastScoreDate: today,
-        isProtected: false
       };
 
       if (newStreak > (data.longestStreak || 0)) {
         updates.longestStreak = newStreak;
       }
 
-      // Reward every 7 days
       if (newStreak % BioEconomy.STREAK_REWARD_SHIELD_DAYS === 0) {
         updates.bioShields = (data.bioShields || 0) + 1;
         SynergyService.postAchievement(
-          'nutrition', // Using a generic tag for now
+          'nutrition',
           `¡Racha de ${newStreak} días! Has ganado un Bio-Escudo protector de regalo. 🛡️`,
           100
         );

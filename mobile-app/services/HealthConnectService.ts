@@ -67,17 +67,27 @@ export class HealthConnectService {
    * Detectar automáticamente qué servicio de salud está disponible
    */
   static async detectAvailableProvider(): Promise<HealthProvider> {
+    if (!auth.currentUser) return Platform.OS === 'ios' ? 'apple_health' : 'google_health_connect';
+
     if (Platform.OS === 'ios') {
-      // En iOS, verificar si HealthKit está disponible
       try {
-        // En un app real, aquí se verificaría con react-native-health
-        // Por ahora retornamos el preferido del usuario
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser?.uid || ''));
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
         const preferredProvider = userDoc.data()?.preferredHealthProvider;
         return preferredProvider || 'apple_health';
       } catch {
         return 'apple_health';
       }
+    } else if (Platform.OS === 'android') {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        const preferredProvider = userDoc.data()?.preferredHealthProvider;
+        return preferredProvider || 'google_health_connect';
+      } catch {
+        return 'google_health_connect';
+      }
+    }
+    return 'none';
+  }
     } else if (Platform.OS === 'android') {
       try {
         // Verificar Health Connect en Android

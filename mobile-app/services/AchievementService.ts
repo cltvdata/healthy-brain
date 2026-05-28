@@ -64,6 +64,7 @@ export class AchievementService {
     referalsCount: number;
     nutritionScans: number;
     focusSessions: number;
+    sleepAnalyses: number;
     tournamentsJoined: number;
     tournamentsWon: number;
   }): Promise<Achievement[]> {
@@ -98,6 +99,8 @@ export class AchievementService {
             shouldUnlock = stats.nutritionScans >= achievement.requirement;
           } else if (achievement.id.includes('enfoque')) {
             shouldUnlock = stats.focusSessions >= achievement.requirement;
+          } else if (achievement.id.includes('sueno')) {
+            shouldUnlock = stats.sleepAnalyses >= achievement.requirement;
           }
           break;
         case 'tournament':
