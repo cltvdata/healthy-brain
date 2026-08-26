@@ -26,6 +26,7 @@ const AVAILABLE_DEVICES: { type: DeviceType; name: string; icon: string; descrip
 export default function SaludConexionesScreen() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
   const [currentProvider, setCurrentProvider] = useState<HealthProvider>('none');
   const [connectedDevices, setConnectedDevices] = useState<DeviceConnection[]>([]);
   const [lastSync, setLastSync] = useState<Date | null>(null);
@@ -47,6 +48,13 @@ export default function SaludConexionesScreen() {
       setConnectedDevices(typeof status.connectedDevices === 'number' ? [] : status.connectedDevices);
       setLastSync(status.lastSync);
       setPermissions(status.permissions);
+
+      // Auto-Sync si ya hay proveedor activo y no ha sido sincronizado recientemente
+      if (status.provider !== 'none') {
+        HealthConnectService.syncFromHealthProvider(status.provider).then(res => {
+          if (res.success) setLastSync(new Date());
+        }).catch(e => console.log('Auto-sync silencioso falló', e));
+      }
       
       // Escuchar cambios en tiempo real
       const unsubscribe = onSnapshot(doc(db, 'users', auth.currentUser.uid), (snapshot) => {
@@ -154,19 +162,26 @@ export default function SaludConexionesScreen() {
       });
 
       if (!result.canceled) {
-        await HealthConnectService.processManualEntry({
-          type: 'screenshot',
-          data: { 
-            imageUri: result.assets[0].uri, 
-            base64: result.assets[0].base64,
-            timestamp: new Date() 
-          },
-          analyzedByAI: true,
-          createdAt: new Date()
-        });
-        
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert('📸 Imagen Capturada', 'Tu screenshot será analizado por IA para extraer datos de salud.');
+        setAnalyzingImage(true);
+        try {
+          await HealthConnectService.processManualEntry({
+            type: 'screenshot',
+            data: { 
+              imageUri: result.assets[0].uri, 
+              base64: result.assets[0].base64,
+              timestamp: new Date() 
+            },
+            analyzedByAI: true,
+            createdAt: new Date()
+          });
+          
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          Alert.alert('📸 Análisis Completo', 'Tu screenshot ha sido analizado por IA y los datos de salud se han guardado exitosamente.');
+        } catch (error) {
+          Alert.alert('❌ Error', 'Hubo un problema analizando la imagen.');
+        } finally {
+          setAnalyzingImage(false);
+        }
       }
     } else if (type === 'manual') {
       Alert.alert('Entrada Manual', 'Función de entrada manual de datos.');
@@ -380,6 +395,17 @@ export default function SaludConexionesScreen() {
 
         <View style={{ height: 60 }} />
       </ScrollView>
+
+      {/* Loading Overlay para IA */}
+      {analyzingImage && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={AppColors.primaryNeonBlue} />
+            <Text style={[AppStyles.textWhite, { marginTop: 15, fontWeight: 'bold' }]}>Analizando captura...</Text>
+            <Text style={[AppStyles.textGray, { fontSize: 12, marginTop: 5, textAlign: 'center' }]}>Gemini Vision AI está procesando métricas y leyendo datos.</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -444,4 +470,20 @@ const styles = StyleSheet.create({
   disconnectBtn: {
     padding: 5,
   },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingCard: {
+    backgroundColor: AppColors.surfaceGlass,
+    padding: 25,
+    borderRadius: 20,
+    alignItems: 'center',
+    width: '80%',
+    borderWidth: 1,
+    borderColor: AppColors.primaryNeonBlue + '50',
+  }
 });

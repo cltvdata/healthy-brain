@@ -23,7 +23,7 @@ service cloud.firestore {
       // Prevent users from artificially inflating NTK balances maliciously
       allow update: if isOwner(userId) 
         && (!incomingData().keys().hasAny(['ntkBalance']) 
-            || incomingData().ntkBalance <= resource.data.ntkBalance + 200); // Allow reasonable earnings
+            || incomingData().ntkBalance <= resource.data.ntkBalance + 50); // Allow reasonable earnings only (+50 max)
             
       // Subcollections under users (e.g., metrics, sessions, etc)
       match /{subcollection}/{document=**} {
@@ -50,7 +50,7 @@ service cloud.firestore {
     // ECONOMY STATS
     match /economy/{docId} {
       allow read: if isAuthenticated();
-      allow update: if isAuthenticated();
+      allow update: if false; // Global economy stats should be updated by backend/admin only
       allow create, delete: if false;
     }
 
@@ -58,9 +58,13 @@ service cloud.firestore {
     match /sinergias/{activityId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      // Allow updating 'glows' count and 'glowedBy' array
+      // Allow updating 'glows' count and 'glowedBy' array securely
       allow update: if isAuthenticated() && (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['glows', 'glowedBy'])
+        && request.resource.data.glows == resource.data.glows + 1
+        && !(request.auth.uid in resource.data.glowedBy)
+        && (request.auth.uid in request.resource.data.glowedBy)
+        && request.auth.uid != resource.data.userId // Prevent self-glow
       );
     }
 

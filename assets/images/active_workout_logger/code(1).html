@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Active Workout Logger</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'space-obsidian': '#0a0a0a',
+                        'glass-noir': 'rgba(25, 25, 25, 0.75)',
+                        'bio-orange': '#ff8a00',
+                        'neuro-blue': '#00d1ff',
+                        'bio-green': '#13ec5b',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Subtle cyber grid background */
+        .bg-cyber-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+        }
+
+        /* Glassmorphism scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Pulse Animations */
+        @keyframes pulse-orange {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 138, 0, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(255, 138, 0, 0.5); }
+        }
+        .animate-pulse-orange {
+            animation: pulse-orange 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .animate-pulse-green {
+            animation: pulse-green 1.5s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0.7; }
+            50% { top: 100%; opacity: 0.7; }
+            100% { top: 0%; opacity: 0.7; }
+        }
+        .animate-scan-line {
+            animation: scan 4s infinite linear;
+        }
+    </style>
+</head>
+
+<body class="bg-space-obsidian bg-cyber-grid min-h-screen flex flex-col justify-start">
+
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col bg-black/40 border-x border-white/5 shadow-2xl pb-24">
+        
+        <!-- Scanning Laser Line Effect (Somatic feedback) -->
+        <div class="absolute left-0 right-0 h-[1.5px] bg-neuro-blue/30 shadow-[0_0_15px_#00d1ff] animate-scan-line pointer-events-none z-10"></div>
+
+        <!-- Telemetry & Header -->
+        <header class="bg-[#121212]/80 border-b border-white/5 px-6 py-5 sticky top-0 z-40 backdrop-blur-xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-2xl bg-gradient-to-br from-bio-orange to-neuro-blue text-dark shadow-2xl animate-pulse">
+                        <!-- Custom SVG Weight Icon -->
+                        <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M6 6v12a2 2 0 002 2h8a2 2 0 002-2V6M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2m-6 5h6m-5 4h4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-white text-lg tracking-tight">LOGGER ACTIVO</h1>
+                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1">
+                            Sesión: Fuerza & Hipertrofia <span class="w-1.5 h-1.5 rounded-full bg-bio-green animate-pulse-green"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Bio-Economy NTK Tracker -->
+                <div class="text-right">
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Balance NTK</span>
+                    <span id="ntk-balance" class="text-sm font-black text-bio-orange tracking-tight">1,250 NTK</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Session Stats -->
+            <div class="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-white/5 text-center">
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Tiempo</span>
+                    <span id="session-timer" class="text-xs font-black text-white font-mono">00:00:00</span>
+                </div>
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Ritmo Cardíaco</span>
+                    <span class="text-xs font-black text-neuro-blue flex items-center justify-center gap-1">
+                        ❤️ <span id="pulse-rate">72</span> <span class="text-[8px] text-gray-500">BPM</span>
+                    </span>
+                </div>
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Intensidad</span>
+                    <span class="text-xs font-black text-bio-green">Óptima</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="flex-1 px-5 py-6 space-y-6 overflow-y-auto scrollbar-hide">
+            
+            <!-- Smart Rest Timer Card -->
+            <div id="timer-card" class="bg-glass-noir border border-white/10 rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black text-neuro-blue uppercase bg-neuro-blue/10 border border-neuro-blue/20 px-2 py-0.5 rounded">Somatic Recovery</span>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider">Pausa de Recuperación</h3>
+                    </div>
+                    <span id="timer-status" class="text-[10px] font-black text-bio-green uppercase">Listo</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-baseline gap-1.5">
+                        <span id="timer-display" class="text-4xl font-black text-white tracking-tighter font-mono">90</span>
+                        <span class="text-xs font-bold text-gray-500">Segs</span>
+                    </div>
+
+                    <!-- Compact Progress Circle -->
+                    <div class="relative w-14 h-14 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="28" cy="28" r="24" fill="none" class="stroke-white/5" stroke-width="4"></circle>
+                            <circle id="timer-progress" cx="28" cy="28" r="24" fill="none" class="stroke-neuro-blue" stroke-width="4" stroke-dasharray="150" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 1s linear;"></circle>
+                        </svg>
+                        <span class="absolute text-[10px] font-bold text-gray-400 uppercase">Recup</span>
+                    </div>
+                </div>
+
+                <!-- Custom Presets -->
+                <div class="grid grid-cols-4 gap-2 mt-4">
+                    <button onclick="setRestTime(30)" class="py-2 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 hover:border-neuro-blue/30 text-gray-300 hover:text-white uppercase transition-all">30s</button>
+                    <button onclick="setRestTime(60)" class="py-2 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 hover:border-neuro-blue/30 text-gray-300 hover:text-white uppercase transition-all">60s</button>
+                    <button onclick="setRestTime(90)" class="py-2 text-[10px] font-black rounded-xl bg-white/10 border border-neuro-blue/30 text-neuro-blue uppercase transition-all">90s</button>
+                    <button onclick="setRestTime(120)" class="py-2 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 hover:border-neuro-blue/30 text-gray-300 hover:text-white uppercase transition-all">2m</button>
+                </div>
+
+                <!-- Action Button for Rest -->
+                <button id="trigger-rest-btn" onclick="toggleRest()" class="w-full mt-4 py-3 rounded-2xl bg-neuro-blue/15 border border-neuro-blue/30 text-neuro-blue font-black text-xs uppercase tracking-widest hover:bg-neuro-blue/25 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                    <!-- Timer play SVG -->
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    Iniciar Descanso
+                </button>
+            </div>
+
+            <!-- Exercises Logger Matrix -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest">Matriz de Entrenamiento</h3>
+                    <span id="exercises-count" class="text-[10px] font-black text-bio-orange uppercase">3 Ejercicios</span>
+                </div>
+
+                <div id="workout-matrix" class="space-y-4">
+                    <!-- Dynamic Exercises injected here -->
+                </div>
+            </div>
+
+            <!-- Predefined Somatic Exercise Selector -->
+            <div class="bg-glass-noir border border-white/10 rounded-3xl p-5 space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🏋️</span>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-white/80">Añadir Protocolo Biomecánico</h3>
+                </div>
+
+                <div class="relative">
+                    <select id="exercise-picker" class="w-full appearance-none bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-xs font-bold text-gray-300 focus:outline-none focus:border-bio-orange/50 transition-all uppercase italic">
+                        <option value="Press de Banca Inclinado">Press de Banca Inclinado (Pecho Superior)</option>
+                        <option value="Dominadas con Lastre">Dominadas con Lastre (Espalda Superior)</option>
+                        <option value="Sentadilla Goblet Profunda">Sentadilla Goblet Profunda (Cuádriceps)</option>
+                        <option value="Peso Muerto Rumano">Peso Muerto Rumano (Isquios/Glúteo)</option>
+                        <option value="Elevaciones Laterales Estrictas">Elevaciones Laterales Estrictas (Deltoides)</option>
+                        <option value="Custom">Crear Ejercicio Personalizado...</option>
+                    </select>
+                    <!-- Custom Arrow down SVG -->
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-bio-orange pointer-events-none font-bold">▼</span>
+                </div>
+
+                <button onclick="handleAddExerciseFromPicker()" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:border-bio-orange/30 text-bio-orange text-xs font-black uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                    + Insertar en la Sesión
+                </button>
+            </div>
+
+            <!-- Complete Workout Session Action -->
+            <button onclick="finishSession()" class="w-full py-5 rounded-2xl bg-bio-orange text-dark font-black text-sm uppercase tracking-widest shadow-2xl animate-pulse-orange hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                <svg class="w-5 h-5 text-black stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Finalizar Sesión & Recibir NTK
+            </button>
+
+            <!-- Diagnostic disclaimer -->
+            <div class="glass-card border border-white/5 p-4 rounded-2xl text-center bg-white/1">
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider leading-relaxed">
+                    Soberanía de datos activa. Tus cargas y volumen de esfuerzo quedan almacenados localmente y se sincronizan de forma segura con la red biológica.
+                </p>
+            </div>
+
+        </main>
+
+        <!-- Haptic Sound Player (Simulated) -->
+        <audio id="rest-alert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav" preload="auto"></audio>
+    </div>
+
+    <!-- Active App Logic -->
+    <script>
+        // Init state
+        let ntkBalance = 1250;
+        let sessionSeconds = 0;
+        let sessionTimerInterval;
+        
+        let restTimeMax = 90;
+        let restTimeRemaining = 90;
+        let restTimerInterval;
+        let isRestActive = false;
+
+        let exercises = [
+            {
+                id: 1,
+                name: "Press de Banca Inclinado",
+                sets: [
+                    { id: 101, weight: 80, reps: 10, complete: true },
+                    { id: 102, weight: 80, reps: 9, complete: false }
+                ]
+            },
+            {
+                id: 2,
+                name: "Dominadas con Lastre",
+                sets: [
+                    { id: 201, weight: 15, reps: 8, complete: true }
+                ]
+            }
+        ];
+
+        // Start global timer on load
+        function startSessionTimer() {
+            sessionTimerInterval = setInterval(() => {
+                sessionSeconds++;
+                const hours = Math.floor(sessionSeconds / 3600).toString().padStart(2, '0');
+                const minutes = Math.floor((sessionSeconds % 3600) / 60).toString().padStart(2, '0');
+                const seconds = (sessionSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('session-timer').innerText = `${hours}:${minutes}:${seconds}`;
+
+                // Pulsate heart rate slightly
+                const bpm = 70 + Math.floor(Math.sin(sessionSeconds / 5) * 6) + Math.floor(Math.random() * 4);
+                document.getElementById('pulse-rate').innerText = bpm;
+            }, 1000);
+        }
+
+        // Render Matrix dynamically
+        function renderMatrix() {
+            const container = document.getElementById('workout-matrix');
+            container.innerHTML = '';
+            
+            document.getElementById('exercises-count').innerText = `${exercises.length} Ejercicio${exercises.length === 1 ? '' : 's'}`;
+
+            exercises.forEach((ex, exIdx) => {
+                const card = document.createElement('div');
+                card.className = "bg-glass-noir border border-white/5 rounded-3xl p-5 space-y-4 relative overflow-hidden transition-all duration-300";
+                
+                // Card accent indicator based on index
+                const accentColor = exIdx % 2 === 0 ? 'border-l-4 border-l-bio-orange' : 'border-l-4 border-l-neuro-blue';
+                card.className += ` ${accentColor}`;
+
+                // Title row
+                let deleteBtn = exercises.length > 1 
+                    ? `<button onclick="deleteExercise(${ex.id})" class="text-[9px] font-black text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors">Remover</button>`
+                    : ``;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Protocolo Biomecánico ${exIdx + 1}</span>
+                            <h4 class="text-sm font-black text-white mt-1 uppercase tracking-tight">${ex.name}</h4>
+                        </div>
+                        ${deleteBtn}
+                    </div>
+
+                    <!-- Sets headers -->
+                    <div class="grid grid-cols-12 gap-2 text-center text-[8px] font-black text-gray-500 uppercase tracking-widest pb-1 border-b border-white/5">
+                        <div class="col-span-2 text-left">Serie</div>
+                        <div class="col-span-4">Carga (kg)</div>
+                        <div class="col-span-4">Reps</div>
+                        <div class="col-span-2">Estado</div>
+                    </div>
+
+                    <!-- Sets List -->
+                    <div class="space-y-2">
+                        ${ex.sets.map((set, sIdx) => {
+                            const completedClass = set.complete 
+                                ? 'bg-bio-green/10 border-bio-green/20' 
+                                : 'bg-black/20 border-white/5';
+                            const checkIcon = set.complete ? '✓' : '⚡';
+                            const checkColor = set.complete ? 'text-bio-green' : 'text-gray-500';
+
+                            return `
+                                <div class="grid grid-cols-12 gap-2 items-center text-center">
+                                    <div class="col-span-2 text-left text-xs font-black text-gray-400">${sIdx + 1}</div>
+                                    <div class="col-span-4">
+                                        <input type="number" value="${set.weight}" onchange="updateSetData(${ex.id}, ${set.id}, 'weight', this.value)" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-1 text-center text-xs font-mono text-white outline-none focus:border-neuro-blue/50">
+                                    </div>
+                                    <div class="col-span-4">
+                                        <input type="number" value="${set.reps}" onchange="updateSetData(${ex.id}, ${set.id}, 'reps', this.value)" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-1 text-center text-xs font-mono text-white outline-none focus:border-neuro-blue/50">
+                                    </div>
+                                    <div class="col-span-2 flex justify-center">
+                                        <button onclick="toggleSetComplete(${ex.id}, ${set.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black transition-all ${completedClass} ${checkColor}">
+                                            ${checkIcon}
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Add Set trigger -->
+                    <button onclick="addSetToExercise(${ex.id})" class="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white text-[9px] font-black uppercase tracking-widest transition-all">
+                        + Nueva Serie
+                    </button>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Action: Add Exercise from picker
+        function handleAddExerciseFromPicker() {
+            const picker = document.getElementById('exercise-picker');
+            let name = picker.value;
+
+            if (name === 'Custom') {
+                const customName = prompt("Escribe el nombre del ejercicio personalizado:");
+                if (!customName || !customName.trim()) return;
+                name = customName.trim();
+            }
+
+            const newEx = {
+                id: Date.now(),
+                name: name,
+                sets: [
+                    { id: Date.now() + 1, weight: 60, reps: 10, complete: false }
+                ]
+            };
+
+            exercises.push(newEx);
+            renderMatrix();
+            
+            // Notification feedback
+            triggerNotification(`Insertado: ${name}`);
+        }
+
+        // Action: Delete Exercise
+        function deleteExercise(exId) {
+            exercises = exercises.filter(e => e.id !== exId);
+            renderMatrix();
+        }
+
+        // Action: Add set to exercise
+        function addSetToExercise(exId) {
+            const ex = exercises.find(e => e.id === exId);
+            if (ex) {
+                const lastSet = ex.sets[ex.sets.length - 1];
+                const weight = lastSet ? lastSet.weight : 60;
+                const reps = lastSet ? lastSet.reps : 10;
+                
+                ex.sets.push({
+                    id: Date.now(),
+                    weight: weight,
+                    reps: reps,
+                    complete: false
+                });
+                renderMatrix();
+            }
+        }
+
+        // Action: Update set data
+        function updateSetData(exId, setId, key, value) {
+            const ex = exercises.find(e => e.id === exId);
+            if (ex) {
+                const set = ex.sets.find(s => s.id === setId);
+                if (set) {
+                    set[key] = parseFloat(value) || 0;
+                }
+            }
+        }
+
+        // Action: Toggle Set complete
+        function toggleSetComplete(exId, setId) {
+            const ex = exercises.find(e => e.id === exId);
+            if (ex) {
+                const set = ex.sets.find(s => s.id === setId);
+                if (set) {
+                    set.complete = !set.complete;
+                    renderMatrix();
+
+                    if (set.complete) {
+                        // Play a brief haptic tap vibration and trigger rest suggestion
+                        triggerVibration(40);
+                        suggestRest(90);
+                    }
+                }
+            }
+        }
+
+        // Rest Timer logic
+        function setRestTime(seconds) {
+            restTimeMax = seconds;
+            restTimeRemaining = seconds;
+            updateRestDisplay();
+        }
+
+        function updateRestDisplay() {
+            document.getElementById('timer-display').innerText = restTimeRemaining;
+            
+            // Progress SVG ring offset
+            const circumference = 2 * Math.PI * 24;
+            const offset = circumference - (restTimeRemaining / restTimeMax) * circumference;
+            document.getElementById('timer-progress').style.strokeDashoffset = offset;
+        }
+
+        function toggleRest() {
+            if (isRestActive) {
+                pauseRest();
+            } else {
+                startRest();
+            }
+        }
+
+        function startRest() {
+            isRestActive = true;
+            document.getElementById('timer-status').innerText = 'RECOUP...';
+            document.getElementById('timer-status').classList.add('text-neuro-blue', 'animate-pulse');
+            document.getElementById('timer-status').classList.remove('text-bio-green');
+            
+            const btn = document.getElementById('trigger-rest-btn');
+            btn.innerHTML = `
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                Pausar Descanso
+            `;
+
+            restTimerInterval = setInterval(() => {
+                restTimeRemaining--;
+                updateRestDisplay();
+
+                if (restTimeRemaining <= 0) {
+                    finishRest();
+                }
+            }, 1000);
+        }
+
+        function pauseRest() {
+            isRestActive = false;
+            clearInterval(restTimerInterval);
+            document.getElementById('timer-status').innerText = 'PAUSADO';
+            document.getElementById('timer-status').classList.remove('animate-pulse');
+            
+            const btn = document.getElementById('trigger-rest-btn');
+            btn.innerHTML = `
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Reanudar Descanso
+            `;
+        }
+
+        function finishRest() {
+            isRestActive = false;
+            clearInterval(restTimerInterval);
+            document.getElementById('timer-status').innerText = '¡LISTO!';
+            document.getElementById('timer-status').classList.remove('text-neuro-blue', 'animate-pulse');
+            document.getElementById('timer-status').classList.add('text-bio-green');
+            
+            // Play sound notification
+            try {
+                document.getElementById('rest-alert').play();
+            } catch (e) {
+                console.log("Audio play deferred or blocked by browser.");
+            }
+
+            // High priority vibration pattern
+            triggerVibration([200, 100, 200]);
+
+            // Flash Card visual
+            const card = document.getElementById('timer-card');
+            card.classList.add('border-bio-green', 'bg-bio-green/5');
+            setTimeout(() => {
+                card.classList.remove('border-bio-green', 'bg-bio-green/5');
+            }, 3000);
+
+            // Reset
+            restTimeRemaining = restTimeMax;
+            updateRestDisplay();
+            
+            const btn = document.getElementById('trigger-rest-btn');
+            btn.innerHTML = `
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Iniciar Descanso
+            `;
+        }
+
+        function suggestRest(seconds) {
+            // Briefly pulse rest timer card to remind the user to rest
+            const card = document.getElementById('timer-card');
+            card.classList.add('border-neuro-blue/40', 'bg-neuro-blue/5');
+            setTimeout(() => {
+                card.classList.remove('border-neuro-blue/40', 'bg-neuro-blue/5');
+            }, 1500);
+        }
+
+        // Custom helpers for somatic engagement
+        function triggerVibration(pattern) {
+            if ("vibrate" in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        function triggerNotification(text) {
+            // Simulated native toast
+            console.log(`[Bio-Somatic NOTIFICATION]: ${text}`);
+        }
+
+        // Finish Session and receive reward tokens
+        function finishSession() {
+            // Check completed sets
+            let totalSets = 0;
+            let completedSets = 0;
+            exercises.forEach(e => {
+                totalSets += e.sets.length;
+                completedSets += e.sets.filter(s => s.complete).length;
+            });
+
+            if (completedSets === 0) {
+                alert("Completa al menos una serie para poder finalizar y recibir tus recompensas.");
+                return;
+            }
+
+            const earnedNtk = completedSets * 15; // 15 NTK per completed set (delayed dopamine logic)
+            const bonusNtk = Math.floor(Math.random() * 15) + 10; // Veteran / synergy bonus
+            const totalEarned = earnedNtk + bonusNtk;
+
+            ntkBalance += totalEarned;
+            document.getElementById('ntk-balance').innerText = `${ntkBalance.toLocaleString()} NTK`;
+
+            // Prompt success message and reward
+            alert(`
+                🏆 ¡SESIÓN COMPLETADA CON ÉXITO!
+                
+                • Series Totales Logradas: ${completedSets}
+                • Recompensa de Dopamina: +${earnedNtk} NTK
+                • Bono de Sinergia Activo: +${bonusNtk} NTK
+                
+                Total Recibido: +${totalEarned} NTK. ¡Balance actualizado!
+            `);
+
+            // Clear local storage and direct to progress page
+            localStorage.removeItem('hb_current_workout');
+            window.location.href = '../../index.html'; // Return to main operational dashboard
+        }
+
+        // Run on load
+        window.onload = function() {
+            startSessionTimer();
+            renderMatrix();
+            updateRestDisplay();
+        }
+    </script>
+</body>
+
+</html>

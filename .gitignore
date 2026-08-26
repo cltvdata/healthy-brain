@@ -11,3 +11,6 @@ serviceAccountKey.json
 .firebase/
 *.key
 credentials.json
+
+# Kiro MCP configuration (contains API keys)
+.kiro/settings/mcp.json

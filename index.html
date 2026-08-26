@@ -5,26 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HEALTHY + BRAIN - Premium</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/design-system.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#ff8a00',
-                        neon: '#00d1ff',
-                        dark: '#0a0a0a',
-                    },
-                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
+    
     <style>
         body {
             font-family: 'Outfit', sans-serif;
@@ -327,29 +314,6 @@
         applyUserBg();
         syncData();
         window.addEventListener('focus', syncData);
-    </script>
-
-    <!-- Firebase SDK + Auth Guard -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const auth = window.hb_auth;
-            auth.onAuthStateChanged((user) => {
-                if (!user) {
-                    window.location.href = 'login.html';
-                } else {
-                    const greeting = document.getElementById('greeting');
-                    const hour = new Date().getHours();
-                    let greetText = 'Buenos días';
-                    if (hour >= 12 && hour < 18) greetText = 'Buenas tardes';
-                    if (hour >= 18) greetText = 'Buenas noches';
-                    greeting.innerText = `${greetText}, ${user.email?.split('@')[0] || 'Guerrero'}`;
-                }
-            });
-        });
     </script>
 </body>
 

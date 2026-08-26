@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "706252737234",
+    "project_id": "healthy-brain-id",
+    "storage_bucket": "healthy-brain-id.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706252737234:android:96bc6c1b436e4aaea3fb0b",
+        "android_client_info": {
+          "package_name": "com.healthybrain.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "706252737234-4u3amotgtigcc1820u7s925o377n5uie.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.healthybrain.app",
+            "certificate_hash": "9ea7da4a9ce5a9a05f6238ea0a1d91d80ca3e22f"
+          }
+        },
+        {
+          "client_id": "706252737234-tuob79gflukjqa9qsk6msjfdcarhj2rt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVnPQ66V8oUesgkTCnvKL1tJUa9Dxg2GQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "706252737234-tuob79gflukjqa9qsk6msjfdcarhj2rt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

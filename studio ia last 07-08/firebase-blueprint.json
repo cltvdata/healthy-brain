@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and biological metrics data",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "tokens": {
+          "type": "integer"
+        },
+        "isPremium": {
+          "type": "boolean"
+        },
+        "isPaymentApproved": {
+          "type": "boolean"
+        },
+        "userLang": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "metrics": {
+          "type": "object"
+        }
+      },
+      "required": ["email", "tokens"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles with their bio-metrics and tokens state"
+    }
+  }
+}

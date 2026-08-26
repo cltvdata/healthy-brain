@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HEALTHY + BRAIN - Bio-Assisted Focus Session</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'space-obsidian': '#0a0a0a',
+                        'glass-noir': 'rgba(25, 25, 25, 0.75)',
+                        'bio-orange': '#ff8a00',
+                        'neuro-blue': '#00d1ff',
+                        'bio-green': '#13ec5b',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Subtle cyber grid background */
+        .bg-cyber-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+        }
+
+        /* Glassmorphism scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Soft Pulse Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 209, 255, 0.15); }
+            50% { box-shadow: 0 0 30px rgba(0, 209, 255, 0.4); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .animate-pulse-green {
+            animation: pulse-green 1.5s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0.7; }
+            50% { top: 100%; opacity: 0.7; }
+            100% { top: 0%; opacity: 0.7; }
+        }
+        .animate-scan-line {
+            animation: scan 5s infinite linear;
+        }
+    </style>
+</head>
+
+<body class="bg-space-obsidian bg-cyber-grid min-h-screen flex flex-col justify-start">
+
+    <div class="relative w-full max-w-md mx-auto min-h-screen flex flex-col bg-black/40 border-x border-white/5 shadow-2xl pb-24">
+        
+        <!-- Scanning laser line effect -->
+        <div class="absolute left-0 right-0 h-[1.5px] bg-bio-orange/30 shadow-[0_0_15px_#ff8a00] animate-scan-line pointer-events-none z-10"></div>
+
+        <!-- Telemetry & Header -->
+        <header class="bg-[#121212]/80 border-b border-white/5 px-6 py-5 sticky top-0 z-40 backdrop-blur-xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-2xl bg-gradient-to-br from-neuro-blue to-bio-green text-dark shadow-2xl animate-pulse">
+                        <!-- Custom SVG Brainwave Icon -->
+                        <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black tracking-tighter uppercase italic leading-tight">Bio-<span class="text-neuro-blue">Focus</span></h1>
+                        <p class="text-[10px] font-black text-text-gray uppercase tracking-widest mt-0.5">Alineación Neuronal</p>
+                    </div>
+                </div>
+
+                <!-- Bio-Economy Token Balance -->
+                <div class="text-right">
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Balance NTK</span>
+                    <span id="ntk-balance" class="text-sm font-black text-bio-orange tracking-tight">1,250 NTK</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Session Stats -->
+            <div class="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-white/5 text-center">
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Frecuencia</span>
+                    <span id="frequency-display" class="text-xs font-black text-neuro-blue font-mono">10.0 Hz</span>
+                </div>
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Sincronía</span>
+                    <span class="text-xs font-black text-bio-green flex items-center justify-center gap-1">
+                        ⚡ <span id="sync-score">85</span><span class="text-[8px] text-gray-500">%</span>
+                    </span>
+                </div>
+                <div class="bg-white/2 rounded-xl p-2 border border-white/5">
+                    <span class="text-[8px] font-black text-gray-500 uppercase block">Estado</span>
+                    <span class="text-xs font-black text-white/90">Alpha</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="flex-1 px-5 py-6 space-y-6 overflow-y-auto scrollbar-hide">
+            
+            <!-- Contextual Bio-Axiom Tip Card -->
+            <div class="bg-glass-noir border border-white/5 p-4 rounded-2xl flex gap-3 relative overflow-hidden">
+                <div class="absolute inset-0 bg-neuro-blue/5 pointer-events-none"></div>
+                <div class="p-2 rounded-xl bg-neuro-blue/10 border border-neuro-blue/20 text-neuro-blue shrink-0 flex items-center justify-center h-10 w-10">
+                    <span class="text-lg">🧠</span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-sm text-white mb-1">Optimización de Ondas Cerebrales</h3>
+                    <p class="text-[11px] text-gray-400 leading-relaxed font-medium">
+                        Sincroniza tus hemisferios cerebrales con audio binaural. Exposición solar matutina recomendada antes de comenzar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Focus Session Countdown Clock -->
+            <div id="focus-card" class="bg-glass-noir border border-white/10 rounded-3xl p-6 relative overflow-hidden flex flex-col items-center justify-center text-center animate-pulse-glow">
+                <div class="absolute top-4 left-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-bio-green animate-pulse-green"></span>
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Sesión de Flujo</span>
+                </div>
+
+                <!-- Interactive Circular Progress -->
+                <div class="relative w-48 h-48 mt-6 flex items-center justify-center">
+                    <svg class="w-full h-full transform -rotate-90 absolute">
+                        <circle cx="96" cy="96" r="88" fill="none" class="stroke-white/5" stroke-width="6"></circle>
+                        <circle id="focus-progress" cx="96" cy="96" r="88" fill="none" class="stroke-neuro-blue" stroke-width="8" stroke-dasharray="552" stroke-dashoffset="0" stroke-linecap="round" style="transition: stroke-dashoffset 1s linear;"></circle>
+                    </svg>
+                    <div class="absolute flex flex-col items-center justify-center">
+                        <span id="timer-clock" class="text-5xl font-black text-white tracking-tighter font-mono">45:00</span>
+                        <span id="session-status" class="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-2">Profundo</span>
+                    </div>
+                </div>
+
+                <!-- Binaural Waves Selectors -->
+                <div class="w-full mt-6 space-y-3">
+                    <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                        <span>Canal de Audio Binaural</span>
+                        <span id="freq-desc" class="text-neuro-blue font-black">Alpha (10Hz) - Enfoque</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setWaveType('alpha')" id="btn-alpha" class="py-2.5 text-[10px] font-black rounded-xl bg-white/10 border border-neuro-blue/40 text-neuro-blue uppercase transition-all">Alpha (10Hz)</button>
+                        <button onclick="setWaveType('theta')" id="btn-theta" class="py-2.5 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 hover:border-neuro-blue/30 text-gray-300 hover:text-white uppercase transition-all">Theta (4Hz)</button>
+                        <button onclick="setWaveType('gamma')" id="btn-gamma" class="py-2.5 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 hover:border-neuro-blue/30 text-gray-300 hover:text-white uppercase transition-all">Gamma (40Hz)</button>
+                    </div>
+                </div>
+
+                <!-- Primary Play/Pause Controls -->
+                <div class="flex gap-3 w-full mt-6">
+                    <button id="reset-btn" onclick="resetTimer()" class="flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-gray-300 hover:text-white text-xs font-black uppercase tracking-widest transition-all">
+                        Reiniciar
+                    </button>
+                    <button id="start-btn" onclick="toggleTimer()" class="flex-1 py-3.5 rounded-2xl bg-neuro-blue text-dark font-black text-xs uppercase tracking-widest shadow-lg shadow-neuro-blue/20 hover:scale-[1.02] active:scale-95 transition-all">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+
+            <!-- Simulated Realtime Brainwave Canvas Visualizer -->
+            <div class="bg-glass-noir border border-white/10 rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center px-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm">🧬</span>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-white/80">Sincronizador Sináptico</h3>
+                    </div>
+                    <span class="text-[8px] font-black text-neuro-blue uppercase bg-neuro-blue/10 border border-neuro-blue/20 px-2 py-0.5 rounded">Real-Time</span>
+                </div>
+
+                <div class="relative w-full h-16 bg-black/40 border border-white/5 rounded-2xl overflow-hidden p-2">
+                    <canvas id="wave-canvas" class="w-full h-full"></canvas>
+                </div>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider text-center">Modulación de Amplitud Frecuencial</p>
+            </div>
+
+            <!-- Complete Session Button -->
+            <button onclick="finishSession()" class="w-full py-5 rounded-2xl bg-bio-green text-dark font-black text-sm uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                <svg class="w-5 h-5 text-black stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Finalizar Sesión & Guardar
+            </button>
+
+            <!-- Diagnostic disclaimer -->
+            <div class="glass-card border border-white/5 p-4 rounded-2xl text-center bg-white/1">
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider leading-relaxed">
+                    Sustento de la red biológica. Las métricas de enfoque y neuro-recuperación acumuladas se sumarán a tu historial biográfico de forma segura.
+                </p>
+            </div>
+
+        </main>
+
+        <audio id="timer-complete" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav" preload="auto"></audio>
+    </div>
+
+    <!-- Active App Logic -->
+    <script>
+        // Init variables
+        let ntkBalance = 1250;
+        let originalTimeSeconds = 2700; // 45:00
+        let timeRemaining = 2700;
+        let timerInterval;
+        let isRunning = false;
+        let waveType = 'alpha';
+
+        // Canvas animation setup
+        const canvas = document.getElementById('wave-canvas');
+        const ctx = canvas.getContext('2d');
+        let waveAnimationId;
+        let wavePhase = 0;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawBrainwave() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = waveType === 'alpha' ? '#00d1ff' : waveType === 'theta' ? '#ff8a00' : '#13ec5b';
+            ctx.lineWidth = 2.5;
+
+            // Set amplitude and speed depending on waveType
+            let amplitude = 12;
+            let frequency = 0.05;
+            let speed = 0.12;
+
+            if (waveType === 'theta') {
+                amplitude = 18;
+                frequency = 0.02;
+                speed = 0.06;
+            } else if (waveType === 'gamma') {
+                amplitude = 6;
+                frequency = 0.12;
+                speed = 0.25;
+            }
+
+            // Draw primary sine wave
+            for (let x = 0; x < canvas.width; x++) {
+                const y = canvas.height / 2 + Math.sin(x * frequency + wavePhase) * amplitude;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw secondary background wave (harmonic)
+            ctx.beginPath();
+            ctx.strokeStyle = waveType === 'alpha' ? 'rgba(0, 209, 255, 0.25)' : waveType === 'theta' ? 'rgba(255, 138, 0, 0.25)' : 'rgba(19, 236, 91, 0.25)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x++) {
+                const y = canvas.height / 2 + Math.sin(x * (frequency * 0.5) - wavePhase * 1.5) * (amplitude * 0.6);
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            wavePhase += speed;
+            waveAnimationId = requestAnimationFrame(drawBrainwave);
+        }
+
+        // Start drawing immediately
+        drawBrainwave();
+
+        // Wave Selector logic
+        function setWaveType(type) {
+            waveType = type;
+            const btnAlpha = document.getElementById('btn-alpha');
+            const btnTheta = document.getElementById('btn-theta');
+            const btnGamma = document.getElementById('btn-gamma');
+            const desc = document.getElementById('freq-desc');
+            const freqDisp = document.getElementById('frequency-display');
+
+            // Reset classes
+            [btnAlpha, btnTheta, btnGamma].forEach(btn => {
+                btn.className = "py-2.5 text-[10px] font-black rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-white uppercase transition-all";
+            });
+
+            if (type === 'alpha') {
+                btnAlpha.className = "py-2.5 text-[10px] font-black rounded-xl bg-white/10 border border-neuro-blue/40 text-neuro-blue uppercase transition-all";
+                desc.innerText = "Alpha (10Hz) - Enfoque";
+                desc.className = "text-neuro-blue font-black";
+                freqDisp.innerText = "10.0 Hz";
+                originalTimeSeconds = 2700; // 45 min
+            } else if (type === 'theta') {
+                btnTheta.className = "py-2.5 text-[10px] font-black rounded-xl bg-white/10 border border-bio-orange/40 text-bio-orange uppercase transition-all";
+                desc.innerText = "Theta (4Hz) - Meditación";
+                desc.className = "text-bio-orange font-black";
+                freqDisp.innerText = "4.0 Hz";
+                originalTimeSeconds = 1800; // 30 min
+            } else if (type === 'gamma') {
+                btnGamma.className = "py-2.5 text-[10px] font-black rounded-xl bg-white/10 border border-bio-green/40 text-bio-green uppercase transition-all";
+                desc.innerText = "Gamma (40Hz) - Cognitivo";
+                desc.className = "text-bio-green font-black";
+                freqDisp.innerText = "40.0 Hz";
+                originalTimeSeconds = 900; // 15 min
+            }
+
+            if (!isRunning) {
+                timeRemaining = originalTimeSeconds;
+                updateDisplay();
+            }
+        }
+
+        // Timer actions
+        function updateDisplay() {
+            const mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const secs = (timeRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('timer-clock').innerText = `${mins}:${secs}`;
+
+            // Progress ring
+            const circumference = 2 * Math.PI * 88;
+            const offset = circumference - (timeRemaining / originalTimeSeconds) * circumference;
+            document.getElementById('focus-progress').style.strokeDashoffset = offset;
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            isRunning = true;
+            document.getElementById('session-status').innerText = 'PROCESANDO';
+            document.getElementById('session-status').className = 'text-[8px] font-black text-neuro-blue uppercase tracking-widest mt-2 animate-pulse';
+            
+            const btn = document.getElementById('start-btn');
+            btn.innerText = 'Pausar Sesión';
+            btn.className = 'flex-1 py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white font-black text-xs uppercase tracking-widest';
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateDisplay();
+
+                // Sincrony score fluctuation simulation
+                const sync = 80 + Math.floor(Math.sin(timeRemaining / 10) * 8) + Math.floor(Math.random() * 4);
+                document.getElementById('sync-score').innerText = Math.min(sync, 100);
+
+                if (timeRemaining <= 0) {
+                    finishTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('session-status').innerText = 'PAUSADO';
+            document.getElementById('session-status').className = 'text-[8px] font-black text-gray-500 uppercase tracking-widest mt-2';
+            
+            const btn = document.getElementById('start-btn');
+            btn.innerText = 'Reanudar Sesión';
+            btn.className = 'flex-1 py-3.5 rounded-2xl bg-neuro-blue text-dark font-black text-xs uppercase tracking-widest shadow-lg shadow-neuro-blue/20';
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            timeRemaining = originalTimeSeconds;
+            updateDisplay();
+
+            document.getElementById('session-status').innerText = 'PROFUNDO';
+            document.getElementById('session-status').className = 'text-[8px] font-black text-gray-500 uppercase tracking-widest mt-2';
+
+            const btn = document.getElementById('start-btn');
+            btn.innerText = 'Iniciar Sesión';
+            btn.className = 'flex-1 py-3.5 rounded-2xl bg-neuro-blue text-dark font-black text-xs uppercase tracking-widest shadow-lg';
+        }
+
+        function finishTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('session-status').innerText = '¡COMPLETO!';
+            document.getElementById('session-status').className = 'text-[8px] font-black text-bio-green uppercase tracking-widest mt-2';
+
+            // Play Alert sound
+            try {
+                document.getElementById('timer-complete').play();
+            } catch (e) {
+                console.log("Audio playing deferred.");
+            }
+
+            // Somatic feedback vibration
+            if ("vibrate" in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 400]);
+            }
+
+            alert("🏆 ¡Enhorabuena! Has completado tu ciclo de enfoque sin interrupciones. Se ha sumado a tu Bio-Matrix.");
+            finishSession();
+        }
+
+        function finishSession() {
+            // Give 50 NTK as reward
+            ntkBalance += 50;
+            document.getElementById('ntk-balance').innerText = `${ntkBalance} NTK`;
+
+            alert(`
+                ✨ INFORME DE SESIÓN COGNITIVA
+                
+                • Tipo de onda: ${waveType.toUpperCase()} Sincronizada
+                • Recompensa Neuro-Ambiental: +50 NTK
+                • Impacto en Estrés: Reducido
+                
+                Tus datos han sido registrados en tu perfil. Regresando al Lobby principal...
+            `);
+
+            window.location.href = '../../index.html'; // Return to main operational dashboard
+        }
+
+        updateDisplay();
+    </script>
+</body>
+
+</html>

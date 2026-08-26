@@ -1,0 +1,10 @@
+{
+  "name": "Healthy + Brain App",
+  "description": "Plataforma integral de Bio-Tracking, Longevidad, Sincronización Neuronal y Nutrición Soberana HEALTHY + BRAIN.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

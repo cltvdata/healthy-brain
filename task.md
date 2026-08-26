@@ -17,8 +17,10 @@
 - [x] social-media-plan.md - Estrategia completa de marketing
 - [x] LAUNCH_CHECKLIST.md - Checklist de lanzamiento
 
-### ⚠️ Pendiente (Build local):
-- Build APK para testing (problema de permisos en esta sesión)
+### ⚠️ En Progreso (Lanzamiento):
+- [x] Resueltos errores de conexión MCP (Auth actualizada en NotebookLM).
+- [x] Despliegue del Frontend Web completado exitosamente (Firebase Hosting).
+- [ ] Build APK en la nube (EAS Build) falló en la fase "Run gradlew".
 
 ---
 

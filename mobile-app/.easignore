@@ -1,10 +1,6 @@
+node_modules/
+.expo/
 android/
 ios/
-node_modules/
-.git/
-.expo/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+*.log
+.DS_Store

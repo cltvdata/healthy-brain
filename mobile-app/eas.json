@@ -10,7 +10,9 @@
     },
     "preview": {
       "distribution": "internal",
-      "node": "20.x",
+      "env": {
+        "YARN_IGNORE_ENGINES": "1"
+      },
       "android": {
         "buildType": "apk",
         "image": "ubuntu-22.04-jdk-17-ndk-r26b"

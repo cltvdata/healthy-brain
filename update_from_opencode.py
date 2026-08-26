@@ -30,7 +30,7 @@ def sync_folders():
                 # Copy if destination doesn't exist, or if files are different
                 if not os.path.exists(dest_path) or not filecmp.cmp(src_path, dest_path, shallow=False):
                     shutil.copy2(src_path, dest_path)
-                    print(f"✓ Actualizado: {rel_path}")
+                    print(f"+ Actualizado: {rel_path}")
                     copied_count += 1
     
     print(f"\nSincronizacion completada! {copied_count} archivos actualizados.")

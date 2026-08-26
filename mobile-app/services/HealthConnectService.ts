@@ -88,18 +88,7 @@ export class HealthConnectService {
     }
     return 'none';
   }
-    } else if (Platform.OS === 'android') {
-      try {
-        // Verificar Health Connect en Android
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser?.uid || ''));
-        const preferredProvider = userDoc.data()?.preferredHealthProvider;
-        return preferredProvider || 'google_health_connect';
-      } catch {
-        return 'google_health_connect';
-      }
-    }
-    return 'none';
-  }
+
 
   /**
    * Establecer proveedor de salud preferido del usuario
@@ -176,45 +165,35 @@ export class HealthConnectService {
     const errors: string[] = [];
 
     try {
+      const mockData = await this.getSimulatedHealthData();
+      
       if (provider === 'apple_health') {
-        // En app real: Fetch desde HealthKit
-        // Datos simulados
-        const mockData = await this.getSimulatedHealthData();
-        
-        if (auth.currentUser) {
-          await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-            latestSteps: mockData.steps,
-            latestHRV: mockData.hrv,
-            latestSleepHours: mockData.sleepHours,
-            lastHealthSync: serverTimestamp(),
-            healthProvider: provider
-          });
-        }
-        
         syncedFields.push('steps', 'hrv', 'sleep', 'heartRate');
-      } 
-      else if (provider === 'google_health_connect') {
-        // En app real: Fetch desde Health Connect
-        const mockData = await this.getSimulatedHealthData();
-        
-        if (auth.currentUser) {
-          await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-            latestSteps: mockData.steps,
-            latestHRV: mockData.hrv,
-            latestSleepHours: mockData.sleepHours,
-            lastHealthSync: serverTimestamp(),
-            healthProvider: provider
-          });
-        }
-        
+      } else if (provider === 'google_health_connect') {
         syncedFields.push('steps', 'hrv', 'sleep', 'heartRate', 'glucose');
       }
 
-      // Registrar sync en historial
       if (auth.currentUser) {
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          latestSteps: mockData.steps,
+          latestHRV: mockData.hrv,
+          latestSleepHours: mockData.sleepHours,
+          lastHealthSync: serverTimestamp(),
+          healthProvider: provider
+        });
+
+        // Registrar sync con VALORES en historial
         await addDoc(collection(db, 'users', auth.currentUser.uid, 'health_syncs'), {
           provider,
           syncedFields,
+          metrics: {
+            steps: mockData.steps,
+            hrv: mockData.hrv,
+            sleepHours: mockData.sleepHours,
+            heartRate: mockData.heartRate,
+            glucose: mockData.glucose,
+            weight: mockData.weight
+          },
           timestamp: serverTimestamp()
         });
       }
