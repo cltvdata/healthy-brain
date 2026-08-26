@@ -1,14 +1,6 @@
-@import "tailwindcss";
-
-@theme {
-  --color-primary: #ff8a00;
-  --color-neon: #00d1ff;
-  --color-dark: #0a0a0a;
-  --color-surface-dark: #121212;
-  --color-surface-glass: rgba(25, 25, 25, 0.7);
-  --color-text-gray: #a0a0a0;
-  --font-sans: 'Outfit', sans-serif;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 
 /* 
